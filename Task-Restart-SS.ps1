@@ -21,5 +21,5 @@ $AzureContext = (Connect-AzAccount -Identity).context
 $AzureContext = Set-AzContext -SubscriptionName $AzureContext.Subscription -DefaultProfile $AzureContext
 
 
-# update all VM instances as the same time
-Restart-AzVmss -ResourceGroupName $RG -VMScaleSetName $SS -InstanceId *
+# update all VM instances at the same time
+Restart-AzVmss -ResourceGroupName $SSRG -VMScaleSetName $SS -InstanceId *

@@ -1,8 +1,9 @@
   #Parameters
   param(
 	[Parameter(Mandatory)][String]$SS="",
-	[Parameter(Mandatory)][String]$RG="",
-	[String]$HP=""
+	[Parameter(Mandatory)][String]$SSRG="",
+	[String]$HP="",
+	[String]$HPRG=""	
 	)
 
 # import modules

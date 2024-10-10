@@ -12,7 +12,7 @@
 	[String]$TenantID = ""
 	)
 
-
+$ProgressPreference ="SilentlyContinue"
 $Logfile = "JoinWVD.log"
 
 

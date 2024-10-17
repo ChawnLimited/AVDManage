@@ -166,7 +166,6 @@ REG ADD "HKEY_LOCAL_MACHINE\Software\Policies\Microsoft\PCHealth\HelpSvc" /v Mic
 REG ADD "HKEY_LOCAL_MACHINE\Software\Policies\Microsoft\PCHealth\ErrorReporting" /v DoReport /t REG_DWORD /d 0 /f
 REG ADD "HKEY_LOCAL_MACHINE\Software\Policies\Microsoft\PeerDist\Service" /v Enable /t REG_DWORD /d 0 /f
 REG ADD "HKEY_LOCAL_MACHINE\Software\policies\Microsoft\Peernet" /v Disabled /t REG_DWORD /d 1 /f
-REG ADD "HKEY_LOCAL_MACHINE\Software\Policies\Microsoft\Power\PowerSettings" /v ActivePowerScheme /t REG_SZ /d 8c5e7fda-e8bf-4a96-9a85-a6e23a8c635c /f
 REG ADD "HKEY_LOCAL_MACHINE\Software\Policies\Microsoft\SearchCompanion" /v DisableContentFileUpdates /t REG_DWORD /d 1 /f
 REG ADD "HKEY_LOCAL_MACHINE\Software\Policies\Microsoft\SQMClient\Windows" /v CEIPEnable /t REG_DWORD /d 0 /f
 

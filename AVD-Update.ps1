@@ -73,7 +73,7 @@ try{
 	$URI="http://go.microsoft.com/fwlink/?LinkID=2093437"
 	(New-Object System.Net.WebClient).DownloadFile($uri, "C:\temp\AVD-Update\MicrosoftEdgeEnterpriseX64.msi")
 	$proc="msiexec.exe"
-	$arg="/i C:\temp\AVD-Update\MicrosoftEdgeEnterpriseX64.msi ALLUSERS=1 REBOOT=ReallySuppress /qb /l*v C:\temp\AVD-Update\MicrosoftEdgeEnterpriseX64.log"
+	$arg="/i C:\temp\AVD-Update\MicrosoftEdgeEnterpriseX64.msi ALLUSERS=1 REBOOT=ReallySuppress /qb- /l*v C:\temp\AVD-Update\MicrosoftEdgeEnterpriseX64.log"
 # Install / Update Edge
 	Start-Process -FilePath $proc -ArgumentList $arg -wait
 # Disable Edge Updaters
@@ -101,7 +101,7 @@ try{
 	$URI="https://dl.google.com/dl/chrome/install/googlechromestandaloneenterprise64.msi"
 	(New-Object System.Net.WebClient).DownloadFile($uri, "C:\temp\AVD-Update\googlechromestandaloneenterprise64.msi")
 	$proc="msiexec.exe"
-	$arg="/i C:\temp\AVD-Update\googlechromestandaloneenterprise64.msi ALLUSERS=1 REBOOT=ReallySuppress /qb /l*v C:\temp\AVD-Update\googlechromestandaloneenterprise64.log"
+	$arg="/i C:\temp\AVD-Update\googlechromestandaloneenterprise64.msi ALLUSERS=1 REBOOT=ReallySuppress /qb- /l*v C:\temp\AVD-Update\googlechromestandaloneenterprise64.log"
 # Install / Update Chrome
 	Start-Process -FilePath $proc -ArgumentList $arg -wait
 # Disable Chrome Updaters

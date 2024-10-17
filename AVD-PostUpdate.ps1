@@ -1,7 +1,7 @@
 # Chawn Limited 2024
 # AVD-PostUpdate.ps1
-# Version 1.0
-# After updates have been applied using AVD-Update.ps1, run this script to compress WinSXS and Optimise .Net, update root certs and tidy folders
+# Version 1.1
+# After updates have been applied using AVD-Update.ps1, run this script to compress WinSXS and Optimise .Net and tidy folders
 # After running this script, shutdown and snapshot the VM. Then start the VM and run sysprep before creating an updated Image for deployment
 
 # Set exec policy
@@ -28,6 +28,9 @@ Function dotNetex
 	if (get-item -path $dotnetPath -ErrorAction SilentlyContinue) {Start-Process -FilePath $dotnetPath -ArgumentList $arg0 -wait;Start-Process -FilePath $dotnetPath -ArgumentList $arg1 -wait}
 }
 
+LogIt " ------------------------------ Post Reboot ------------------------------"
+Logit "Running AVD-PostUpdate"
+
 # Log Update Info
 try	{
 	$Pname=(Get-ItemProperty 'HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion' -Name ProductName).ProductName
@@ -40,7 +43,8 @@ try	{
 catch	{}
 
 
-# Clean WinSXS
+# Compress WinSXS
+Write-Host "Compress WinSXS"
 try	{Logit "Cleaning WinSXS"
 	$proc="dism.exe"
 	$arg="/online /Cleanup-Image /StartComponentCleanup /ResetBase"
@@ -50,6 +54,7 @@ try	{Logit "Cleaning WinSXS"
 Catch	{}	
 
 # Optimise dotNet
+Write-Host "Optimise .Net"
 try	{
 		Logit "Start .Net Optimisation"
 	dotNetex "C:\Windows\Microsoft.NET\Framework\v4.0.30319\ngen.exe"
@@ -61,28 +66,12 @@ try	{
 	}
 Catch{Logit ".Net optimisation failed"}
 
-# Update Root Certificate
-try	{
-	Logit "Updating root certs"
-# download latest SST from Microsoft
-	$proc="Certutil.exe"
-	$arg="-generateSSTFromWU C:\temp\AVD-Update\RootStore.sst"
-	Start-process -FilePath $proc -ArgumentList $arg -wait
-	start-sleep -seconds 3
-# Import RootStore.sst to Trusted Root CA Store
-	$file=Get-ChildItem -Path C:\temp\AVD-Update\Rootstore.sst
-	$file | Import-Certificate -CertStoreLocation Cert:\LocalMachine\Root\
-	Logit "Updated root certs"
-	}
-Catch {	Logit "Could not update root certs"}
-
-
-
 
 # disable machine password changes
 REG ADD "HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Services\Netlogon\Parameters" /v DisablePasswordChange /t REG_DWORD /d 1 /f
 
 # reset Windows Search
+Write-Host "Reset Windows Search"
 try 	{
 	Get-Service -ServiceName wsearch | Set-Service -StartupType Disabled
 	Stop-Service -ServiceName wsearch
@@ -93,6 +82,7 @@ try 	{
 	}
 Catch	{Logit "Failed to clean Windows Search"}
 
+Write-Host "Clear temporary files"
 # remove old Azure logs and extensions
 try	{
 	Remove-Item -Path C:\Packages\ -Recurse -Force -ErrorAction Ignore

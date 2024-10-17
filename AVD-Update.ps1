@@ -1,7 +1,7 @@
 # Chawn Limited 2024
 # AVD-Update.ps1
-# Version 1.0
-# Attempts to update Microsoft Edge for Business, Google Chrome Enterprise, Office 365, Windows Defender, OneDrive, FSLogix and Windows Updates using PSWindowsUpate
+# Version 1.1
+# Attempts to update Root Certificates, remove expired root certificates, Microsoft Edge for Business, Google Chrome Enterprise,Visual C Redistributables, Office 365, Windows Defender, OneDrive, FSLogix and Windows Updates using PSWindowsUpate
 # Logfile is created in C:\Temp\AVD-Update\Update-VM-<date>.log
 # Update services and tasks are disabled after update
 # After updates, VM will reboot. Following this, please run AVD-PostUpdate.ps1 to complete image maintenance
@@ -34,8 +34,31 @@ try	{
 	}
 catch	{}
 
+# Update Root Certificate
+write-host "Updating Root Certificates"
+try	{
+	$rc=(Get-ChildItem -Path Cert:\LocalMachine\Root\).count
+	Logit "Updating Root Certs: $rc"
+# download latest SST from Microsoft
+	$proc="Certutil.exe"
+	$arg="-generateSSTFromWU C:\temp\AVD-Update\RootStore.sst"
+	Start-process -FilePath $proc -ArgumentList $arg -wait
+	start-sleep -seconds 3
+# Import RootStore.sst to Trusted Root CA Store
+	$file=Get-ChildItem -Path C:\temp\AVD-Update\Rootstore.sst
+	$file | Import-Certificate -CertStoreLocation Cert:\LocalMachine\Root\
+# remove expired certs
+	$d=get-date -Format MM/dd/yyyy
+	$oldcerts=Get-ChildItem -Path Cert:\LocalMachine\Root\ | Where-Object {$_.NotAfter -lt $d} 
+	foreach ($c in $oldcerts) {Remove-Item -Path $c.PSPath -Force}
+	$rc=(Get-ChildItem -Path Cert:\LocalMachine\Root\).count
+	Logit "Updated Root Certs: $rc"
+	}
+Catch {	Logit "Could not update root certs"}
+
 # Microsoft Edge
 # access to go.microsoft.com
+write-host "Updating Microsoft Edge"
 try{
 	if ($EdgeVer=(get-item -Path ${env:ProgramFiles(x86)}\Microsoft\Edge\Application\msedge.exe -ErrorAction SilentlyContinue).VersionInfo.FileVersion)
 	{
@@ -66,6 +89,7 @@ Catch {LogIt "Failed to update Edge"}
 
 # Google Chrome
 # access to dl.google.com
+write-host "Updating Google Chrome"
 try{
 	if ($ChromeVer=(get-item -Path "$env:ProgramFiles\Google\Chrome\Application\chrome.exe" -ErrorAction SilentlyContinue).VersionInfo.FileVersion)
 	{
@@ -91,25 +115,55 @@ try{
 Catch {LogIt "Failed to update Chrome"}
 
 
+# Update Visual C Redistributables
+# https://learn.microsoft.com/en-us/cpp/windows/latest-supported-vc-redist?view=msvc-170
+write-host "Updating Visual C Redistributables"
+try{
+	$VisCx64=(Get-WmiObject -Class Win32_Product | Where-Object {$_.Name -like "Microsoft Visual C*X64 Minimum Runtime*"}).version
+	Logit "Visual C Version x64: $VisCx64"
+	Logit "Updating Visual C x64"
+	$URI="https://aka.ms/vs/17/release/vc_redist.x64.exe"
+	(New-Object System.Net.WebClient).DownloadFile($uri, "C:\temp\AVD-Update\vc_redist.x64.exe")
+	$proc="C:\temp\AVD-Update\vc_redist.x64.exe"
+	$arg="/install /quiet /norestart"
+# Install / Update VisCx64
+	Start-Process -FilePath $proc -ArgumentList $arg -wait
+	$VisCx64=(Get-WmiObject -Class Win32_Product | Where-Object {$_.Name -like "Microsoft Visual C*X64 Minimum Runtime*"}).version
+	Logit "Visual C Version x64: $VisCx64"
+
+	$VisCx86=(Get-WmiObject -Class Win32_Product | Where-Object {$_.Name -like "Microsoft Visual C*X86 Minimum Runtime*"}).version
+	Logit "Visual C Version x86: $VisCx86"
+	Logit "Updating Visual C x86"
+	$URI="https://aka.ms/vs/17/release/vc_redist.x86.exe"
+	(New-Object System.Net.WebClient).DownloadFile($uri, "C:\temp\AVD-Update\vc_redist.x86.exe")
+	$proc="C:\temp\AVD-Update\vc_redist.x86.exe"
+	$arg="/install /quiet /norestart"
+# Install / Update VisCx86
+	Start-Process -FilePath $proc -ArgumentList $arg -wait
+	$VisCx86=(Get-WmiObject -Class Win32_Product | Where-Object {$_.Name -like "Microsoft Visual C*X86 Minimum Runtime*"}).version
+	Logit "Visual C Version x86: $VisCx86"
+}
+Catch {LogIt "Failed to update Visual C Redistributables"}
+
+
 # Update Office / MS Apps 365
 # Enable Office Updates
+write-host "Updating Office 365"
 try{	
 if (get-item -path "$env:ProgramFiles\Microsoft Office") {Get-Service -Name ClickToRunSvc | Set-service -startuptype Automatic
 							REG ADD "HKEY_LOCAL_MACHINE\software\policies\microsoft\office\16.0\common\OfficeUpdate" /v EnableAutomaticUpdates /t REG_DWORD /d 1 /f
 							$offver=Get-ItemProperty -Path 'HKLM:\SOFTWARE\Microsoft\Office\ClickToRun\Configuration' | Select-Object -ExpandProperty VersionToReport
 							Logit "Office 365 Version: $offver"
 							Logit "Updating Office 365"
-$SPID=(get-process -Name OfficeClickToRun -IncludeUserName | Where-Object {$_.UserName -like "*SYSTEM"}).ID
 							$proc="$env:ProgramFiles\Common Files\microsoft shared\ClickToRun\OfficeC2RClient.exe"
-							$arg="/update SYSTEM"
+							$arg="/update User displaylevel=false forceappshutdown=true updatepromptuser=false"
 							$updateoffice=[Diagnostics.Process]::new()
 							$updateoffice.StartInfo.FileName=$proc
 							$updateoffice.StartInfo.Arguments=$arg
 							$updateoffice.start()
 # wait for the second system process to start
-	do {write-host "Waiting for update to start";start-sleep -seconds 10}  while ((get-process -Name OfficeClickToRun -IncludeUserName | Where-Object {$_.UserName -like "*SYSTEM"}).count -lt 2)
-# wait until the user process has ended. The OC2R service and user process restart during the install so the PIDs are lost.
-	do {write-host "Updating Office";start-sleep -Seconds 15} while (get-process -Name OfficeClickToRun -IncludeUserName | Where-Object {$_.Username -like "*" + $env:username})
+	start-sleep -seconds 30
+	do {write-host "Updating Office";start-sleep -seconds 15}  while ((get-process -Name OfficeClickToRun -IncludeUserName | Where-Object {$_.UserName -like "*SYSTEM"}).count -gt 1)
 							$offver=Get-ItemProperty -Path 'HKLM:\SOFTWARE\Microsoft\Office\ClickToRun\Configuration' | Select-Object -ExpandProperty VersionToReport
 							Logit "Office 365 Version: $offver"
 # Disable Office Updates
@@ -124,6 +178,7 @@ Catch {LogIt "Failed to update Office"}
 
 
 # update defender
+write-host "Updating Windows Defender"
 try{
 if ((Get-MpComputerStatus).RealTimeProtectionEnabled) {$DefVer=(Get-MpComputerStatus).AMProductVersion
 							$DefSig=(Get-MpComputerStatus).AntivirusSignatureVersion
@@ -141,10 +196,12 @@ Catch {Logit "Failed to update Defender"}
 
 
 # Update OneDrive
+write-host "Updating OneDrive"
 try{
 	if ($ODVer=(get-item -Path "$env:ProgramFiles\Microsoft OneDrive\OneDrive.exe" -ErrorAction SilentlyContinue).VersionInfo.FileVersion)
 	{Logit "OneDrive Version: $ODVER"
 	Logit "Updating OneDrive"
+	Get-Service -Name "OneDrive Updater Service" | Set-service -startuptype Automatic
 
 	$proc="$env:ProgramFiles\Microsoft OneDrive\OneDriveStandaloneUpdater.exe"
 	Start-Process -FilePath $proc
@@ -155,12 +212,14 @@ do {write-host "Updating";start-sleep -seconds 10}  while ((get-process -Name On
 	foreach ($task in $tasks) {Unregister-ScheduledTask -TaskName $task.TaskName -Confirm:$false -ErrorAction SilentlyContinue}
 	$ODVer=(get-item -Path "$env:ProgramFiles\Microsoft OneDrive\OneDrive.exe" -ErrorAction SilentlyContinue).VersionInfo.FileVersion
 	Logit "OneDrive Version: $ODVER"
+	Get-Service -Name "OneDrive Updater Service" | Set-service -startuptype Disabled
 	}
 }
 Catch {Logit "Failed to update OneDrive"}
 
 
 # Update FSLogix
+write-host "Updating FSLogix"
 try	{
 	if ($FSVer=(get-item -Path "$env:ProgramFiles\FSLogix\Apps\frx.exe" -ErrorAction SilentlyContinue).VersionInfo.FileVersion)
 	{Logit "FSLogix Version: $FSVER"
@@ -173,11 +232,22 @@ try	{
 	Start-Process -FilePath $proc -ArgumentList $arg -wait
 	$FSVer=(get-item -Path "$env:ProgramFiles\FSLogix\Apps\frx.exe" -ErrorAction SilentlyContinue).VersionInfo.FileVersion
 	Logit "FSlogix Version: $FSVER"
+Write-Host "Add Local Administrators to FS Logix Exclude Groups"
+# Add Local Administrators to FS Logix Exclude Groups
+	if (Get-LocalGroup -Name "FSLogix ODFC Exclude List" -ErrorAction SilentlyContinue)
+		{
+		Add-LocalGroupMember -Group "FSLogix ODFC Exclude List" -Member "Administrators" -ErrorAction SilentlyContinue
+		}
+	if (Get-LocalGroup -Name "FSLogix Profile Exclude List" -ErrorAction SilentlyContinue)
+		{
+		Add-LocalGroupMember -Group "FSLogix Profile Exclude List" -Member "Administrators" -ErrorAction SilentlyContinue
+		}
 	}
 	}
 Catch	{}
 
 # Install pre-reqs for Windows Update
+write-host "Starting Windows Update"
 # access to go.microsoft.com
 # update Nuget
 try	{
@@ -196,6 +266,7 @@ try	{
 		{Register-PSRepository -Default -InstallationPolicy Trusted
 		Register-PSRepository -Name PSGallery -InstallationPolicy Trusted -SourceLocation "https://www.powershellgallery.com/api/v2"
 		Logit "Added PSGallery as trusted repo"}
+	Else {Set-PSRepository -Name "PSGallery" -InstallationPolicy Trusted}
 	}
 catch	{Logit "Failed to add PSGallery as trusted repo"}
 
@@ -209,6 +280,13 @@ try	{
 catch	{
 	Logit "Failed to install PSWindowsUpdate"}
 
+# Update Az.Accounts and Az.DesktopVirtualization
+try	 {
+if (-not(Get-Module AZ.Accounts -ListAvailable -ErrorAction SilentlyContinue)) {Install-Module AZ.Accounts -ErrorAction SilentlyContinue}
+if (-not(Get-Module Az.DesktopVirtualization -ListAvailable -ErrorAction SilentlyContinue)) {Install-Module Az.DesktopVirtualization -ErrorAction SilentlyContinue}
+	}
+catch {}
+
 # Windows Update
 # access to windowsupdate.microsoft.com + others
 # Enable Services
@@ -220,13 +298,13 @@ catch	{
 	Get-WindowsUpdate -MicrosoftUpdate -Install -AcceptAll -IgnoreReboot -UpdateType Software -NotKBArticleID KB890830 | Out-File "c:\temp\AVD-Update\$(get-date -f yyyy-MM-dd)-WindowsUpdate.log" -force
 	Logit "Windows Updates Installed"
 # remove Windows Update Tasks
-	$tasks=Get-ScheduledTask -TaskPath "\Microsoft\Windows\UpdateOrchestrator\"
+	$tasks=Get-ScheduledTask -TaskPath "\Microsoft\Windows\UpdateOrchestrator\" -ErrorAction SilentlyContinue
 	foreach ($task in $tasks) {Unregister-ScheduledTask -TaskName $task.TaskName -Confirm:$false -ErrorAction SilentlyContinue}
-	$tasks=Get-ScheduledTask -TaskPath "\Microsoft\Windows\WindowsUpdate\"
+	$tasks=Get-ScheduledTask -TaskPath "\Microsoft\Windows\WindowsUpdate\" -ErrorAction SilentlyContinue
 	foreach ($task in $tasks) {Unregister-ScheduledTask -TaskName $task.TaskName -Confirm:$false -ErrorAction SilentlyContinue}
 	set-ItemProperty -Path 'HKLM:SOFTWARE\Microsoft\Windows NT\CurrentVersion\Schedule\Maintenance'-Name 'MaintenanceDisabled' -Value 1 -Force -ErrorAction SilentlyContinue
 
-
+write-host "Finished Windows Update"
 
 
 # Disable Windows Maintenance Tasks

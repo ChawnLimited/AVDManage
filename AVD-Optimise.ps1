@@ -259,6 +259,10 @@ REG ADD "HKEY_LOCAL_MACHINE\System\CurrentControlSet\Policies" /v NtfsDisable8do
 write-host "Disable Hibernation"
 powercfg -h off
 
+# set power to high performance
+write "High Performance Power"
+powercfg /setactive 8c5e7fda-e8bf-4a96-9a85-a6e23a8c635c
+
 # disable checkdisk
 # https://learn.microsoft.com/en-us/windows-server/administration/windows-commands/chkntfs
 chkntfs /X C:

@@ -260,7 +260,7 @@ write-host "Disable Hibernation"
 powercfg -h off
 
 # set power to high performance
-write "High Performance Power"
+write-host "High Performance Power"
 powercfg /setactive 8c5e7fda-e8bf-4a96-9a85-a6e23a8c635c
 
 # disable checkdisk

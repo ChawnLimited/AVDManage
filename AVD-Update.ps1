@@ -1,7 +1,7 @@
 # Chawn Limited 2024
 # AVD-Update.ps1
-# Version 1.1
-# Attempts to update Root Certificates, remove expired root certificates, Microsoft Edge for Business, Google Chrome Enterprise,Visual C Redistributables, Office 365, Windows Defender, OneDrive, FSLogix and Windows Updates using PSWindowsUpate
+# Version 1.2
+# Update Root Certificates, remove expired root certificates, Microsoft Edge for Business, Google Chrome Enterprise,Visual C Redistributables, Office 365, Windows Defender, OneDrive, Teams v2 and Meeting Add-In, FSLogix and Windows Updates using PSWindowsUpate
 # Logfile is created in C:\Temp\AVD-Update\Update-VM-<date>.log
 # Update services and tasks are disabled after update
 # After updates, VM will reboot. Following this, please run AVD-PostUpdate.ps1 to complete image maintenance
@@ -216,6 +216,45 @@ do {write-host "Updating";start-sleep -seconds 10}  while ((get-process -Name On
 	}
 }
 Catch {Logit "Failed to update OneDrive"}
+
+# Update Teams v2 and the Teams Meeting Addin
+try	{
+		if ($teamver=(Get-AppxPackage -Allusers -Name MSTeams).Version)
+		{
+		Logit "Teams Version: $teamVer"
+		Logit "Updating New Teams"
+		$URI="https://go.microsoft.com/fwlink/?linkid=2243204&clcid=0x409"
+		(New-Object System.Net.WebClient).DownloadFile($uri, "C:\temp\AVD-Update\teamsbootstrapper.exe")
+		$URI="https://go.microsoft.com/fwlink/?linkid=2196106"
+		(New-Object System.Net.WebClient).DownloadFile($uri, "C:\temp\AVD-Update\teams.msix")
+		$proc="C:\temp\AVD-Update\teamsbootstrapper.exe"
+		$arg="-p -o C:\temp\AVD-Update\teams.msix"
+		Start-Process -FilePath $proc -ArgumentList $arg -wait
+		start-sleep -seconds 5
+		REG ADD "HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Teams" /v disableAutoUpdate /t REG_DWORD /d 1 /f
+		$teamver=(Get-AppxPackage -Allusers -Name MSTeams).Version
+		Logit "Teams Version: $teamVer"
+
+		# Get Teams Meeting Addin Version if installed and update
+			$TMAddin=Get-WmiObject -Class Win32_Product | Where-Object {$_.Name -like "*Microsoft Teams Meeting Add-in for Microsoft Office*"}
+			if ($TMAddin.version)
+			{
+			Logit "Teams Meeting Addin Version: $TMAddin"
+			$TMAPath = "{0}\WINDOWSAPPS\MSTEAMS_{1}_X64__8WEKYB3D8BBWE\MICROSOFTTEAMSMEETINGADDININSTALLER.MSI" -f $env:programfiles,$teamver
+				if ($TMAVersion = (Get-AppLockerFileInformation -Path $TMAPath | Select-Object -ExpandProperty Publisher).BinaryVersion)
+				{
+    				Logit "Teams Meeting Addin found in $TMAPath. Installing..."
+    				$TargetDir = "{0}\Microsoft\TeamsMeetingAddin\{1}\" -f ${env:ProgramFiles(x86)},$TMAVersion
+				$params = '/i "{0}" TARGETDIR="{1}" /qn ALLUSERS=1' -f $TMAPath, $TargetDir
+				Start-Process msiexec.exe -ArgumentList $params -wait
+				}
+			$TMAddin=(Get-WmiObject -Class Win32_Product | Where-Object {$_.Name -like "Microsoft Teams Meeting Add-in for Microsoft Office"}).version
+			Logit "Teams Meeting Addin Version: $TMAddin"
+			}
+		}
+	}
+catch {Logit "Failed to update Microsoft Teams"}
+
 
 
 # Update FSLogix

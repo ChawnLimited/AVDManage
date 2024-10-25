@@ -1,12 +1,13 @@
 # Chawn Limited 2024
 # AVD-Optimise.ps1
-# Version 1.1
+# Version 1.2
 # Implements know optimisations for AVD Session Hosts
 # https://learn.microsoft.com/en-us/previous-versions/windows-server/it-pro/windows-server-2019/remote/remote-desktop-services/rds-vdi-recommendations
 # Update services and Maintenance tasks are disabled
-# Core Domain firewall rules are enabled. User firewall rules are removed
+# Core Domain firewall rules are enabled.
 # Microsoft recommended policy settings are implemented
 # Windows updates are set to manual
+# Remove Ghost Hardware
 # IPv6, Task Offloading and MachinePasswords are disabled
 
 
@@ -369,6 +370,12 @@ $tasks=Get-ScheduledTask -TaskPath "\Microsoft\Windows\Data Integrity Scan\" -Er
 # TPM
 $tasks=Get-ScheduledTask -TaskPath "\Microsoft\Windows\TPM\" -ErrorAction SilentlyContinue
 	foreach ($task in $tasks) {Unregister-ScheduledTask -TaskName $task.TaskName -Confirm:$false -ErrorAction SilentlyContinue}
+
+# Remove Ghost Hardware
+$devs=Get-PnpDevice -class CDrom,Diskdrive,Display,Monitor,Mouse,Net,Ports,Processor,PrintQueue,SCSIAdapter,SoftwareDevice,Volume -ErrorAction Ignore | ? status -eq unknown
+	foreach ($d in $devs) 	{
+ 	&"pnputil" /remove-device $d.InstanceId
+				}
 
 # Emtpy Recycle Bin
 	Clear-RecycleBin -Force -ErrorAction SilentlyContinue

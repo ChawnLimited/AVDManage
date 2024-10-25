@@ -1,10 +1,11 @@
 # Chawn Limited 2024
 # AVD-Seal.ps1
-# Version 1.0
+# Version 1.2
 # Disables Update Services and Update Tasks
 # Edge, Chrome, OneDrive, Office, WSUS
 # Disables IPv6, Nic TaskOffload, Machine Password changes
 # Resets MSMQ if installed
+# Removes ghost hardware
 # Empty Recycle Bin
 # Clear Branch Cache
 # Resets Windows Search
@@ -80,6 +81,12 @@ try	{
 	}
 catch{}
 
+# Remove Ghost Hardware
+$devs=Get-PnpDevice -class CDrom,Diskdrive,Display,Monitor,Mouse,Net,Ports,Processor,PrintQueue,SCSIAdapter,SoftwareDevice,Volume -ErrorAction Ignore | ? status -eq unknown
+	foreach ($d in $devs) 	{
+ 	&"pnputil" /remove-device $d.InstanceId
+				}
+
 
 # Emtpy Recycle Bin
 Clear-RecycleBin -Force -ErrorAction SilentlyContinue
@@ -90,7 +97,7 @@ Clear-BCCache -Force -ErrorAction SilentlyContinue
 Write-Host "Reset Windows Search"
 # Reset Windows Search
 	Get-Service -ServiceName wsearch | Set-Service -StartupType Disabled
-	Stop-Service -ServiceName wsearch -Force
+	Stop-Service -ServiceName wsearch -Force -ErrorAction Ignore
 	REG ADD "HKLM\SOFTWARE\Microsoft\Windows Search" /v SetupCompletedSuccessfully /t REG_DWORD /d 0 /f
 	Remove-Item -Path "$env:ProgramData\Microsoft\Search\Data\" -Recurse -Force -ErrorAction Ignore
 	Get-Service -ServiceName wsearch | Set-Service -StartupType Automatic
@@ -104,6 +111,7 @@ Write-Host "Remove temporary files"
 	Stop-Service -ServiceName wuauserv,bits,msiserver -Force
 	Remove-Item -Path C:\Windows\SoftwareDistribution -Recurse -Force -ErrorAction Ignore
 	Remove-Item -Path C:\Windows\Panther -Recurse -Force -ErrorAction Ignore
+	Remove-Item -Path C:\temp\AVD-Update -Recurse -Force -ErrorAction Ignore
 
 Write-Host "Configure Event Logs"
 # configure and clear event logs

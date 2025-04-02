@@ -50,4 +50,3 @@ LogWrite "Install RDS Agents completed. View JoinWVD.log for details and trouble
 LogWrite "Schedule a restart and exit"
 Start-Process -FilePath shutdown.exe -ArgumentList "-r -t 10"
 exit 0
-

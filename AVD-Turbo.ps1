@@ -32,13 +32,13 @@ Function LogWrite
 LogWrite "Starting up"
 
 	if((gwmi win32_computersystem).partofdomain -eq 0) {
-	LogWrite ("Renaming Computer to " $VMName)
+	LogWrite ("Renaming Computer to " + $VMName)
 	Rename-Computer -NewName $VMName -Force | Out-File -FilePath $Logfile -Append
 	$ADDomainCred = New-Object pscredential -ArgumentList ([pscustomobject]@{
 	UserName = $ADAdmin
 	Password = (ConvertTo-SecureString -String $ADAdminPW -AsPlainText -Force)[0]})
 
-	LogWrite "Join Domain " + $ADDomain
+	LogWrite ("Join Domain " + $ADDomain)
 	Add-Computer -DomainName $ADDomain -OUPath $ou -Credential $ADDomainCred -Options JoinWithNewName,AccountCreate -Force -PassThru -Verbose | Out-File -FilePath $Logfile -Append
 	}
 
@@ -50,3 +50,4 @@ LogWrite "Install RDS Agents completed. View JoinWVD.log for details and trouble
 LogWrite "Schedule a restart and exit"
 Start-Process -FilePath shutdown.exe -ArgumentList "-r -t 10"
 exit 0
+

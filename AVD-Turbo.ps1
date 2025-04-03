@@ -44,7 +44,7 @@ LogWrite "Starting up"
 
 LogWrite "Install RDS Agents "
 	$Procargs="-ExecutionPolicy ByPass -NoProfile -File AVDJoin.ps1 " + $HostPool + " " + $RG + " " + $ClientID  + " " + $ClientSecret + " " + $TenantID
-	Start-Process -FilePath "powershell.exe" -ArgumentList $ProcArgs -Wait
+	# Start-Process -FilePath "powershell.exe" -ArgumentList $ProcArgs -Wait
 LogWrite "Install RDS Agents completed. View JoinWVD.log for details and troubleshooting"
 
 LogWrite "Schedule a restart and exit"

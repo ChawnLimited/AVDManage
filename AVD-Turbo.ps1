@@ -8,7 +8,7 @@
   param(
 	[String]$VMName= "",			# New VMName
 	[String]$ADDomain= "",			# Set the domain name in FQDN format
-	[String]$OU= "l",			# Set the Organisational Unit for the VM
+	[String]$OU= "",			# Set the Organisational Unit for the VM
 	[String]$ADAdmin= "",			# Set the domain join user account
 	[String]$ADAdminPW= "",			# Set the domain join user account password
 	[String]$HostPool="",			# Set the WVD HostPool name

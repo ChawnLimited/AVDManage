@@ -1,6 +1,6 @@
-# Chawn Limited 2024
+# Chawn Limited 2025
 # AVD-Seal.ps1
-# Version 1.2
+# Version 1.3
 # Disables Update Services and Update Tasks
 # Edge, Chrome, OneDrive, Office, WSUS
 # Disables IPv6, Nic TaskOffload, Machine Password changes
@@ -12,6 +12,7 @@
 # Removes Azure Logs and Extensions
 # Removes WSUS folders
 # Configures event logs
+# Neutralise the WindowsAzure Agent
 # Run Sysprep
 
 Write-Host "Disabling Updaters"
@@ -134,6 +135,11 @@ if (Get-LocalGroup -Name "FSLogix Profile Exclude List" -ErrorAction SilentlyCon
 	{
 	Add-LocalGroupMember -Group "FSLogix Profile Exclude List" -Member "NT Authority\Local account and member of Administrators group" -ErrorAction SilentlyContinue
 	}
+
+Write-Host "Neutralise the WindowsAzure Agent"
+# Neutralise the WindowsAzure Agent
+Get-Service -Name WindowsAzureGuestAgent | stop-service
+Get-ChildItem -Path C:\WindowsAzure\config -Filter *.*  | Remove-Item -Force
 
 Write-Host "Run Sysprep"
 $proc="C:\Windows\System32\Sysprep\sysprep.exe"

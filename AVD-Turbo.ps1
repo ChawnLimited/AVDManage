@@ -113,11 +113,11 @@ If ($HostPool) {
 
 # Check AZ Modules are present
 	%{
-		try {import-module Az.Accounts, Az.DesktopVirtualization
-		if (Get-Module -name Az.Accounts) {Logwrite('Az.Accounts is available')}
+		try {
+		if (Get-Module -name Az.Accounts -ListAvailable) {Logwrite('Az.Accounts is available')}
 		else {logwrite('Az.Accounts is not available. Exit.')
 			exit 5}
-		if (Get-Module -name Az.DesktopVirtualization) {Logwrite('Az.DesktopVirtualization is available')}
+		if (Get-Module -name Az.DesktopVirtualization -ListAvailable) {Logwrite('Az.DesktopVirtualization is available')}
 		else {logwrite('Az.DesktopVirtualization is not available. Exit.')
 			exit 5}
 		}

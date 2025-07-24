@@ -13,7 +13,7 @@
 	)
 
 $ProgressPreference ="SilentlyContinue"
-$Logfile = "JoinWVD.log"
+$Logfile = "AVD-Join.log"
 
 
 Function LogWrite

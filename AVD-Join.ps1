@@ -23,6 +23,45 @@ Function LogWrite
    Add-content $Logfile -value ($d1.tostring() + " : " + $logstring)
 }
 
+Function UpdateNuget
+{
+# update Nuget
+    try	{
+		[Net.ServicePointManager]::SecurityProtocol =
+    		[Net.ServicePointManager]::SecurityProtocol -bor
+    		[Net.SecurityProtocolType]::Tls12
+		Install-PackageProvider -Name NuGet -ForceBootstrap -Scope AllUsers -Force
+		LogWrite "Updated NuGet"
+    	}
+    catch	{LogWrite "NuGet Update Failed"}
+
+# trust PSGalllery
+# access to www.powershellgallery.com
+    try	{
+	    if (-not(Get-PSRepository -Name "PSGallery"))
+	    	{Register-PSRepository -Default -InstallationPolicy Trusted
+	    	Register-PSRepository -Name PSGallery -InstallationPolicy Trusted -SourceLocation "https://www.powershellgallery.com/api/v2"
+	    	LogWrite "Added PSGallery as trusted repo"}
+	    Else {Set-PSRepository -Name "PSGallery" -InstallationPolicy Trusted}
+	    }
+    catch	{LogWrite "Failed to add PSGallery as trusted repo"; exit 100}
+}
+
+
+Function UpdateModule
+{
+   Param ([string]$module)
+	try {
+	install-module $module
+    Logwrite ('Updated ' + $module)
+    }
+
+    catch {
+        Logwrite ('Failed to update ' + $module)
+    }
+}
+
+
 
 # check the agents are not already installed
 %{
@@ -52,23 +91,29 @@ logwrite('Created PSCreds for Azure')
 
 # Check AZ Modules are present
 %{
-		try {import-module Az.Accounts, Az.DesktopVirtualization
-		if (Get-Module -name Az.Accounts) {Logwrite('Az.Accounts is available')}
-		else {logwrite('Az.Accounts is not available. Will try and install.'); Set-PSRepository -Name PSGallery -InstallationPolicy Trusted; Install-Module Az.Accounts}
+		try {
+
+		if (Get-PackageProvider -Name Nuget) {Logwrite('Nuget is available')}
+		else {logwrite('Nuget is not available. Will try and install.'); UpdateNuget;
+    		if (Get-PackageProvider -Name Nuget) {Logwrite('Nuget is available')}
+	    	else {logwrite('Nuget is not available. Exit.'); exit 3}
+             }
+
+		if (Get-Module -name Az.Accounts -ListAvailable) {Logwrite('Az.Accounts is available.')}
+		else {logwrite('Az.Accounts is not available. Will try and install.'); UpdateModule Az.Accounts;
+			if (Get-Module -name Az.Accounts -ListAvailable) {Logwrite('Az.Accounts is available')}
+			else {logwrite('Az.Accounts is not available. Exit.'); exit 3}
+             }
+
+		if (Get-Module -name Az.DesktopVirtualization -ListAvailable) {Logwrite('Az.DesktopVirtualization is available.')}
+		else {logwrite('Az.DesktopVirtualization is not available. Will try and install.'); UpdateModule Az.DesktopVirtualization;
+            if (Get-Module -name Az.DesktopVirtualization -ListAvailable) {Logwrite('Az.DesktopVirtualization is available')}
+	    	else {logwrite('Az.DesktopVirtualization is not available. Exit.'); exit 3}
+		     }
+
+		    }
 		
-		if (Get-Module -name Az.DesktopVirtualization) {Logwrite('Az.DesktopVirtualization is available.')
-		else {logwrite('Az.DesktopVirtualization is not available. Will try and install.'); Set-PSRepository -Name PSGallery -InstallationPolicy Trusted; Az.DesktopVirtualization}
-
-		if (Get-Module -name Az.Accounts) {Logwrite('Az.Accounts is available')}
-		else {logwrite('Az.Accounts is not available. Exit.')
-			exit 3}
-		if (Get-Module -name Az.DesktopVirtualization) {Logwrite('Az.DesktopVirtualization is available')}
-		else {logwrite('Az.DesktopVirtualization is not available. Exit.')
-			exit 3}
-
-		}
-		catch {logwrite('Error importing Az Modules')
-			exit 3}
+        catch {logwrite('Error importing Az Modules'); exit 3}
 }
 
 Disable-AzContextAutosave -Scope Process

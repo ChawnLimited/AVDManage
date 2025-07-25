@@ -138,9 +138,9 @@ If ($HostPool) {
 %{
 		try {
 
-		if (Get-PackageProvider -Name Nuget) {Logwrite('Nuget is available')}
+		if (Get-PackageProvider -Name Nuget -ListAvailable) {Logwrite('Nuget is available')}
 		else {logwrite('Nuget is not available. Will try and install.'); UpdateNuget;
-    		if (Get-PackageProvider -Name Nuget) {Logwrite('Nuget is available')}
+    		if (Get-PackageProvider -Name Nuget -ListAvailable) {Logwrite('Nuget is available')}
 	    	else {logwrite('Nuget is not available. Exit.'); exit 3}
              }
 

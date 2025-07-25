@@ -33,7 +33,7 @@ Function UpdateNuget
 		Install-PackageProvider -Name NuGet -ForceBootstrap -Scope AllUsers -Force
 		LogWrite "Updated NuGet"
     	}
-    catch	{LogWrite "NuGet Update Failed"}
+    catch {LogWrite "NuGet Update Failed"}
 
 # trust PSGalllery
 # access to www.powershellgallery.com
@@ -44,7 +44,7 @@ Function UpdateNuget
 	    	LogWrite "Added PSGallery as trusted repo"}
 	    Else {Set-PSRepository -Name "PSGallery" -InstallationPolicy Trusted}
 	    }
-    catch	{LogWrite "Failed to add PSGallery as trusted repo"; exit 100}
+    catch {LogWrite "Failed to add PSGallery as trusted repo"; exit 100}
 }
 
 
@@ -53,12 +53,9 @@ Function UpdateModule
    Param ([string]$module)
 	try {
 	install-module $module
-    Logwrite ('Updated ' + $module)
-    }
-
-    catch {
-        Logwrite ('Failed to update ' + $module)
-    }
+    	Logwrite ('Updated ' + $module)
+    	}
+    catch {Logwrite ('Failed to update ' + $module)}
 }
 
 
@@ -76,18 +73,6 @@ exit 2}
 else {logwrite('Device is AD Domain joined.')}
 }
 
-
-# get the DNS hostname of the VM
-$hostname=[System.Net.Dns]::GetHostByName($env:computerName).HostName
-logwrite('Hostname:' + $hostname)
-logwrite('Hostpool:' + $hostpool)
-logwrite('ClientID:' + $ClientID)
-
-### Create the AVD Agent PSCredential
-$AVDCred = New-Object pscredential -ArgumentList ([pscustomobject]@{
-    UserName = $ClientId
-    Password = (ConvertTo-SecureString -String $ClientSecret -AsPlainText -Force)[0]})
-logwrite('Created PSCreds for Azure')
 
 # Check AZ Modules are present
 %{
@@ -115,6 +100,19 @@ logwrite('Created PSCreds for Azure')
 		
         catch {logwrite('Error importing Az Modules'); exit 3}
 }
+
+# get the DNS hostname of the VM
+$hostname=[System.Net.Dns]::GetHostByName($env:computerName).HostName
+logwrite('Hostname:' + $hostname)
+logwrite('Hostpool:' + $hostpool)
+logwrite('ClientID:' + $ClientID)
+
+### Create the AVD Agent PSCredential
+$AVDCred = New-Object pscredential -ArgumentList ([pscustomobject]@{
+    UserName = $ClientId
+    Password = (ConvertTo-SecureString -String $ClientSecret -AsPlainText -Force)[0]})
+logwrite('Created PSCreds for Azure')
+
 
 Disable-AzContextAutosave -Scope Process
 

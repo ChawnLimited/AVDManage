@@ -242,7 +242,7 @@ Disable-AzContextAutosave -Scope Process
 
 
 	LogWrite "Schedule a restart and exit"
-	Start-Process -FilePath "shutdown.exe" -ArgumentList "-r -soft -t 10"
+	Start-Process -FilePath "shutdown.exe" -ArgumentList "-r -soft -t 15"
 	exit 0
 
 

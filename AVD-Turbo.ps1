@@ -240,9 +240,15 @@ Disable-AzContextAutosave -Scope Process
 	     }
 
 
+    # Wait for the SXS Network Agent and Geneva Agent to install
+
+	LogWrite "Wait for the SXS Network Agent and Geneva Agent to install"
+	do {$sxs=get-package -name "*SXS*Network*";start-sleep -seconds 1} (until $sxs.count=1)
+	do {$geneva=get-package -name "*Geneva*";start-sleep -seconds 1} (until $Geneva.count=1)
+	LogWrite "SXS Network Agent and Geneva Agent are installed"
 
 	LogWrite "Schedule a restart and exit"
-	Start-Process -FilePath "shutdown.exe" -ArgumentList "-r -soft -t 15"
+	Start-Process -FilePath "shutdown.exe" -ArgumentList "-r -soft -t 5"
 	exit 0
 
 

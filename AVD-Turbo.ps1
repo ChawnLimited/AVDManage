@@ -223,12 +223,19 @@ Disable-AzContextAutosave -Scope Process
 		Invoke-WebRequest -Uri $URI -OutFile RDAgent.msi -UseBasicParsing
 		Start-Process msiexec.exe -Wait -ArgumentList "/I RDAgent.msi REGISTRATIONTOKEN=$WVDToken /qb /L*V RDAgent.log"
 		
-		### Install RDBroker
+		### Install RDBoot
 		logwrite ('Install Remote Desktop Agent Boot Loader')
 		$URI="https://query.prod.cms.rt.microsoft.com/cms/api/am/binary/RWrxrH"
 		Invoke-WebRequest -Uri $URI -OutFile RDBoot.msi -UseBasicParsing
 		Start-Process msiexec.exe -Wait -ArgumentList "/I RDBoot.msi /qb  /L*V RDBoot.log"
 		LogWrite "Install RDS Agents completed."
+
+		# Wait for the SXS Network Agent and Geneva Agent to install
+		LogWrite "Wait for the SXS Network Agent and Geneva Agent to install"
+		do {$sxs=get-package -name "*SXS*Network*";start-sleep -seconds 1} until($sxs.count=1)
+		do {$Geneva=get-package -name "*Geneva*";start-sleep -seconds 1} until($Geneva.count=1)
+		LogWrite "SXS Network Agent and Geneva Agent are installed"
+
 		}
 		Else {logwrite ('Could not retrieve a WVD Host Token for HostPool:' + $HostPool + '. Skip join WVD Hostpool')}
 	}
@@ -239,13 +246,6 @@ Disable-AzContextAutosave -Scope Process
 
 	     }
 
-
-    # Wait for the SXS Network Agent and Geneva Agent to install
-
-	LogWrite "Wait for the SXS Network Agent and Geneva Agent to install"
-	do {$sxs=get-package -name "*SXS*Network*";start-sleep -seconds 1} until($sxs.count=1)
-	do {$geneva=get-package -name "*Geneva*";start-sleep -seconds 1} until($Geneva.count=1)
-	LogWrite "SXS Network Agent and Geneva Agent are installed"
 
 	LogWrite "Schedule a restart and exit"
 	Start-Process -FilePath "shutdown.exe" -ArgumentList "-r -soft -t 5"

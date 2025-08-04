@@ -254,7 +254,7 @@ Disable-AzContextAutosave -Scope Process
 	    Disconnect-AzAccount
 	    logwrite ('Disconnected from Azure')
 
-	     }
+
 
 
 	LogWrite "Schedule a restart and exit"

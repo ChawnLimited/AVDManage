@@ -231,12 +231,12 @@ Disable-AzContextAutosave -Scope Process
 
 		### Install RDAgent
 		logwrite('Install Remote Desktop Services Infrastructure Agent')
-		do {$f=get-item -path C:\Source\RDagent.msi} until ({$f.count=1})
+		do {$f=get-item -path C:\Source\RDagent.msi} until ({$f.count -eq 1})
 		Start-Process msiexec.exe -Wait -ArgumentList "/I C:\Source\RDAgent.msi REGISTRATIONTOKEN=$WVDToken /qb /L*V RDAgent.log"
 		
 		### Install RDBoot
 		logwrite ('Install Remote Desktop Agent Boot Loader')
-		do {$f=get-item -path C:\Source\RDBoot.msi} until ({$f.count=1})
+		do {$f=get-item -path C:\Source\RDBoot.msi} until ({$f.count -eq 1})
 		Start-Process msiexec.exe -Wait -ArgumentList "/I C:\Source\RDBoot.msi /qb  /L*V RDBoot.log"
 		LogWrite "Install RDS Agents completed."
 
@@ -254,7 +254,7 @@ Disable-AzContextAutosave -Scope Process
 	    Disconnect-AzAccount
 	    logwrite ('Disconnected from Azure')
 
-
+	     }
 
 
 	LogWrite "Schedule a restart and exit"

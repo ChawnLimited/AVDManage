@@ -242,8 +242,8 @@ Disable-AzContextAutosave -Scope Process
 
 		# Wait for the SXS Network Agent and Geneva Agent to install
 		LogWrite "Wait for the SXS Network Agent and Geneva Agent to install"
-		do {$sxs=get-package -name "*SXS*Network*";start-sleep -seconds 2} until($sxs.count=1)
-		do {$Geneva=get-package -name "*Geneva*";start-sleep -seconds 2} until($Geneva.count=1)
+		do {$sxs=get-package -name "*SXS*Network*";start-sleep -seconds 1} until($sxs.count -eq 1)
+		do {$Geneva=get-package -name "*Geneva*";start-sleep -seconds 1} until($Geneva.count -eq 1)
 		LogWrite "SXS Network Agent and Geneva Agent are installed"
 
 		}

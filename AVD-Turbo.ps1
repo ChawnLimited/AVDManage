@@ -64,7 +64,21 @@ Function UpdateModule
     catch {Logwrite ('Failed to update ' + $module)}
 }
 
-LogWrite "Starting up"
+LogWrite "Starting Up"
+
+
+# Save some time by starting the RDAGent downloads
+if ($HostPool) {
+		LogWrite "Download RD Agents"
+		New-Item -Path C:\Source -ItemType Directory -Force
+		$SB={$URI="https://query.prod.cms.rt.microsoft.com/cms/api/am/binary/RWrmXv;Invoke-WebRequest -Uri $URI -OutFile C:\Source\RDagent.msi -UseBasicParsing;}
+		start-job -name 'DownloadRDInfraAgent' -scriptblock $SB
+		$SB={$URI="https://query.prod.cms.rt.microsoft.com/cms/api/am/binary/RWrxrH";Invoke-WebRequest -Uri $URI -OutFile C:\Source\RDBoot.msi -UseBasicParsing;}
+		start-job -name 'DownloadRDBootAgent' -scriptblock $SB
+		}
+
+
+LogWrite "Rename Computer"
 
 	$d1=get-Date
 	LogWrite ("Renaming Computer")
@@ -219,21 +233,19 @@ Disable-AzContextAutosave -Scope Process
 
 		### Install RDAgent
 		logwrite('Install Remote Desktop Services Infrastructure Agent')
-		$URI="https://query.prod.cms.rt.microsoft.com/cms/api/am/binary/RWrmXv"
-		Invoke-WebRequest -Uri $URI -OutFile RDAgent.msi -UseBasicParsing
+		do {$f=get-item -path C:\Source\RDagent.msi} until {$f.count=1}
 		Start-Process msiexec.exe -Wait -ArgumentList "/I RDAgent.msi REGISTRATIONTOKEN=$WVDToken /qb /L*V RDAgent.log"
 		
 		### Install RDBoot
 		logwrite ('Install Remote Desktop Agent Boot Loader')
-		$URI="https://query.prod.cms.rt.microsoft.com/cms/api/am/binary/RWrxrH"
-		Invoke-WebRequest -Uri $URI -OutFile RDBoot.msi -UseBasicParsing
-		Start-Process msiexec.exe -Wait -ArgumentList "/I RDBoot.msi /qb  /L*V RDBoot.log"
+		do {$f=get-item -path C:\Source\RDBoot.msi} until {$f.count=1}
+		Start-Process msiexec.exe -Wait -ArgumentList "/I C:\Source\RDBoot.msi /qb  /L*V RDBoot.log"
 		LogWrite "Install RDS Agents completed."
 
 		# Wait for the SXS Network Agent and Geneva Agent to install
 		LogWrite "Wait for the SXS Network Agent and Geneva Agent to install"
-		do {$sxs=get-package -name "*SXS*Network*";start-sleep -seconds 1} until($sxs.count=1)
-		do {$Geneva=get-package -name "*Geneva*";start-sleep -seconds 1} until($Geneva.count=1)
+		do {$sxs=get-package -name "*SXS*Network*";start-sleep -seconds 2} until($sxs.count=1)
+		do {$Geneva=get-package -name "*Geneva*";start-sleep -seconds 2} until($Geneva.count=1)
 		LogWrite "SXS Network Agent and Geneva Agent are installed"
 
 		}

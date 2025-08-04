@@ -133,8 +133,6 @@ exit 2
 
 
 If ($HostPool) {
-
-	%{
 		if (get-item -path "C:\Program Files\Microsoft RDInfra" -ErrorAction SilentlyContinue)
 		{LogWrite ("Remote Desktop Agents are already installed. Exit")
         exit 3}
@@ -233,12 +231,12 @@ Disable-AzContextAutosave -Scope Process
 
 		### Install RDAgent
 		logwrite('Install Remote Desktop Services Infrastructure Agent')
-		do {$f=get-item -path C:\Source\RDagent.msi} until {$f.count=1}
-		Start-Process msiexec.exe -Wait -ArgumentList "/I RDAgent.msi REGISTRATIONTOKEN=$WVDToken /qb /L*V RDAgent.log"
+		do {$f=get-item -path C:\Source\RDagent.msi} until ({$f.count=1})
+		Start-Process msiexec.exe -Wait -ArgumentList "/I C:\Source\RDAgent.msi REGISTRATIONTOKEN=$WVDToken /qb /L*V RDAgent.log"
 		
 		### Install RDBoot
 		logwrite ('Install Remote Desktop Agent Boot Loader')
-		do {$f=get-item -path C:\Source\RDBoot.msi} until {$f.count=1}
+		do {$f=get-item -path C:\Source\RDBoot.msi} until ({$f.count=1})
 		Start-Process msiexec.exe -Wait -ArgumentList "/I C:\Source\RDBoot.msi /qb  /L*V RDBoot.log"
 		LogWrite "Install RDS Agents completed."
 

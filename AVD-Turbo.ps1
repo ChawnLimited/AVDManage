@@ -75,12 +75,15 @@ LogWrite "Starting Up"
 
 # Save some time by starting the RDAGent downloads
 if ($HostPool) {
+		try {
 		LogWrite "Download RD Agents"
 		New-Item -Path C:\Source -ItemType Directory -Force
 		$SB={$URI="https://query.prod.cms.rt.microsoft.com/cms/api/am/binary/RWrmXv";Invoke-WebRequest -Uri $URI -OutFile C:\Source\RDagent.msi -UseBasicParsing;}
 		start-job -name 'DownloadRDInfraAgent' -scriptblock $SB
 		$SB={$URI="https://query.prod.cms.rt.microsoft.com/cms/api/am/binary/RWrxrH";Invoke-WebRequest -Uri $URI -OutFile C:\Source\RDBoot.msi -UseBasicParsing;}
 		start-job -name 'DownloadRDBootAgent' -scriptblock $SB
+		    }
+		catch {LogWrite (Failed to download RDAgents. + $_.Exception.Message);exit 99}
 		}
 
 

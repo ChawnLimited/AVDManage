@@ -27,13 +27,19 @@ Function UpdateNuget
 {
 # update Nuget
     try	{
-		[Net.ServicePointManager]::SecurityProtocol =
-    		[Net.ServicePointManager]::SecurityProtocol -bor
-    		[Net.SecurityProtocolType]::Tls12
-		Install-PackageProvider -Name NuGet -ForceBootstrap -Scope AllUsers -Force
-		LogWrite "Updated NuGet"
+        if (Get-PackageProvider -Name Nuget -ListAvailable) {Logwrite('Nuget is available')}
+            else {logwrite('Nuget is not available. Will try and install.')
+
+	    	[Net.ServicePointManager]::SecurityProtocol =
+    	    	[Net.ServicePointManager]::SecurityProtocol -bor
+    		    [Net.SecurityProtocolType]::Tls12
+		    
+            Install-PackageProvider -Name NuGet -ForceBootstrap -Scope AllUsers -Force
+		    if (Get-PackageProvider -Name Nuget -ListAvailable) {Logwrite('Nuget is available')}
+	    	else {logwrite('Nuget is not available. Exit.'); exit 3}
+            }
     	}
-    catch {LogWrite "NuGet Update Failed"}
+    catch {LogWrite "NuGet Update Failed"; exit 3}
 
 # trust PSGalllery
 # access to www.powershellgallery.com
@@ -59,6 +65,22 @@ Function UpdateModule
 }
 
 
+LogWrite "Starting Up"
+
+
+# Save some time by starting the RDAGent downloads
+if ($HostPool) {
+		try {
+		LogWrite "Download RD Agents"
+		New-Item -Path C:\Source -ItemType Directory -Force
+		$SB={$URI="https://query.prod.cms.rt.microsoft.com/cms/api/am/binary/RWrmXv";Invoke-WebRequest -Uri $URI -OutFile C:\Source\RDagent.msi -UseBasicParsing;}
+		start-job -name 'DownloadRDInfraAgent' -scriptblock $SB
+		$SB={$URI="https://query.prod.cms.rt.microsoft.com/cms/api/am/binary/RWrxrH";Invoke-WebRequest -Uri $URI -OutFile C:\Source\RDBoot.msi -UseBasicParsing;}
+		start-job -name 'DownloadRDBootAgent' -scriptblock $SB
+		    }
+		catch {LogWrite (Failed to download RDAgents. + $_.Exception.Message);exit 99}
+		}
+
 
 # check the agents are not already installed
 %{
@@ -77,15 +99,8 @@ else {logwrite('Device is AD Domain joined.')}
 # Check AZ Modules are present
 %{
 		try {
-
-		if (Get-PackageProvider -Name Nuget -ListAvailable) {Logwrite('Nuget is available')}
-		else {logwrite('Nuget is not available. Will try and install.'); UpdateNuget;
-    		if (Get-PackageProvider -Name Nuget -ListAvailable) {Logwrite('Nuget is available')}
-	    	else {logwrite('Nuget is not available. Exit.'); exit 3}
-             }
-
 		if (Get-Module -name Az.Accounts -ListAvailable) {Logwrite('Az.Accounts is available.')}
-		else {logwrite('Az.Accounts is not available. Will try and install.'); UpdateModule Az.Accounts;
+		else {logwrite('Az.Accounts is not available. Will try and install.'); UpdateNuget; UpdateModule Az.Accounts;
 			if (Get-Module -name Az.Accounts -ListAvailable) {Logwrite('Az.Accounts is available')}
 			else {logwrite('Az.Accounts is not available. Exit.'); exit 3}
              }
@@ -95,9 +110,7 @@ else {logwrite('Device is AD Domain joined.')}
             if (Get-Module -name Az.DesktopVirtualization -ListAvailable) {Logwrite('Az.DesktopVirtualization is available')}
 	    	else {logwrite('Az.DesktopVirtualization is not available. Exit.'); exit 3}
 		     }
-
 		    }
-		
         catch {logwrite('Error importing Az Modules'); exit 3}
 }
 
@@ -150,26 +163,33 @@ $now=(get-date).addhours(2)
 
 # deploy the RDAgent and RDBootloader
 
-%{
-if ($WVDToken)
-	{
-	logwrite ('WVD Token to join WVD Hostpool: ' + $WVDToken)
+	%{
+    try {
+	    if ($WVDToken)
+  		    {
+		    logwrite ('WVD Token to join WVD Hostpool: ' + $WVDToken)
 
-		### Install RDAgent
-		logwrite('Install Remote Desktop Services Infrastructure Agent')
-		$URI="https://query.prod.cms.rt.microsoft.com/cms/api/am/binary/RWrmXv"
-		Invoke-WebRequest -Uri $URI -OutFile RDAgent.msi -UseBasicParsing
-		Start-Process msiexec.exe -Wait -ArgumentList "/I RDAgent.msi REGISTRATIONTOKEN=$WVDToken /qb /L*V RDAgent.log"
+    		### Install RDAgent
+	    	logwrite('Install Remote Desktop Services Infrastructure Agent')
+		    do {} until (get-item -path C:\Source\RDagent.msi)
+		    Start-Process msiexec.exe -Wait -ArgumentList "/I C:\Source\RDAgent.msi REGISTRATIONTOKEN=$WVDToken /qb /L*V RDAgent.log"
 		
-		### Install RDBroker
-		logwrite ('Install Remote Desktop Agent Boot Loader')
-		$URI="https://query.prod.cms.rt.microsoft.com/cms/api/am/binary/RWrxrH"
-		Invoke-WebRequest -Uri $URI -OutFile RDBoot.msi -UseBasicParsing
-		Start-Process msiexec.exe -Wait -ArgumentList "/I RDBoot.msi /qb  /L*V RDBoot.log"
+    		### Install RDBoot
+	    	logwrite ('Install Remote Desktop Agent Boot Loader')
+		    do {} until (get-item -path C:\Source\RDBoot.msi)
+		    Start-Process msiexec.exe -Wait -ArgumentList "/I C:\Source\RDBoot.msi /qb  /L*V RDBoot.log"
+		    LogWrite "Install RDS Agents completed."
 
+		    # Wait for the SXS Network Agent and Geneva Agent to install
+		    LogWrite "Wait for the SXS Network Agent and Geneva Agent to install"
+		    do {start-sleep -Milliseconds 500} until((get-package  -ErrorAction SilentlyContinue -name "*SXS*Network*").Status -eq 'Installed')
+		    do {start-sleep -Milliseconds 500} until((get-package  -ErrorAction SilentlyContinue -name "*Geneva*").Status -eq 'Installed')
+		    LogWrite "SXS Network Agent and Geneva Agent are installed"
+		    }
+		    Else {logwrite ('Could not retrieve a WVD Host Token for HostPool:' + $HostPool + '. Skip join WVD Hostpool')}
+        }
+        catch {logwrite('Error installing Remote Desktop Agents'); exit 7}
 	}
-	Else {logwrite ('Could not retrieve a WVD Host Token for HostPool:' + $HostPool + '. Skip join WVD Hostpool')}
-}
 
 # Logout of Azure
 Disconnect-AzAccount

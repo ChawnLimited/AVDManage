@@ -131,18 +131,21 @@ try {
     }
 catch{
 LogWrite ($_.Exception.Message)
-exit 2
-}
+exit 2}
 
 		}
-	      }
+}
+
+
+
 
 
 If ($HostPool) {
 		if (get-item -path "C:\Program Files\Microsoft RDInfra" -ErrorAction SilentlyContinue)
 		{LogWrite ("Remote Desktop Agents are already installed. Exit")
         exit 3}
-	}
+}
+
 
 # check the device is domain joined
 	%{
@@ -257,7 +260,7 @@ Disable-AzContextAutosave -Scope Process
 
 
 	LogWrite "Schedule a restart and exit"
-	Start-Process -FilePath "shutdown.exe" -ArgumentList "-r -soft -c "AVD-Turbo Complete" -t 5"
+	Start-Process -FilePath "shutdown.exe" -ArgumentList "-r -soft -t 5"
 	exit 0
 
 

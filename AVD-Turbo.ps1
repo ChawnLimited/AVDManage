@@ -141,9 +141,8 @@ LogWrite ($_.Exception.Message)
 exit 2}
 
 		}
-        else {LogWrite ($VMName + " deployment complete");exit 0}
 }
-
+        else {LogWrite ($VMName + " deployment complete");exit 0}
 
 
 

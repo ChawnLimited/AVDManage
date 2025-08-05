@@ -93,7 +93,9 @@ LogWrite "Rename Computer"
 	LogWrite ("Renaming Computer")
 	do {
 	start-sleep -seconds 1
-	} until ((Get-ChildItem -Path C:\WindowsAzure\config -Filter *.xml).count -eq 1)
+	} until ((Get-ChildItem -Path C:\WindowsAzure\config -Filter *.xml | Sort-Object -Property LastAccessTime | select -Last 1).count -eq 1)
+
+
 
 try {
 

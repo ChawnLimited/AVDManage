@@ -234,7 +234,7 @@ Disable-AzContextAutosave -Scope Process
 		
     		### Install RDBoot
 	    	logwrite ('Install Remote Desktop Agent Boot Loader')
-		    do {$f=get-item -path C:\Source\RDBoot.msi} until ({$f.count -eq 1})
+		    do {} until (get-item -path C:\Source\RDBoot.msi)
 		    Start-Process msiexec.exe -Wait -ArgumentList "/I C:\Source\RDBoot.msi /qb  /L*V RDBoot.log"
 		    LogWrite "Install RDS Agents completed."
 

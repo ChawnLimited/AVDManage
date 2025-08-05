@@ -245,8 +245,8 @@ Disable-AzContextAutosave -Scope Process
 
 		    # Wait for the SXS Network Agent and Geneva Agent to install
 		    LogWrite "Wait for the SXS Network Agent and Geneva Agent to install"
-		    do {start-sleep -Milliseconds 500} until(get-package -name "*SXS*Network*" -ErrorAction SilentlyContinue)
-		    do {start-sleep -Milliseconds 500} until(get-package -name "*Geneva*" -ErrorAction SilentlyContinue)
+		    do {start-sleep -Milliseconds 500} until((get-package  -ErrorAction SilentlyContinue -name "*SXS*Network*").Status -eq 'Installed')
+		    do {start-sleep -Milliseconds 500} until((get-package  -ErrorAction SilentlyContinue -name "*Geneva*").Status -eq 'Installed')
 		    LogWrite "SXS Network Agent and Geneva Agent are installed"
 		    }
 		    Else {logwrite ('Could not retrieve a WVD Host Token for HostPool:' + $HostPool + '. Skip join WVD Hostpool')}

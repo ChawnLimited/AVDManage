@@ -105,6 +105,8 @@ try {
 	$xpath="/RDConfig/Instances/Instance"
 	$vmname=(Select-Xml -Path $xml.fullname -XPath $xpath | Select-Object -ExpandProperty Node).id
 	$vmname=$vmname.Substring(1)
+
+    if ($vmname -eq $env:computerName) {LogWrite ("Computer is already named " + $VMName + ". This must be the Master VM. Exit");exit 0}
 	
 	if((gwmi win32_computersystem).partofdomain -eq 0) {
 	LogWrite ("Renaming Computer to " + $VMName)

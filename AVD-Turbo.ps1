@@ -33,13 +33,19 @@ Function UpdateNuget
 {
 # update Nuget
     try	{
-		[Net.ServicePointManager]::SecurityProtocol =
-    		[Net.ServicePointManager]::SecurityProtocol -bor
-    		[Net.SecurityProtocolType]::Tls12
-		Install-PackageProvider -Name NuGet -ForceBootstrap -Scope AllUsers -Force
-		LogWrite "Updated NuGet"
+        if (Get-PackageProvider -Name Nuget -ListAvailable) {Logwrite('Nuget is available')}
+            else {logwrite('Nuget is not available. Will try and install.')
+
+	    	[Net.ServicePointManager]::SecurityProtocol =
+    	    	[Net.ServicePointManager]::SecurityProtocol -bor
+    		    [Net.SecurityProtocolType]::Tls12
+		    
+            Install-PackageProvider -Name NuGet -ForceBootstrap -Scope AllUsers -Force
+		    if (Get-PackageProvider -Name Nuget -ListAvailable) {Logwrite('Nuget is available')}
+	    	else {logwrite('Nuget is not available. Exit.'); exit 3}
+            }
     	}
-    catch {LogWrite "NuGet Update Failed"}
+    catch {LogWrite "NuGet Update Failed"; exit 3}
 
 # trust PSGalllery
 # access to www.powershellgallery.com
@@ -149,15 +155,8 @@ If ($HostPool) {
 # Check AZ Modules are present
 %{
 		try {
-
-		if (Get-PackageProvider -Name Nuget -ListAvailable) {Logwrite('Nuget is available')}
-		else {logwrite('Nuget is not available. Will try and install.'); UpdateNuget;
-    		if (Get-PackageProvider -Name Nuget -ListAvailable) {Logwrite('Nuget is available')}
-	    	else {logwrite('Nuget is not available. Exit.'); exit 3}
-             }
-
 		if (Get-Module -name Az.Accounts -ListAvailable) {Logwrite('Az.Accounts is available.')}
-		else {logwrite('Az.Accounts is not available. Will try and install.'); UpdateModule Az.Accounts;
+		else {logwrite('Az.Accounts is not available. Will try and install.'); UpdateNuget; UpdateModule Az.Accounts;
 			if (Get-Module -name Az.Accounts -ListAvailable) {Logwrite('Az.Accounts is available')}
 			else {logwrite('Az.Accounts is not available. Exit.'); exit 3}
              }
@@ -167,9 +166,7 @@ If ($HostPool) {
             if (Get-Module -name Az.DesktopVirtualization -ListAvailable) {Logwrite('Az.DesktopVirtualization is available')}
 	    	else {logwrite('Az.DesktopVirtualization is not available. Exit.'); exit 3}
 		     }
-
 		    }
-		
         catch {logwrite('Error importing Az Modules'); exit 3}
 }
 
@@ -225,40 +222,42 @@ Disable-AzContextAutosave -Scope Process
 # deploy the RDAgent and RDBootloader
 
 	%{
-	if ($WVDToken)
-		{
-		logwrite ('WVD Token to join WVD Hostpool: ' + $WVDToken)
+    try {
+	    if ($WVDToken)
+  		    {
+		    logwrite ('WVD Token to join WVD Hostpool: ' + $WVDToken)
 
-		### Install RDAgent
-		logwrite('Install Remote Desktop Services Infrastructure Agent')
-		do {$f=get-item -path C:\Source\RDagent.msi} until ({$f.count -eq 1})
-		Start-Process msiexec.exe -Wait -ArgumentList "/I C:\Source\RDAgent.msi REGISTRATIONTOKEN=$WVDToken /qb /L*V RDAgent.log"
+    		### Install RDAgent
+	    	logwrite('Install Remote Desktop Services Infrastructure Agent')
+		    do {} until (get-item -path C:\Source\RDagent.msi)
+		    Start-Process msiexec.exe -Wait -ArgumentList "/I C:\Source\RDAgent.msi REGISTRATIONTOKEN=$WVDToken /qb /L*V RDAgent.log"
 		
-		### Install RDBoot
-		logwrite ('Install Remote Desktop Agent Boot Loader')
-		do {$f=get-item -path C:\Source\RDBoot.msi} until ({$f.count -eq 1})
-		Start-Process msiexec.exe -Wait -ArgumentList "/I C:\Source\RDBoot.msi /qb  /L*V RDBoot.log"
-		LogWrite "Install RDS Agents completed."
+    		### Install RDBoot
+	    	logwrite ('Install Remote Desktop Agent Boot Loader')
+		    do {$f=get-item -path C:\Source\RDBoot.msi} until ({$f.count -eq 1})
+		    Start-Process msiexec.exe -Wait -ArgumentList "/I C:\Source\RDBoot.msi /qb  /L*V RDBoot.log"
+		    LogWrite "Install RDS Agents completed."
 
-		# Wait for the SXS Network Agent and Geneva Agent to install
-		LogWrite "Wait for the SXS Network Agent and Geneva Agent to install"
-		do {$sxs=get-package -name "*SXS*Network*";start-sleep -seconds 1} until($sxs.count -eq 1)
-		do {$Geneva=get-package -name "*Geneva*";start-sleep -seconds 1} until($Geneva.count -eq 1)
-		LogWrite "SXS Network Agent and Geneva Agent are installed"
-
-		}
-		Else {logwrite ('Could not retrieve a WVD Host Token for HostPool:' + $HostPool + '. Skip join WVD Hostpool')}
+		    # Wait for the SXS Network Agent and Geneva Agent to install
+		    LogWrite "Wait for the SXS Network Agent and Geneva Agent to install"
+		    do {start-sleep -Milliseconds 500} until(get-package -name "*SXS*Network*" -ErrorAction SilentlyContinue)
+		    do {start-sleep -Milliseconds 500} until(get-package -name "*Geneva*" -ErrorAction SilentlyContinue)
+		    LogWrite "SXS Network Agent and Geneva Agent are installed"
+		    }
+		    Else {logwrite ('Could not retrieve a WVD Host Token for HostPool:' + $HostPool + '. Skip join WVD Hostpool')}
+        }
+        catch {logwrite('Error installing Remote Desktop Agents'); exit 7}
 	}
 
     # Logout of Azure
 	    Disconnect-AzAccount
 	    logwrite ('Disconnected from Azure')
 
-	     }
+	     
 
 
 	LogWrite "Schedule a restart and exit"
-	Start-Process -FilePath "shutdown.exe" -ArgumentList "-r -soft -t 5"
+	Start-Process -FilePath "shutdown.exe" -ArgumentList "-r -soft -c "AVD-Turbo Complete" -t 5"
 	exit 0
 
 

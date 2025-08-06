@@ -42,7 +42,7 @@ Function UpdateNuget
 		    
             Install-PackageProvider -Name NuGet -ForceBootstrap -Scope AllUsers -Force
 		    if (Get-PackageProvider -Name Nuget -ListAvailable) {Logwrite('Nuget is available')}
-	    	else {logwrite('Nuget is not available. Exit.'); exit 3}
+	    	else {logwrite('Nuget is not available. Exit. ' + $_.Exception.Message); exit 3}
             }
     	}
     catch {LogWrite "NuGet Update Failed"; exit 3}
@@ -56,7 +56,7 @@ Function UpdateNuget
 	    	LogWrite "Added PSGallery as trusted repo"}
 	    Else {Set-PSRepository -Name "PSGallery" -InstallationPolicy Trusted}
 	    }
-    catch {LogWrite "Failed to add PSGallery as trusted repo"; exit 100}
+    catch {LogWrite ("Failed to add PSGallery as trusted repo. " + $_.Exception.Message); exit 100}
 }
 
 
@@ -67,7 +67,7 @@ Function UpdateModule
 	install-module $module
     	Logwrite ('Updated ' + $module)
     	}
-    catch {Logwrite ('Failed to update ' + $module)}
+    catch {Logwrite ('Failed to update ' + $module + " " + $_.Exception.Message)}
 }
 
 LogWrite "Starting Up"
@@ -157,7 +157,7 @@ exit 1
             if (Get-Module -name Az.DesktopVirtualization -ListAvailable) {Logwrite('Az.DesktopVirtualization is available')}
 	    	else {logwrite('Az.DesktopVirtualization is not available. Exit.'); exit 3}
 		    }
-        catch {logwrite('Error importing Az Modules'); exit 3}
+        catch {logwrite('Error importing Az Modules' +  $_.Exception.Message); exit 3}
 }
 
 
@@ -177,7 +177,7 @@ if ($HostPool) {
 		$URI="https://query.prod.cms.rt.microsoft.com/cms/api/am/binary/RWrxrH";Invoke-WebRequest -Uri $URI -OutFile C:\Source\RDBoot.msi -UseBasicParsing;
 		LogWrite ("Downloaded RDBoot.msi")		
 		    }
-		catch {LogWrite ("Failed to download RDAgents. + $_.Exception.Message");exit 99}
+		catch {LogWrite ("Failed to download RDAgents. " + $_.Exception.Message);exit 99}
 		}
 
 ### Create the AVD Agent PSCredential
@@ -196,7 +196,7 @@ Disable-AzContextAutosave -Scope Process
 		else {logwrite('Not connected to Azure. Exit.')
 		exit 6}
 		}
-		catch{logwrite('Error connecting to Azure')
+		catch{logwrite('Error connecting to Azure' +  $_.Exception.Message)
 			exit 6}
 	}
 
@@ -214,11 +214,14 @@ Disable-AzContextAutosave -Scope Process
 
 	$now=(get-date).addhours(2)
 	%{
+        try {
 		if ($now -gt (Get-AzWvdRegistrationInfo -ResourceGroupName $RG -HostPoolName $HostPool).ExpirationTime)
 			{logwrite ('Generate new WVD Token to join WVD Hostpool: ' + $HostPool)
 			$WVDToken=(New-AzWvdRegistrationInfo -ResourceGroupName $RG -HostPoolName $HostPool -ExpirationTime $((get-date).ToUniversalTime().AddHours(25).ToString('yyyy-MM-ddTHH:mm:ss.fffffffZ'))).Token}
 		Else {logwrite ('WVDToken exists for Hostpool: ' + $HostPool)
 		$WVDToken=(Get-AzWvdRegistrationInfo -ResourceGroupName $RG -HostPoolName $HostPool).Token}
+        }
+        catch{Logwrite($_.Exception.Message)}
 	}
 
 
@@ -249,7 +252,7 @@ Disable-AzContextAutosave -Scope Process
 		    }
 		    Else {logwrite ('Could not retrieve a WVD Host Token for HostPool:' + $HostPool + '. Skip join WVD Hostpool')}
         }
-        catch {logwrite('Error installing Remote Desktop Agents'); exit 7}
+        catch {logwrite('Error installing Remote Desktop Agents. ' + $_.Exception.Message); exit 7}
 	}
 
     # Logout of Azure

@@ -148,13 +148,13 @@ exit 1
 		try {
 		if (Get-Module -name Az.Accounts -ListAvailable) {Logwrite('Az.Accounts is available.')}
 		else {logwrite('Az.Accounts is not available. Will try and install.'); UpdateNuget; UpdateModule Az.Accounts;}
-			if (Get-Module -name Az.Accounts -ListAvailable) {Logwrite('Az.Accounts is available');import-module -Name Az.Accounts}
+			if (Get-Module -name Az.Accounts -ListAvailable) {Logwrite('Az.Accounts is available')}
 			else {logwrite('Az.Accounts is not available. Exit.'); exit 3}
 
 
 		if (Get-Module -name Az.DesktopVirtualization -ListAvailable) {Logwrite('Az.DesktopVirtualization is available.')}
 		else {logwrite('Az.DesktopVirtualization is not available. Will try and install.'); UpdateModule Az.DesktopVirtualization;}
-            if (Get-Module -name Az.DesktopVirtualization -ListAvailable) {Logwrite('Az.DesktopVirtualization is available');import-module -Name Az.DesktopVirtualization}
+            if (Get-Module -name Az.DesktopVirtualization -ListAvailable) {Logwrite('Az.DesktopVirtualization is available')}
 	    	else {logwrite('Az.DesktopVirtualization is not available. Exit.'); exit 3}
 		    }
         catch {logwrite('Error importing Az Modules' +  $_.Exception.Message); exit 3}

@@ -73,17 +73,18 @@ Function UpdateModule
 LogWrite "Starting Up"
 
 
-# Save some time by starting the RDAGent downloads
+# Start the RDAGent downloads
 if ($HostPool) {
 		try {
-		LogWrite "Download RD Agents"
+		LogWrite ("Download RD Agents")
 		New-Item -Path C:\Source -ItemType Directory -Force
-		$SB={$URI="https://query.prod.cms.rt.microsoft.com/cms/api/am/binary/RWrmXv";Invoke-WebRequest -Uri $URI -OutFile C:\Source\RDagent.msi -UseBasicParsing;}
+		$URI="https://query.prod.cms.rt.microsoft.com/cms/api/am/binary/RWrmXv";Invoke-WebRequest -Uri $URI -OutFile C:\Source\RDagent.msi -UseBasicParsing;
+		LogWrite ("Downloaded RDAgent.msi")
 		start-job -name 'DownloadRDInfraAgent' -scriptblock $SB
-		$SB={$URI="https://query.prod.cms.rt.microsoft.com/cms/api/am/binary/RWrxrH";Invoke-WebRequest -Uri $URI -OutFile C:\Source\RDBoot.msi -UseBasicParsing;}
-		start-job -name 'DownloadRDBootAgent' -scriptblock $SB
+		$URI="https://query.prod.cms.rt.microsoft.com/cms/api/am/binary/RWrxrH";Invoke-WebRequest -Uri $URI -OutFile C:\Source\RDBoot.msi -UseBasicParsing;
+		LogWrite ("Downloaded RDBoot.msi")		
 		    }
-		catch {LogWrite (Failed to download RDAgents. + $_.Exception.Message);exit 99}
+		catch {LogWrite ("Failed to download RDAgents. + $_.Exception.Message");exit 99}
 		}
 
 
@@ -124,10 +125,9 @@ exit 1
 }
 
 
-If ($ADDomain) {
+	If ($ADDomain) {
 		if((gwmi win32_computersystem).partofdomain -eq 0) {
-
-try {
+	try {
 		$ADDomainCred = New-Object pscredential -ArgumentList ([pscustomobject]@{
 		UserName = $ADAdmin
 		Password = (ConvertTo-SecureString -String $ADAdminPW -AsPlainText -Force)[0]})
@@ -135,24 +135,21 @@ try {
 		LogWrite ("Join Domain " + $ADDomain)
 		Add-Computer -DomainName $ADDomain -OUPath $ou -Credential $ADDomainCred -Options JoinWithNewName,AccountCreate -Force -PassThru -Verbose | Out-File -FilePath $Logfile -Append
 		LogWrite ("Ignore the Computername above. Add-Computer always reports the original name, not the new name.")
-    }
-catch{
-LogWrite ($_.Exception.Message)
-exit 2}
-
 		}
-}
-        else {LogWrite ($VMName + " deployment complete");exit 0}
+	catch{		LogWrite ($_.Exception.Message);exit 2}
+		}
+	}
+    else {LogWrite ($VMName + " deployment complete. Schedule a restart and exit.");Start-Process -FilePath "shutdown.exe" -ArgumentList "-r -soft -t 5";exit 0}
+	
 
 
 
-
-If ($HostPool) {
+	If ($HostPool) {
 		if (get-item -path "C:\Program Files\Microsoft RDInfra" -ErrorAction SilentlyContinue)
 		{LogWrite ("Remote Desktop Agents are already installed. Exit")
         exit 3}
-}
-
+	}
+    else {LogWrite ($VMName + " deployment complete. Schedule a restart and exit.");Start-Process -FilePath "shutdown.exe" -ArgumentList "-r -soft -t 5";exit 0}
 
 # check the device is domain joined
 	%{
@@ -238,13 +235,13 @@ Disable-AzContextAutosave -Scope Process
 
     		### Install RDAgent
 	    	logwrite('Install Remote Desktop Services Infrastructure Agent')
-		    do {} until (get-item -path C:\Source\RDagent.msi)
-		    Start-Process msiexec.exe -Wait -ArgumentList "/I C:\Source\RDAgent.msi REGISTRATIONTOKEN=$WVDToken /qb /L*V RDAgent.log"
+		    if (get-item -path C:\Source\RDagent.msi){Start-Process msiexec.exe -Wait -ArgumentList "/I C:\Source\RDAgent.msi REGISTRATIONTOKEN=$WVDToken /qb /L*V RDAgent.log"}
+			else{Logwrite("RDagent.msi is not available. Exit");exit 99}
 		
     		### Install RDBoot
 	    	logwrite ('Install Remote Desktop Agent Boot Loader')
-		    do {} until (get-item -path C:\Source\RDBoot.msi)
-		    Start-Process msiexec.exe -Wait -ArgumentList "/I C:\Source\RDBoot.msi /qb  /L*V RDBoot.log"
+		    if (get-item -path C:\Source\RDBoot.msi){Start-Process msiexec.exe -Wait -ArgumentList "/I C:\Source\RDBoot.msi /qb  /L*V RDBoot.log"}
+			else{Logwrite("RDBoot.msi is not available. Exit");exit 99}
 		    LogWrite "Install RDS Agents completed."
 
 		    # Wait for the SXS Network Agent and Geneva Agent to install
@@ -265,7 +262,7 @@ Disable-AzContextAutosave -Scope Process
 	     
 
 
-	LogWrite "Schedule a restart and exit"
+	LogWrite ($VMName + " deployment complete. Schedule a restart and exit.")
 	Start-Process -FilePath "shutdown.exe" -ArgumentList "-r -soft -t 5"
 	exit 0
 

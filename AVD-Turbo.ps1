@@ -72,21 +72,6 @@ Function UpdateModule
 
 LogWrite "Starting Up"
 
-
-# Start the RDAGent downloads
-if ($HostPool) {
-		try {
-		LogWrite ("Download RD Agents")
-		New-Item -Path C:\Source -ItemType Directory -Force
-		$URI="https://query.prod.cms.rt.microsoft.com/cms/api/am/binary/RWrmXv";Invoke-WebRequest -Uri $URI -OutFile C:\Source\RDagent.msi -UseBasicParsing;
-		LogWrite ("Downloaded RDAgent.msi")
-		$URI="https://query.prod.cms.rt.microsoft.com/cms/api/am/binary/RWrxrH";Invoke-WebRequest -Uri $URI -OutFile C:\Source\RDBoot.msi -UseBasicParsing;
-		LogWrite ("Downloaded RDBoot.msi")		
-		    }
-		catch {LogWrite ("Failed to download RDAgents. + $_.Exception.Message");exit 99}
-		}
-
-
 LogWrite "Rename Computer"
 
 	$d1=get-Date
@@ -181,6 +166,19 @@ exit 1
 	logwrite('Hostname:' + $hostname)
 	logwrite('Hostpool:' + $hostpool)
 	logwrite('ClientID:' + $ClientID)
+
+# Start the RDAGent downloads
+if ($HostPool) {
+		try {
+		LogWrite ("Download RD Agents")
+		New-Item -Path C:\Source -ItemType Directory -Force
+		$URI="https://query.prod.cms.rt.microsoft.com/cms/api/am/binary/RWrmXv";Invoke-WebRequest -Uri $URI -OutFile C:\Source\RDagent.msi -UseBasicParsing;
+		LogWrite ("Downloaded RDAgent.msi")
+		$URI="https://query.prod.cms.rt.microsoft.com/cms/api/am/binary/RWrxrH";Invoke-WebRequest -Uri $URI -OutFile C:\Source\RDBoot.msi -UseBasicParsing;
+		LogWrite ("Downloaded RDBoot.msi")		
+		    }
+		catch {LogWrite ("Failed to download RDAgents. + $_.Exception.Message");exit 99}
+		}
 
 ### Create the AVD Agent PSCredential
 	$AVDCred = New-Object pscredential -ArgumentList ([pscustomobject]@{

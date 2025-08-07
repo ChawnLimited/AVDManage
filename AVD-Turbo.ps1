@@ -72,12 +72,13 @@ Function UpdateModule
 
 LogWrite "Starting Up"
 
-LogWrite "Get-module"
 try{
-	$mod=Get-module
-	foreach($m in $mod){Logwrite($m.name)}
+	logwrite("slam modules")
+	import-module -name Az.Accounts,AZ.DesktopVirtualization
+	logwrite("slam")
 	}
-catch{logwrite("messedup")}
+catch{}
+
 
 LogWrite "Rename Computer"
 

@@ -66,12 +66,6 @@ Function UpdateModule
 
 
 LogWrite "Starting Up"
-LogWrite "Get-module"
-try{
-	$mod=Get-module
-	foreach($m in $mod){Logwrite($m.name)}
-	}
-catch{logwrite("messedup")}
 
 # check the agents are not already installed
 %{

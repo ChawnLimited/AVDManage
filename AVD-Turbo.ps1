@@ -72,13 +72,6 @@ Function UpdateModule
 
 LogWrite "Starting Up"
 
-try{
-	logwrite("slam modules")
-	import-module -name Az.Accounts,AZ.DesktopVirtualization
-	logwrite("slam")
-	}
-catch{}
-
 
 LogWrite "Rename Computer"
 

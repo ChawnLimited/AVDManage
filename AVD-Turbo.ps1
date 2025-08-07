@@ -72,6 +72,13 @@ Function UpdateModule
 
 LogWrite "Starting Up"
 
+LogWrite "Get-module"
+try{
+	$mod=Get-module
+	foreach($m in $mod){Logwrite($m.name)}
+	}
+catch{logwrite("messedup")}
+
 LogWrite "Rename Computer"
 
 	$d1=get-Date

@@ -1,6 +1,6 @@
 # Chawn Limited 2025
 # AVD-Seal-Special.ps1
-# Version 1.3
+# Version 2.0
 # Disables Update Services and Update Tasks
 # Edge, Chrome, OneDrive, Office, WSUS
 # Disables IPv6, Nic TaskOffload, Machine Password changes
@@ -142,6 +142,7 @@ Get-Service -Name WindowsAzureGuestAgent | stop-service
 Get-ChildItem -Path C:\WindowsAzure\config -Filter *.*  | Remove-Item -Force
 
 # We're not running Sysprep
-Write-Host "You can now stop the VM and create a specialized Compute Gallery Image"
+Write-Host "Shutdown the VM and create a specialized Compute Gallery Image"
+Start-Process -FilePath "shutdown.exe" -ArgumentList "-s -t 5"
 
 exit 0

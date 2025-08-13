@@ -83,7 +83,7 @@ try	{
 catch{}
 
 # Remove Ghost Hardware
-$devs=Get-PnpDevice -class CDrom,Diskdrive,Display,Monitor,Mouse,Net,Ports,Processor,PrintQueue,SCSIAdapter,SoftwareDevice,Volume -ErrorAction Ignore | ? status -eq unknown
+$devs=Get-PnpDevice -class Diskdrive,Display,Monitor,Mouse,Net,Ports,Processor,PrintQueue,SCSIAdapter,SoftwareDevice,Volume -ErrorAction Ignore | ? status -eq unknown
 	foreach ($d in $devs) 	{
  	&"pnputil" /remove-device $d.InstanceId
 				}

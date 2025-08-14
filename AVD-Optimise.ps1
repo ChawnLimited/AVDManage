@@ -1,6 +1,6 @@
-# Chawn Limited 2024
+# Chawn Limited 2025
 # AVD-Optimise.ps1
-# Version 1.2
+# Version 2.0
 # Implements know optimisations for AVD Session Hosts
 # https://learn.microsoft.com/en-us/previous-versions/windows-server/it-pro/windows-server-2019/remote/remote-desktop-services/rds-vdi-recommendations
 # Update services and Maintenance tasks are disabled
@@ -371,8 +371,18 @@ $tasks=Get-ScheduledTask -TaskPath "\Microsoft\Windows\Data Integrity Scan\" -Er
 $tasks=Get-ScheduledTask -TaskPath "\Microsoft\Windows\TPM\" -ErrorAction SilentlyContinue
 	foreach ($task in $tasks) {Unregister-ScheduledTask -TaskName $task.TaskName -Confirm:$false -ErrorAction SilentlyContinue}
 
+	# Bitlocker
+#	reg delete "HKEY_CLASSES_ROOT\Drive\shell\decrypt-bde"
+#	reg delete "HKEY_CLASSES_ROOT\Drive\shell\encrypt-bde-elev"
+	
+	# Restore Classic Context Menus
+#	reg delete "HKEY_LOCAL_MACHINE\SOFTWARE\Classes\CLSID\{86ca1aa0-34aa-4e8b-a509-50c905bae2a2"
+
+	# improve Startup / restart time - this is set to 30 by DEFAULT
+bcdedit /timeout 1
+
 # Remove Ghost Hardware
-$devs=Get-PnpDevice -class CDrom,Diskdrive,Display,Monitor,Mouse,Net,Ports,Processor,PrintQueue,SCSIAdapter,SoftwareDevice,Volume -ErrorAction Ignore | ? status -eq unknown
+$devs=Get-PnpDevice -class Diskdrive,Display,Monitor,Mouse,Net,Ports,Processor,PrintQueue,SCSIAdapter,SoftwareDevice,Volume -ErrorAction Ignore | ? status -eq unknown
 	foreach ($d in $devs) 	{
  	&"pnputil" /remove-device $d.InstanceId
 				}

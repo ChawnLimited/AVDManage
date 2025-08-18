@@ -125,17 +125,6 @@ Write-Host "Configure Event Logs"
 	wevtutil cl Security
 	wevtutil cl Microsoft-FSLogix-Apps/Operational
 
-Write-Host "Add Local Administrators to FS Logix Exclude Groups"
-# Add Local Administrators to FS Logix Exclude Groups
-if (Get-LocalGroup -Name "FSLogix ODFC Exclude List" -ErrorAction SilentlyContinue)
-	{
-	Add-LocalGroupMember -Group "FSLogix ODFC Exclude List" -Member "NT Authority\Local account and member of Administrators group" -ErrorAction SilentlyContinue
-	}
-if (Get-LocalGroup -Name "FSLogix Profile Exclude List" -ErrorAction SilentlyContinue)
-	{
-	Add-LocalGroupMember -Group "FSLogix Profile Exclude List" -Member "NT Authority\Local account and member of Administrators group" -ErrorAction SilentlyContinue
-	}
-
 Write-Host "Neutralise the WindowsAzure Agent"
 # Neutralise the WindowsAzure Agent
 Get-Service -Name WindowsAzureGuestAgent | stop-service

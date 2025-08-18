@@ -371,9 +371,10 @@ $tasks=Get-ScheduledTask -TaskPath "\Microsoft\Windows\Data Integrity Scan\" -Er
 $tasks=Get-ScheduledTask -TaskPath "\Microsoft\Windows\TPM\" -ErrorAction SilentlyContinue
 	foreach ($task in $tasks) {Unregister-ScheduledTask -TaskName $task.TaskName -Confirm:$false -ErrorAction SilentlyContinue}
 
-	# Bitlocker
-#	reg delete "HKEY_CLASSES_ROOT\Drive\shell\decrypt-bde"
-#	reg delete "HKEY_CLASSES_ROOT\Drive\shell\encrypt-bde-elev"
+	# Disable Bitlocker
+#	reg delete "HKEY_CLASSES_ROOT\Drive\shell\decrypt-bde" /f
+#	reg delete "HKEY_CLASSES_ROOT\Drive\shell\encrypt-bde-elev" /f
+#   Set-ItemProperty -Path "HKLM:\SYSTEM\CurrentControlSet\Control\BitLocker" -Name "PreventDeviceEncryption" -Value 1 -Force -ErrorAction SilentlyContinue
 	
 	# Restore Classic Context Menus
 #	reg delete "HKEY_LOCAL_MACHINE\SOFTWARE\Classes\CLSID\{86ca1aa0-34aa-4e8b-a509-50c905bae2a2"

@@ -85,7 +85,6 @@ LogWrite "Rename Computer"
 
 
 try {
-
 	$d2=get-Date
 	$dur=$d2-$d1
 	LogWrite ("Duration: " + $dur.Hours + " hours " + $dur.Minutes + " mins " + $dur.Seconds + " secs")
@@ -98,33 +97,33 @@ try {
 	$vmname=(Select-Xml -Path $xml.fullname -XPath $xpath | Select-Object -ExpandProperty Node).id
 	$vmname=$vmname.Substring(1)
 
-    if ($vmname -eq $env:computerName) {LogWrite ("Computer is already named " + $VMName + ". This must be the Master VM. Exit");}
-		elseif((gwmi win32_computersystem).partofdomain -eq 0) {
-	LogWrite ("Renaming Computer to " + $VMName)
-	Rename-Computer -NewName $VMName -Force | Out-File -FilePath $Logfile -Append
-	}
+		if ($vmname -eq $env:computerName) {LogWrite ("Computer is already named " + $VMName + ".")}
+		else((gwmi win32_computersystem).partofdomain -eq 0) {
+		LogWrite ("Renaming Computer to " + $VMName)
+		Rename-Computer -NewName $VMName -Force | Out-File -FilePath $Logfile -Append
+		}
     }
-Catch {
-LogWrite ($_.Exception.Message)
-exit 1
-}
+Catch {LogWrite ($_.Exception.Message);exit 1}
 
 
-	If ($ADDomain) {
-		if((gwmi win32_computersystem).partofdomain -eq 0) {
+
 	try {
-		$ADDomainCred = New-Object pscredential -ArgumentList ([pscustomobject]@{
-		UserName = $ADAdmin
-		Password = (ConvertTo-SecureString -String $ADAdminPW -AsPlainText -Force)[0]})
+		If ($ADDomain) {
+			if((gwmi win32_computersystem).partofdomain -eq 0) {
+				$ADDomainCred = New-Object pscredential -ArgumentList ([pscustomobject]@{
+				UserName = $ADAdmin
+				Password = (ConvertTo-SecureString -String $ADAdminPW -AsPlainText -Force)[0]})
 
-		LogWrite ("Join Domain " + $ADDomain)
-		Add-Computer -DomainName $ADDomain -OUPath $ou -Credential $ADDomainCred -Options JoinWithNewName,AccountCreate -Force -PassThru -Verbose | Out-File -FilePath $Logfile -Append
-		LogWrite ("Ignore the Computername above. Add-Computer always reports the original name, not the new name.")
+				LogWrite ("Join Domain " + $ADDomain)
+				Add-Computer -DomainName $ADDomain -OUPath $ou -Credential $ADDomainCred -Options JoinWithNewName,AccountCreate -Force -PassThru -Verbose | Out-File -FilePath $Logfile -Append
+				LogWrite ("Ignore the Computername above. Add-Computer always reports the original name, not the new name.")
+			}
 		}
-	catch{		LogWrite ($_.Exception.Message);exit 2}
-		}
+		else {LogWrite ($VMName + " deployment complete. Schedule a restart and exit.");Start-Process -FilePath "shutdown.exe" -ArgumentList "-r -soft -t 5";exit 0}
 	}
-    else {LogWrite ($VMName + " deployment complete. Schedule a restart and exit.");Start-Process -FilePath "shutdown.exe" -ArgumentList "-r -soft -t 5";exit 0}
+	catch{LogWrite ($_.Exception.Message);exit 2}
+
+ 
 	
 
 
@@ -265,10 +264,10 @@ Disable-AzContextAutosave -Scope Process
 
 
 # SIG # Begin signature block
-# MIInlQYJKoZIhvcNAQcCoIInhjCCJ4ICAQExDzANBglghkgBZQMEAgEFADB5Bgor
+# MIInlgYJKoZIhvcNAQcCoIInhzCCJ4MCAQExDzANBglghkgBZQMEAgEFADB5Bgor
 # BgEEAYI3AgEEoGswaTA0BgorBgEEAYI3AgEeMCYCAwEAAAQQH8w7YFlLCE63JNLG
-# KX7zUQIBAAIBAAIBAAIBAAIBADAxMA0GCWCGSAFlAwQCAQUABCDKbEo5MXc8Z6VJ
-# fdlNnpmsbu3ixrZDI1ywpu8e4AlO96CCIkEwggMwMIICtqADAgECAhA3dENPnrQO
+# KX7zUQIBAAIBAAIBAAIBAAIBADAxMA0GCWCGSAFlAwQCAQUABCASobUfpcLdrFHC
+# 4m+OgyCFuabAaoN7TF3JaKuFkOp6+6CCIkEwggMwMIICtqADAgECAhA3dENPnrQO
 # Ih+SNsofLycXMAoGCCqGSM49BAMDMFYxCzAJBgNVBAYTAkdCMRgwFgYDVQQKEw9T
 # ZWN0aWdvIExpbWl0ZWQxLTArBgNVBAMTJFNlY3RpZ28gUHVibGljIENvZGUgU2ln
 # bmluZyBSb290IEU0NjAeFw0yMTAzMjIwMDAwMDBaFw0zNjAzMjEyMzU5NTlaMFcx
@@ -451,30 +450,30 @@ Disable-AzContextAutosave -Scope Process
 # IwXMZUXBhtCyIaehr0XkBoDIGMUG1dUtwq1qmcwbdUfcSYCn+OwncVUXf53VJUNO
 # aMWMts0VlRYxe5nK+At+DI96HAlXHAL5SlfYxJ7La54i71McVWRP66bW+yERNpbJ
 # CjyCYG2j+bdpxo/1Cy4uPcU3AWVPGrbn5PhDBf3Froguzzhk++ami+r3Qrx5bIbY
-# 3TVzgiFI7Gq3zWcxggSqMIIEpgIBATBrMFcxCzAJBgNVBAYTAkdCMRgwFgYDVQQK
+# 3TVzgiFI7Gq3zWcxggSrMIIEpwIBATBrMFcxCzAJBgNVBAYTAkdCMRgwFgYDVQQK
 # Ew9TZWN0aWdvIExpbWl0ZWQxLjAsBgNVBAMTJVNlY3RpZ28gUHVibGljIENvZGUg
 # U2lnbmluZyBDQSBFViBFMzYCEDxolvyQov0GPgzdcbswAjcwDQYJYIZIAWUDBAIB
 # BQCggYQwGAYKKwYBBAGCNwIBDDEKMAigAoAAoQKAADAZBgkqhkiG9w0BCQMxDAYK
 # KwYBBAGCNwIBBDAcBgorBgEEAYI3AgELMQ4wDAYKKwYBBAGCNwIBFTAvBgkqhkiG
-# 9w0BCQQxIgQg7iap25PtsQKc5wYn9+9rceuhQVw6SiVriLBGM8+JeEEwCwYHKoZI
-# zj0CAQUABGcwZQIwblsIWtSZqevGLbzW7BHNjtS5FN1q66lS6LEB2yBU76CBrsDY
-# Wjlt00y81WRQ6GSIAjEAtclWc1wxRoam8rug66oFrzeUV7evH6fnml0oXLoZDpR9
-# p3I/kRZptePasqjyOp+XoYIDJjCCAyIGCSqGSIb3DQEJBjGCAxMwggMPAgEBMH0w
-# aTELMAkGA1UEBhMCVVMxFzAVBgNVBAoTDkRpZ2lDZXJ0LCBJbmMuMUEwPwYDVQQD
-# EzhEaWdpQ2VydCBUcnVzdGVkIEc0IFRpbWVTdGFtcGluZyBSU0E0MDk2IFNIQTI1
-# NiAyMDI1IENBMQIQCoDvGEuN8QWC0cR2p5V0aDANBglghkgBZQMEAgEFAKBpMBgG
-# CSqGSIb3DQEJAzELBgkqhkiG9w0BBwEwHAYJKoZIhvcNAQkFMQ8XDTI1MDgxOTE1
-# MDMyOVowLwYJKoZIhvcNAQkEMSIEICxbQuPT8/QfzKeCjpkzf8X9ivbdEmJ1dvKx
-# rB5UbLi9MA0GCSqGSIb3DQEBAQUABIICAMU1dwVNB9e8hssydmqynE38t9k0zqJB
-# Mbu2Zblt40THVwsYEUE700Mr5ZbE9BsEaaCzJoLmWy3KuS5BverWGP4Z+u8mID20
-# G2M3FfK+gpbyBtdehDrQhL0T9FaEYIPDB+X49jlv9LIRK9AhFbyCYayDR3Ca9AYg
-# CBPwzZx6Q2iXeJpWX7QlZ1VqSW7P6QpiiGy/nvHxcEkLOac91uA9VSyGJTVYMtsW
-# x7JVKqRxQ6T1AXmNdSzYP2qst+8uqk5pXO8KRitniM7hTDHatNspR6HtyYAvONgx
-# jenhVIWc9X5TuUMZqSuTlUKLSfcM7ajZpzA2yjtK49xval5fBD30Bl0GnISWMZ7C
-# 0fnf2fitwiXGDWlgKzkt7Dv+LGWTHNjPCaD5Y5sRA6Ep381gEtxOGM4AKqQRoED7
-# +QfjOTHeYZAxLuY1/9ZI0O1+vRp0LB+mti8alUCzcf4306H8AyXTRV/7U021uzEy
-# 3/a/lHVAutBGgS10zuzRH72L7yIIeR6lau98AxHmZMQSSvlUyO+b/HUL9u0zxacj
-# 5ImNSpY8AGLmrtXDDt3u5tqw7h8gnpAjdc/BvTHps5ATnhl9b8aL5IQsyBKPxNdi
-# paXVvUAv/86pU3Yk/gbcX82PAoOa2+kLz3Dj+KUGhIDYMjJ7Xf7cBguxVYKwz6I3
-# mgZ+qbKw3t7Q
+# 9w0BCQQxIgQg4X/WJCBBy8T/Gtc98bnCUnj0yyvByufeST1qpAfj/r8wCwYHKoZI
+# zj0CAQUABGgwZgIxALF9FkedyNpWReUUcBtuEw9g5JrvgwSixnieNV2XSypHNS6f
+# l4LScspneS9YUdZQ7gIxAJXAYHwgNBKDtHDM0WtA16gCInpsSNCqJvFAJZoChKge
+# no9+FZHvhm+B7RsjgdgmOaGCAyYwggMiBgkqhkiG9w0BCQYxggMTMIIDDwIBATB9
+# MGkxCzAJBgNVBAYTAlVTMRcwFQYDVQQKEw5EaWdpQ2VydCwgSW5jLjFBMD8GA1UE
+# AxM4RGlnaUNlcnQgVHJ1c3RlZCBHNCBUaW1lU3RhbXBpbmcgUlNBNDA5NiBTSEEy
+# NTYgMjAyNSBDQTECEAqA7xhLjfEFgtHEdqeVdGgwDQYJYIZIAWUDBAIBBQCgaTAY
+# BgkqhkiG9w0BCQMxCwYJKoZIhvcNAQcBMBwGCSqGSIb3DQEJBTEPFw0yNTA4MTkx
+# NTM3MjdaMC8GCSqGSIb3DQEJBDEiBCBifx7AqtF1j7bb8IC3QMw69s2xjHee1DPY
+# zNJaMLgu3zANBgkqhkiG9w0BAQEFAASCAgDEkKYuo4x2L+jQyHoTw3GM7wxW3rJ0
+# hhXSX0/6HU+uACnhYyHolF3oNX5TXLzhpDhSLRjrWURdR1MyISBxC63aLwL/3CAS
+# v+A60Ef/XLZrs+e4bzKIdsytGFG0rDxWrqLuphzftwiWjv2/PthIG2YLnPGJSV6W
+# AIS52I77ySwkR4K53SckUza1qzRkA2rkncdnUXGUujVji3tXaHpFUun+Uil4WL/M
+# ruQ0rbacQD+aUlPWSxLu6Jpi/g4meuR9ChpIdZNr/zeiouPM5g485JLabLVlUF9r
+# yhTxUE60KWz56oLrVbv9zgehXh5QHQ8yWe2HbL2IUHVKybgrY+ob6OS7tIFRpJIr
+# 13lGUkJfRrs2R2crX7IVN45r+D7TC4mHDjyOIudeokAkn5X3jRcDpBqxP4qGQj6t
+# RhAXwEzMJSFF3V5RGvQ6q/X5dwvdX+W1DFNdYrNw8E+KhiuY//w0QOqjFR58CS3p
+# zLo0weIzR2yLl5lusnbgTZYDuGXvwQmClUjZOp3aADdSP8sfpk5Xya6XlnXjuyiW
+# BhVbW48q4Bm8t/1HyIKaZLYVQbuoITfOeyDRa+c0+VlqKyx6C3YOnW8VlupXWDE3
+# e5e+HtdHr02dNscA96BKuk1sL5cu9PtWpZ2S77VvF0oclYnjg9Z0yScJoSpSTdwU
+# 6A4oi0uWtlbkfw==
 # SIG # End signature block

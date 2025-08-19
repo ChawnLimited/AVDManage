@@ -173,7 +173,7 @@ $now=(get-date).addhours(2)
 
     		### Install RDAgent
 	    	logwrite('Install Remote Desktop Services Infrastructure Agent')
-		    if (get-item -path C:\Source\RDagent.msi){Start-Process msiexec.exe -Wait -ArgumentList "/I C:\Source\RDAgent.msi REGISTRATIONTOKEN=$WVDToken /qb /L*V RDAgent.log"}
+		    if (get-item -path C:\Source\RDagent.msi){Start-Process msiexec.exe -Wait -ArgumentList "/I C:\Source\RDAgent.msi REGISTRATIONTOKEN="$WVDToken" /qb /L*V RDAgent.log"}
 			else{Logwrite("RDagent.msi is not available. Exit");exit 99}
 		
     		### Install RDBoot
@@ -184,11 +184,13 @@ $now=(get-date).addhours(2)
 
 		    # Wait for the SXS Network Agent and Geneva Agent to install
 		    LogWrite "Wait for the SXS Network Agent and Geneva Agent to install"
-		    do {start-sleep -Milliseconds 500} until((get-package -name "*SXS*Network*" -ErrorAction SilentlyContinue).Status -eq 'Installed')
-		    do {start-sleep -Milliseconds 500} until((get-package -name "*Geneva*" -ErrorAction SilentlyContinue).Status -eq 'Installed')
-		    LogWrite "SXS Network Agent and Geneva Agent are installed"
+			$i=0
+			do {start-sleep -Seconds 2;$i++;} until(((get-package -name "*SXS*Network*" -ErrorAction SilentlyContinue).Status -eq 'Installed') -and ((get-package -name "*Geneva*" -ErrorAction SilentlyContinue).Status -eq 'Installed') -or $i -eq 20)
 		    }
 		    Else {logwrite ('Could not retrieve a WVD Host Token for HostPool:' + $HostPool + '. Skip join WVD Hostpool')}
+			if (((get-package -name "*SXS*Network*" -ErrorAction SilentlyContinue).Status -eq 'Installed') -and ((get-package -name "*Geneva*" -ErrorAction SilentlyContinue).Status -eq 'Installed'))
+			{LogWrite ("SXS Network Agent and Geneva Agent are installed")}
+			Else {LogWrite ("SXS Network Agent or Geneva Agent installation failed");LogWrite ("SXS Network Agent: " + ((get-package -name "*SXS*Network*" -ErrorAction SilentlyContinue).Status -eq 'Installed'));LogWrite ("Geneva Agent: " + ((get-package -name "*Geneva*" -ErrorAction SilentlyContinue).Status -eq 'Installed'));LogWrite("Check " + $env:ProgramFiles + "\Microsoft RDInfra. The MSI files don't download sometimes.")}
         }
         catch {logwrite('Error installing Remote Desktop Agents. ' + $_.Exception.Message); exit 7}
 	}
@@ -201,10 +203,10 @@ exit 0
 
 
 # SIG # Begin signature block
-# MIInlAYJKoZIhvcNAQcCoIInhTCCJ4ECAQExDzANBglghkgBZQMEAgEFADB5Bgor
+# MIInlQYJKoZIhvcNAQcCoIInhjCCJ4ICAQExDzANBglghkgBZQMEAgEFADB5Bgor
 # BgEEAYI3AgEEoGswaTA0BgorBgEEAYI3AgEeMCYCAwEAAAQQH8w7YFlLCE63JNLG
-# KX7zUQIBAAIBAAIBAAIBAAIBADAxMA0GCWCGSAFlAwQCAQUABCD/P3QOBy8UBS54
-# T9gTx3fGOYMz3MBZmuE0Xb24a+6l16CCIkEwggMwMIICtqADAgECAhA3dENPnrQO
+# KX7zUQIBAAIBAAIBAAIBAAIBADAxMA0GCWCGSAFlAwQCAQUABCDarPJG6mOusINV
+# GZZqI1BAjiptRPkPI2hHUJxGAhTSTaCCIkEwggMwMIICtqADAgECAhA3dENPnrQO
 # Ih+SNsofLycXMAoGCCqGSM49BAMDMFYxCzAJBgNVBAYTAkdCMRgwFgYDVQQKEw9T
 # ZWN0aWdvIExpbWl0ZWQxLTArBgNVBAMTJFNlY3RpZ28gUHVibGljIENvZGUgU2ln
 # bmluZyBSb290IEU0NjAeFw0yMTAzMjIwMDAwMDBaFw0zNjAzMjEyMzU5NTlaMFcx
@@ -387,30 +389,30 @@ exit 0
 # IwXMZUXBhtCyIaehr0XkBoDIGMUG1dUtwq1qmcwbdUfcSYCn+OwncVUXf53VJUNO
 # aMWMts0VlRYxe5nK+At+DI96HAlXHAL5SlfYxJ7La54i71McVWRP66bW+yERNpbJ
 # CjyCYG2j+bdpxo/1Cy4uPcU3AWVPGrbn5PhDBf3Froguzzhk++ami+r3Qrx5bIbY
-# 3TVzgiFI7Gq3zWcxggSpMIIEpQIBATBrMFcxCzAJBgNVBAYTAkdCMRgwFgYDVQQK
+# 3TVzgiFI7Gq3zWcxggSqMIIEpgIBATBrMFcxCzAJBgNVBAYTAkdCMRgwFgYDVQQK
 # Ew9TZWN0aWdvIExpbWl0ZWQxLjAsBgNVBAMTJVNlY3RpZ28gUHVibGljIENvZGUg
 # U2lnbmluZyBDQSBFViBFMzYCEDxolvyQov0GPgzdcbswAjcwDQYJYIZIAWUDBAIB
 # BQCggYQwGAYKKwYBBAGCNwIBDDEKMAigAoAAoQKAADAZBgkqhkiG9w0BCQMxDAYK
 # KwYBBAGCNwIBBDAcBgorBgEEAYI3AgELMQ4wDAYKKwYBBAGCNwIBFTAvBgkqhkiG
-# 9w0BCQQxIgQgbI1vJrlwm89PM8ba72kcA+yidIBDyCawcuypWPA/J30wCwYHKoZI
-# zj0CAQUABGYwZAIwEzGifDO39h0wXAqVBw5HAyKE5PQgB+3KbZi5sb1q0jhf07Hk
-# zluJTNvhKySjdaXbAjAWZnlp9SioBHs0/ZYJ+817qPvXc4bSK7GkbbwOJUj2Sn4N
-# iYJ0lLX4TRS9Jfh5akChggMmMIIDIgYJKoZIhvcNAQkGMYIDEzCCAw8CAQEwfTBp
-# MQswCQYDVQQGEwJVUzEXMBUGA1UEChMORGlnaUNlcnQsIEluYy4xQTA/BgNVBAMT
-# OERpZ2lDZXJ0IFRydXN0ZWQgRzQgVGltZVN0YW1waW5nIFJTQTQwOTYgU0hBMjU2
-# IDIwMjUgQ0ExAhAKgO8YS43xBYLRxHanlXRoMA0GCWCGSAFlAwQCAQUAoGkwGAYJ
-# KoZIhvcNAQkDMQsGCSqGSIb3DQEHATAcBgkqhkiG9w0BCQUxDxcNMjUwODE5MjEw
-# MTQ5WjAvBgkqhkiG9w0BCQQxIgQgdK3+EN5xYBUPz2fL24wUWkjhhl8RL54maWcX
-# TomMVvAwDQYJKoZIhvcNAQEBBQAEggIAd0hILEtN4y/1uItWJvkgAGmfXsLcw0Zx
-# AsuaauT6jAovtg0Ij8dV7erWiIG/S+p624MOZItPlyXcAMsJDufgrzP7Z0nTWujM
-# TAW5xchPCH9/4nJG/nPeGR4KNURF1m9HcLdz/bEWhO56yrYSfxFStKvbjMHTOQI1
-# TJ+SwEY2OMoyUUq6BirDTqBnEcax/dt4Y5fk35MzY6ytFuHaw7y7twEYJU0AWDwU
-# PxY+ZizdTaR7MYfsspStRFQReG6aNwry5YJNsXE42ucdXXpGbIo4wJ6qOstmDiu+
-# eCYx8rn0wFNEIilneUJ+WKmpi5VWJm97qqQua4jGTqz8wXOyvm3Uwaz74ZUy2dnJ
-# cCiA+w3399+wpm37+RxvJ+ba6M0O/op7R42xos2AZD4N32hFZSPG0zlgTXgVOpCx
-# IIcGHR94PZ/Rem9VxDwCZEaH7TBoLzg6H5rRqTZoQccVWnYzXgHvjCKtPQS5nRJD
-# NKPPO5xWRKyURMyXWLOtHAETB518NO7Q4T4h+ENcqnN6lRxpdfDBchF/KkgX0Vps
-# zR0qjrWN4boenAxaAAlanQdFjHz9sr9JuH15DVRfDZ/ZGa/yRjTKn3lab+3rrHKF
-# XrSUQ5pUKfGOfXkgS9utBA8X1cge7CVnqwMet153Is54nslYzMh10TRHJMGh7LTR
-# wv0J+KPMCaI=
+# 9w0BCQQxIgQgxSx340LZRFEmuu2vGDLccWwTVbLpeXbWXQ6/5RPtmBowCwYHKoZI
+# zj0CAQUABGcwZQIwZ2cDqBUHvwiMqd5nq8g5HSDz/VwSlG76s1akOXXJ7J5a1hoQ
+# 6VGWwdQzu4RStXWxAjEAsRuVV7e4xzWef94EYYNm5X4EbAleRFpzZycng2UAVN3j
+# GluJtvkppq4ypdaW1Mp7oYIDJjCCAyIGCSqGSIb3DQEJBjGCAxMwggMPAgEBMH0w
+# aTELMAkGA1UEBhMCVVMxFzAVBgNVBAoTDkRpZ2lDZXJ0LCBJbmMuMUEwPwYDVQQD
+# EzhEaWdpQ2VydCBUcnVzdGVkIEc0IFRpbWVTdGFtcGluZyBSU0E0MDk2IFNIQTI1
+# NiAyMDI1IENBMQIQCoDvGEuN8QWC0cR2p5V0aDANBglghkgBZQMEAgEFAKBpMBgG
+# CSqGSIb3DQEJAzELBgkqhkiG9w0BBwEwHAYJKoZIhvcNAQkFMQ8XDTI1MDgxOTIz
+# NDcyNlowLwYJKoZIhvcNAQkEMSIEIIqEvIjvITII2t6RFH6iWTH4i5H18iwyX6FX
+# v60O6O9KMA0GCSqGSIb3DQEBAQUABIICAI3sT6eT2FxbwiBNGtBtFpKrs+xuT3Ue
+# axrLCiEBkzSXDehqS+j/Hx2hfZigyhnxGBJyDlE4TKdqVdTTJcCpmHw1+nNPuPL6
+# 29mjSUBnNWuwZ0/m+UZJmOISIbdtFNAMJLd8DFABEFMohM+us8JrFou1CNLPEXeF
+# wtto3SKA+3b0UCoBFwIF2igqcSf5uTJe7AGQlTqnNIPzaJ9dHqUJiVqS2NdZyinO
+# pPZueXVXFHi2X4NczRaJ+CWhFE0PlSRuj2wpy+jIDAfWBV56zR00ClzHlDnW9Fiy
+# zO/bI/wihqdSL3eafguClU/bClLZIgez36NYGeYxxDt20FBlmR0Q9JyP+8Pz3Lrd
+# HqnB6RVQGUFNW6V+uApJzD5kipWz0zgT0EzBN8TyHCAGJBqR/B33ERHFV3e+Iwy1
+# fflchzKa2c2lGCdq6Q9gHJGZb6cNtcgTkdlF58QK/Vj8QwKZtXHbOWMASlTnKrp6
+# bGb+kwv3PtHEQyvdXpP2ONWBZwC59qVnzBAZh1FPJz/eKRhrZAJHb45W3ssZFI/A
+# pCFxDjZfmPQxvznD57MKv+q5aEY4/suZAtoiIra15iRKAMkAmIP4CIB1zi4W9wtz
+# +/9kV+OzzaHXRb2F/Ah4tWuTzP1RUdcm4cACxd1x5s09AMd05krmjZBGOOGcddvW
+# Dw2bayLiRANg
 # SIG # End signature block

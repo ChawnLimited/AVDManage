@@ -44,6 +44,16 @@ try	{
 catch{}
 }
 
+Function MPExclude {
+Param ([string]$file)
+try	{
+		Add-MpPreference -ExclusionPath $file
+		Add-MpPreference -ExclusionProcess $file
+	}
+catch{}
+}
+
+
 $ProgressPreference ="SilentlyContinue"
 Set-ExecutionPolicy -ExecutionPolicy Unrestricted -Force
 
@@ -387,6 +397,33 @@ $devs=Get-PnpDevice -class Diskdrive,Display,Monitor,Mouse,Net,Ports,Processor,P
 	foreach ($d in $devs) 	{
  	&"pnputil" /remove-device $d.InstanceId
 				}
+
+# Disable Network Bindings - Disables IPv6, LLDP Protocols
+try{
+$nics=Get-NetAdapter -Name *Ethernet*
+foreach ($nic in $nics) { Disable-NetAdapterBinding -Name $nic.name -ComponentID ms_lltdio,ms_tcpip6,ms_lldp,ms_rspndr -ErrorAction SilentlyContinue}
+}
+Catch{}
+
+
+
+# Add Defender Exclusions
+Copy-Item -Path C:\Windows\system32\robocopy.exe -Destination "C:\Program Files\FSLogix\Apps\frxrobocopy.exe" -Force
+Copy-Item -Path C:\Windows\system32\en-US\robocopy.exe.mui -Destination "C:\Program Files\FSLogix\Apps\en-US\frxrobocopy.exe.mui" -Force
+mpexclude C:\Windows\Azure\Packages\CollectGuestLogs.exe
+mpexclude C:\Windows\Azure\Packages\CollectVMHealth.exe
+mpexclude C:\Windows\Azure\Packages\WaAppAgent.exe
+mpexclude C:\Windows\Azure\Packages\WaSecAgentProv.exe
+mpexclude C:\Windows\Azure\Packages\WindowsAzureGuestAgent.exe
+mpexclude C:\Windows\System32\spoolsv.exe
+mpexclude "C:\Program Files\FSLogix\Apps\frxsvc.exe"
+mpexclude "C:\Program Files\FSLogix\Apps\frxccds.exe"
+mpexclude "C:\Program Files\FSLogix\Apps\FRXRobocopy.exe"
+mpexclude "C:\Program Files\Remote Desktop WebRTC Redirector\MsRdcWebRTCSvc.exe"
+mpexclude "C:\Program Files\Microsoft RDInfra\*\BootloaderUpdater.exe"
+mpexclude "C:\Program Files\Microsoft RDInfra\*\RDAgentBootLoader.exe"
+mpexclude "C:\Program Files\Microsoft RDInfra\*\WvdLauncher\RDMonitoringAgentLauncher.exe"
+
 
 # Emtpy Recycle Bin
 	Clear-RecycleBin -Force -ErrorAction SilentlyContinue

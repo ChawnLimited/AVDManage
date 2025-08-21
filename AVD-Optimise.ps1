@@ -381,15 +381,22 @@ $tasks=Get-ScheduledTask -TaskPath "\Microsoft\Windows\Data Integrity Scan\" -Er
 $tasks=Get-ScheduledTask -TaskPath "\Microsoft\Windows\TPM\" -ErrorAction SilentlyContinue
 	foreach ($task in $tasks) {Unregister-ScheduledTask -TaskName $task.TaskName -Confirm:$false -ErrorAction SilentlyContinue}
 
-	# Disable Bitlocker
-#	reg delete "HKEY_CLASSES_ROOT\Drive\shell\decrypt-bde" /f
-#	reg delete "HKEY_CLASSES_ROOT\Drive\shell\encrypt-bde-elev" /f
-#   Set-ItemProperty -Path "HKLM:\SYSTEM\CurrentControlSet\Control\BitLocker" -Name "PreventDeviceEncryption" -Value 1 -Force -ErrorAction SilentlyContinue
-	
-	# Restore Classic Context Menus
-#	reg delete "HKEY_LOCAL_MACHINE\SOFTWARE\Classes\CLSID\{86ca1aa0-34aa-4e8b-a509-50c905bae2a2"
+# Disable Bitlocker
+Function noBDE {
+	manage-bde -off C:
+ 	manage-bde -off D:
+	reg delete "HKEY_CLASSES_ROOT\Drive\shell\decrypt-bde" /f
+	reg delete "HKEY_CLASSES_ROOT\Drive\shell\encrypt-bde-elev" /f
+   Set-ItemProperty -Path "HKLM:\SYSTEM\CurrentControlSet\Control\BitLocker" -Name "PreventDeviceEncryption" -Value 1 -Force -ErrorAction SilentlyContinue
+}
+# UnComment to enable
+# noBDE
 
-	# improve Startup / restart time - this is set to 30 by DEFAULT
+# Restore Classic Context Menus
+# UnComment to enable
+#	reg delete "HKEY_LOCAL_MACHINE\SOFTWARE\Classes\CLSID\{86ca1aa0-34aa-4e8b-a509-50c905bae2a2}" /f
+
+# improve Startup / restart time - this is set to 30 by DEFAULT
 bcdedit /timeout 1
 
 # Remove Ghost Hardware
@@ -424,6 +431,22 @@ mpexclude "C:\Program Files\Microsoft RDInfra\*\BootloaderUpdater.exe"
 mpexclude "C:\Program Files\Microsoft RDInfra\*\RDAgentBootLoader.exe"
 mpexclude "C:\Program Files\Microsoft RDInfra\*\WvdLauncher\RDMonitoringAgentLauncher.exe"
 
+# Set page File to Memory Size on D:\
+function SetPageFile{
+	if (Get-Volume -DriveLetter D) {
+		$MemMB = (Get-CimInstance Win32_PhysicalMemory | Measure-Object -Property Capacity -Sum).Sum / 1MB
+		$pf = Get-WmiObject -Query "Select * From Win32_PageFileSetting";
+		$pf.name=$pf.name
+		$pf.caption=$pf.caption
+		$pf.InitialSize = $MemMB;
+		$pf.MaximumSize = $MemMB;
+		$pf.Put();
+	}
+}
+# UnComment to enable
+# SetPageFile
+
+
 
 # Emtpy Recycle Bin
 	Clear-RecycleBin -Force -ErrorAction SilentlyContinue
@@ -434,7 +457,7 @@ mpexclude "C:\Program Files\Microsoft RDInfra\*\WvdLauncher\RDMonitoringAgentLau
 write-host "Reset Windows Search"
 # Reset Windows Search
 	Get-Service -ServiceName wsearch | Set-Service -StartupType Disabled
-	Stop-Service -ServiceName wsearch -Force
+	Stop-Service -ServiceName wsearch
 	REG ADD "HKLM\SOFTWARE\Microsoft\Windows Search" /v SetupCompletedSuccessfully /t REG_DWORD /d 0 /f
 	Remove-Item -Path "$env:ProgramData\Microsoft\Search\Data\" -Recurse -Force  -ErrorAction Ignore
 	Get-Service -ServiceName wsearch | Set-Service -StartupType Automatic
@@ -445,7 +468,7 @@ write-host "Remove Azure logs and extensions"
 	Remove-Item -Path C:\WindowsAzure\Logs -Recurse -Force -ErrorAction Ignore
 
 # empty folders
-	Stop-Service -ServiceName wuauserv,bits,msiserver -Force
+	Stop-Service -ServiceName wuauserv,bits,msiserver
 	Remove-Item -Path C:\Windows\SoftwareDistribution -Recurse -Force -ErrorAction Ignore
 	Remove-Item -Path C:\Windows\Panther -Recurse -Force -ErrorAction Ignore
 

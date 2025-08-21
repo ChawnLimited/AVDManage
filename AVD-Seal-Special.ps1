@@ -98,7 +98,7 @@ Clear-BCCache -Force -ErrorAction SilentlyContinue
 Write-Host "Reset Windows Search"
 # Reset Windows Search
 	Get-Service -ServiceName wsearch | Set-Service -StartupType Disabled
-	Stop-Service -ServiceName wsearch -Force -ErrorAction Ignore
+	Stop-Service -ServiceName wsearch -ErrorAction Ignore
 	REG ADD "HKLM\SOFTWARE\Microsoft\Windows Search" /v SetupCompletedSuccessfully /t REG_DWORD /d 0 /f
 	Remove-Item -Path "$env:ProgramData\Microsoft\Search\Data\" -Recurse -Force -ErrorAction Ignore
 	Get-Service -ServiceName wsearch | Set-Service -StartupType Automatic
@@ -109,7 +109,7 @@ Write-Host "Remove temporary files"
 	Remove-Item -Path C:\WindowsAzure\Logs -Recurse -Force -ErrorAction Ignore
 
 # empty folders
-	Stop-Service -ServiceName wuauserv,bits,msiserver -Force
+	Stop-Service -ServiceName wuauserv,bits,msiserver
 	Remove-Item -Path C:\Windows\SoftwareDistribution -Recurse -Force -ErrorAction Ignore
 	Remove-Item -Path C:\Windows\Panther -Recurse -Force -ErrorAction Ignore
 	Remove-Item -Path C:\temp\AVD-Update -Recurse -Force -ErrorAction Ignore

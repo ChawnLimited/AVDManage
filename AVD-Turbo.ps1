@@ -148,7 +148,7 @@ Catch {LogWrite ($_.Exception.Message);exit 1}
 
 %{
 	try {
-		if ($Turbo -eq "False") {
+		if ($Turbo -ne "AVDTurbo") {
 			If ($HostPool) {
 			if ((get-item -path "C:\Program Files\Microsoft RDInfra" -ErrorAction SilentlyContinue))
 			{LogWrite ("Remote Desktop Agents are already installed. Exit")
@@ -168,7 +168,7 @@ Catch {LogWrite ($_.Exception.Message);exit 1}
 # Check AZ Modules are present
 %{
 	try {
-		if ($Turbo -eq "False") {
+		if ($Turbo -ne "AVDTurbo") {
 			if (Get-Module -name Az.Accounts -ListAvailable) {Logwrite('Az.Accounts is available.')}
 			else {logwrite('Az.Accounts is not available. Will try and install.'); UpdateNuget; UpdateModule Az.Accounts;}
 
@@ -182,7 +182,7 @@ Catch {LogWrite ($_.Exception.Message);exit 1}
 # Start the RDAGent downloads
 
 		try {
-			if ($Turbo -eq "False") {
+			if ($Turbo -ne "AVDTurbo") {
 				if ($HostPool) {
 				LogWrite ("Download RD Agents")
 				New-Item -Path C:\Source -ItemType Directory -Force
@@ -271,7 +271,7 @@ Disable-AzContextAutosave -Scope Process
 
 %{
     try {
-		if ($Turbo -eq "False"){
+		if ($Turbo -ne "AVDTurbo"){
 			if ($WVDToken) {
   		    logwrite ('WVD Token to join WVD Hostpool: ' + $WVDToken)
 
@@ -318,10 +318,10 @@ Disable-AzContextAutosave -Scope Process
 
 
 # SIG # Begin signature block
-# MIInlAYJKoZIhvcNAQcCoIInhTCCJ4ECAQExDzANBglghkgBZQMEAgEFADB5Bgor
+# MIInlQYJKoZIhvcNAQcCoIInhjCCJ4ICAQExDzANBglghkgBZQMEAgEFADB5Bgor
 # BgEEAYI3AgEEoGswaTA0BgorBgEEAYI3AgEeMCYCAwEAAAQQH8w7YFlLCE63JNLG
-# KX7zUQIBAAIBAAIBAAIBAAIBADAxMA0GCWCGSAFlAwQCAQUABCD//mrxA2Z2MCW3
-# Fk9Tsg0mxgUfH/c+BD6XHM4pMIvk5qCCIkEwggMwMIICtqADAgECAhA3dENPnrQO
+# KX7zUQIBAAIBAAIBAAIBAAIBADAxMA0GCWCGSAFlAwQCAQUABCAuxGRXWszk53ZT
+# eZqc7aukGNx8b81Yr/8SPg5/20AMKKCCIkEwggMwMIICtqADAgECAhA3dENPnrQO
 # Ih+SNsofLycXMAoGCCqGSM49BAMDMFYxCzAJBgNVBAYTAkdCMRgwFgYDVQQKEw9T
 # ZWN0aWdvIExpbWl0ZWQxLTArBgNVBAMTJFNlY3RpZ28gUHVibGljIENvZGUgU2ln
 # bmluZyBSb290IEU0NjAeFw0yMTAzMjIwMDAwMDBaFw0zNjAzMjEyMzU5NTlaMFcx
@@ -504,30 +504,30 @@ Disable-AzContextAutosave -Scope Process
 # IwXMZUXBhtCyIaehr0XkBoDIGMUG1dUtwq1qmcwbdUfcSYCn+OwncVUXf53VJUNO
 # aMWMts0VlRYxe5nK+At+DI96HAlXHAL5SlfYxJ7La54i71McVWRP66bW+yERNpbJ
 # CjyCYG2j+bdpxo/1Cy4uPcU3AWVPGrbn5PhDBf3Froguzzhk++ami+r3Qrx5bIbY
-# 3TVzgiFI7Gq3zWcxggSpMIIEpQIBATBrMFcxCzAJBgNVBAYTAkdCMRgwFgYDVQQK
+# 3TVzgiFI7Gq3zWcxggSqMIIEpgIBATBrMFcxCzAJBgNVBAYTAkdCMRgwFgYDVQQK
 # Ew9TZWN0aWdvIExpbWl0ZWQxLjAsBgNVBAMTJVNlY3RpZ28gUHVibGljIENvZGUg
 # U2lnbmluZyBDQSBFViBFMzYCEDxolvyQov0GPgzdcbswAjcwDQYJYIZIAWUDBAIB
 # BQCggYQwGAYKKwYBBAGCNwIBDDEKMAigAoAAoQKAADAZBgkqhkiG9w0BCQMxDAYK
 # KwYBBAGCNwIBBDAcBgorBgEEAYI3AgELMQ4wDAYKKwYBBAGCNwIBFTAvBgkqhkiG
-# 9w0BCQQxIgQgwlf3V7UDVxlgG/WAMrwipXSD3hyw+L3xwUWMIOE1l9MwCwYHKoZI
-# zj0CAQUABGYwZAIwaWze+6c3w9flMs56j8bqK2prGLLUZfweCbuqSAC4o0llfs8l
-# MtX6AAvgaatWMyKiAjA1jbnrxYFvrnb2FWW9UGULDcqPSGLs0bnSQDQTgKofM7Ov
-# JEVNrkShtS9CdnK52uOhggMmMIIDIgYJKoZIhvcNAQkGMYIDEzCCAw8CAQEwfTBp
-# MQswCQYDVQQGEwJVUzEXMBUGA1UEChMORGlnaUNlcnQsIEluYy4xQTA/BgNVBAMT
-# OERpZ2lDZXJ0IFRydXN0ZWQgRzQgVGltZVN0YW1waW5nIFJTQTQwOTYgU0hBMjU2
-# IDIwMjUgQ0ExAhAKgO8YS43xBYLRxHanlXRoMA0GCWCGSAFlAwQCAQUAoGkwGAYJ
-# KoZIhvcNAQkDMQsGCSqGSIb3DQEHATAcBgkqhkiG9w0BCQUxDxcNMjUwODIxMDYx
-# MzUxWjAvBgkqhkiG9w0BCQQxIgQgEq+jD7zPb0TYxbmrjBN4MkcOugoevHXpLAhv
-# Z0hQT3cwDQYJKoZIhvcNAQEBBQAEggIAiYlD/xLwZtBBG7QMbAu2CxWoIodA+y/3
-# KGDKVRQ6K3hR+3h20yHA4WdQqYDSmKtwRAgcRVr+6al61mgDlLbkeqgxYCH4cWuU
-# wAfUr9DOngsvYr9365Q7H4PsjvBWQAfd8hyHkMRt94Yd6+7Nl7z3s/MfKffod1yW
-# WEHfIj6QpZyUi9PKzRMpTN5DVq7aUbxjCIgyDcZGOgjOXvLsRyWeLprNfdOkRbde
-# MyjqPCapcyoK9iCOGlGRop+c4QATtwD+TISyPglRKm/yOAMMvpQGcqzCgOW52cQa
-# rmFwToDhCWyc/VAdwAYjcLyiLN1Pw5Gxua6/aVqeqXc0J9mjVWTdSdVZVX5uRaa4
-# KfA5LvwmgSYkMDKkQ22QVXnX4O0NKKXDbLym3JBkOY4+hZZwpLLDXIkMeKAd7wla
-# OvGj/fFkiWertg/9Qsz2PvUJSjmyI1KoCOSeS9hUv4kV+/pj5OOZUwd5EZbkQPaG
-# OTxkKnlZXxM8JucWHRa6hSh/LqMXzmc1woOJW0cSllPrDLFa4WwU1yb8izzHSnPS
-# AAsAzJ67zGC+mYIwPCeoCf4YvFh+4WhS7A62NlzISLKBF1DSl0YX6vNNwfYCO+tN
-# okptmd9ofA+gmmrDQSvHhHNQsQRN7vpXT9vwSUUKtBEn2uXG2/nAPvgHDejkcLuO
-# AEYJmBANtOU=
+# 9w0BCQQxIgQg4S+QtOCnytef5Z8ljUsJzX3QaRLY+RPFO298N/NzudIwCwYHKoZI
+# zj0CAQUABGcwZQIwA0Edyj1AB1Z7P7M9kSK62y7mWUMsTxFSHEzWx6M/m9QNmiUo
+# SaKTsszSfknCs6IUAjEA1YUxTtpYKSFmJE3XAksBSVr8HH5ImUSOo0o3RMD9XWA3
+# IORZlBLuS2ONjcKWp/kmoYIDJjCCAyIGCSqGSIb3DQEJBjGCAxMwggMPAgEBMH0w
+# aTELMAkGA1UEBhMCVVMxFzAVBgNVBAoTDkRpZ2lDZXJ0LCBJbmMuMUEwPwYDVQQD
+# EzhEaWdpQ2VydCBUcnVzdGVkIEc0IFRpbWVTdGFtcGluZyBSU0E0MDk2IFNIQTI1
+# NiAyMDI1IENBMQIQCoDvGEuN8QWC0cR2p5V0aDANBglghkgBZQMEAgEFAKBpMBgG
+# CSqGSIb3DQEJAzELBgkqhkiG9w0BBwEwHAYJKoZIhvcNAQkFMQ8XDTI1MDgyMTEz
+# MTA0NlowLwYJKoZIhvcNAQkEMSIEIDJUndLplXOHlw8Cm+rJ5qByu0DSe0VHI01S
+# mr+5X5vUMA0GCSqGSIb3DQEBAQUABIICALsNum5UwKSqu5f/E5hJm1eU8T5UymW4
+# acfN130aKwqaX2ht+uONc9QFau2tdIDbGOU3W+Rc9f/6vuBT4Qbz7n7hSxzKhwww
+# hGBfLoT3eG6UmjaZgXgroa9RU6LxBKqn5PGPv2wXuhQ99Pf1CEyWqG8Xm9iT4kVe
+# 1ZIS//lSdsFbk9cXuhQXX4pvX9VN/xU1xgfpc1fcKuDsH1UuTfMmCUDgrusiPTlt
+# T+6Ra8qnlmmX9tf6sDaZlmSbZaksG6yBhtO76rkKhxgS9P9CGTFvP+a8OII92TdL
+# mij50lTYsqdKjzVOFRZpa8wyJPq0ULK2ZP+dfpOymkD/bH7fygPy1m7iE8NFgUns
+# CIXQRrbMfVtMKNJ/1eQDQB7Gp3HD31CbvFwFJZ1kkhAnCd2uqEQC48mQBC3wzSFG
+# LJd+XaXwXSdW928kyzhLTxNrMJ56rBAuS7z2sPaZrnCM3sMBhxhUlE2YW5WNpHnQ
+# pcfZ9/ILWEWPwgP9mQf5xoCSQbxZIaiO/OSs//IWlwfVcTXhGpLwZ77HjACyImhf
+# KUu0QpxUXv43OfeBAkFjAajsQnpLIrcTz94VB/VJTlW4eXxzn6qkhNQJjaXttrTT
+# /0q13XT7msCRwL/Y/h1m/QCMlQvcLBWqoL5RrhcrhuGVSXG19uMdVDaXDPg/Q+nO
+# m9tgI3E/DHuW
 # SIG # End signature block

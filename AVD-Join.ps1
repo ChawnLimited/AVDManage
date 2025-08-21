@@ -24,6 +24,8 @@ Function LogWrite
    Add-content $Logfile -value ($d1.tostring() + " : " + $logstring)
 }
 
+LogWrite "Starting Up"
+
 Function UpdateNuget
 {
 # update Nuget
@@ -65,14 +67,14 @@ Function UpdateModule
     catch {Logwrite ('Failed to update ' + $module + "" +  $_.Exception.Message);exit 3}
 }
 
+ # Check for a Turbo deployment
+	try{
+		if ((Get-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\RDInfraAgent" -Name "RegistrationToken" -ErrorAction SilentlyContinue).RegistrationToken)
+		{$TURBO='True';LogWrite ("Turbo Deployment started.")}
+		else {$Turbo='False'}
+	}
+	catch{LogWrite ($_.Exception.Message);exit 200}
 
-LogWrite "Starting Up"
-
-# check the agents are not already installed
-%{
-	if (get-item -path "C:\Program Files\Microsoft RDInfra" -ErrorAction SilentlyContinue)
-	{logwrite('Remote Desktop Agents are already installed. Exit.');exit 1}
-}
 
 # check the device is domain joined
 %{
@@ -81,18 +83,29 @@ exit 2}
 else {logwrite('Device is AD Domain joined.')}
 }
 
+# check the agents are not already installed
+%{
+	if ($Turbo -eq "False") {
+		if (get-item -path "C:\Program Files\Microsoft RDInfra" -ErrorAction SilentlyContinue)
+		{logwrite('Remote Desktop Agents are already installed. Exit.');exit 1}
+	}
+}
+
+
+
 
 # Check AZ Modules are present
 %{
-		try {
-		if (Get-Module -name Az.Accounts -ListAvailable) {Logwrite('Az.Accounts is available.')}
-		else {logwrite('Az.Accounts is not available. Will try and install.'); UpdateNuget; UpdateModule Az.Accounts;}
+	try {
+		if ($Turbo -eq "False") {
+			if (Get-Module -name Az.Accounts -ListAvailable) {Logwrite('Az.Accounts is available.')}
+			else {logwrite('Az.Accounts is not available. Will try and install.'); UpdateNuget; UpdateModule Az.Accounts;}
 
-
-		if (Get-Module -name Az.DesktopVirtualization -ListAvailable) {Logwrite('Az.DesktopVirtualization is available.')}
-		else {logwrite('Az.DesktopVirtualization is not available. Will try and install.'); UpdateModule Az.DesktopVirtualization;}
-		    }
-        catch {logwrite('Error importing Az Modules. ' + $_.Exception.Message); exit 3}
+			if (Get-Module -name Az.DesktopVirtualization -ListAvailable) {Logwrite('Az.DesktopVirtualization is available.')}
+			else {logwrite('Az.DesktopVirtualization is not available. Will try and install.'); UpdateModule Az.DesktopVirtualization;}
+		}
+	}
+    catch {logwrite('Error importing Az Modules. ' + $_.Exception.Message); exit 3}
 }
 
 # get the DNS hostname of the VM
@@ -101,18 +114,21 @@ logwrite('Hostname:' + $hostname)
 logwrite('Hostpool:' + $hostpool)
 logwrite('ClientID:' + $ClientID)
 
+
 # Start the RDAGent downloads
-if ($HostPool) {
-		try {
+try {
+	if ($Turbo -eq "False") {
+		if ($HostPool) {
 		LogWrite ("Download RD Agents")
 		New-Item -Path C:\Source -ItemType Directory -Force
 		$URI="https://query.prod.cms.rt.microsoft.com/cms/api/am/binary/RWrmXv";Invoke-WebRequest -Uri $URI -OutFile C:\Source\RDagent.msi -UseBasicParsing;
 		LogWrite ("Downloaded RDAgent.msi")
 		$URI="https://query.prod.cms.rt.microsoft.com/cms/api/am/binary/RWrxrH";Invoke-WebRequest -Uri $URI -OutFile C:\Source\RDBoot.msi -UseBasicParsing;
 		LogWrite ("Downloaded RDBoot.msi")		
-		    }
-		catch {LogWrite ("Failed to download RDAgents. " + $_.Exception.Message);exit 99}
 		}
+	}
+}
+catch {LogWrite ("Failed to download RDAgents. " + $_.Exception.Message);exit 99}
 
 
 
@@ -162,14 +178,28 @@ $now=(get-date).addhours(2)
 	catch{$_.Exception.Message}
 }
 
+	try{
+		if ($Turbo -eq "True") {
+			if ($WVDToken) {
+			LogWrite ("Starting Turbo Deployment")
+			Set-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\RDInfraAgent" -Name "RegistrationToken" -Value $WVDTOKEN -force
+			Get-Service -Name RDAgentBootLoader | Set-Service -StartupType Automatic
+			Get-Service -Name RDAgentBootLoader | start-service
+			LogWrite ("Turbo Deployment Complete")
+			}
+		}
+	}
+    catch {logwrite('Error with Turbo Deployment. ' + $_.Exception.Message); exit 201}
+
+
 
 # deploy the RDAgent and RDBootloader
 
-	%{
+%{
     try {
-	    if ($WVDToken)
-  		    {
-		    logwrite ('WVD Token to join WVD Hostpool: ' + $WVDToken)
+		if ($Turbo -eq "False"){
+			if ($WVDToken) {
+  		    logwrite ('WVD Token to join WVD Hostpool: ' + $WVDToken)
 
     		### Install RDAgent
 	    	logwrite('Install Remote Desktop Services Infrastructure Agent')
@@ -181,19 +211,24 @@ $now=(get-date).addhours(2)
 		    if (get-item -path C:\Source\RDBoot.msi){Start-Process msiexec.exe -Wait -ArgumentList "/I C:\Source\RDBoot.msi /qb  /L*V RDBoot.log"}
 			else{Logwrite("RDBoot.msi is not available. Exit");exit 99}
 		    LogWrite "Install RDS Agents completed."
+			}
+			Else {logwrite ('Could not retrieve a WVD Host Token for HostPool:' + $HostPool + '. Skip join WVD Hostpool')}
+		}
+	}
+    catch {logwrite('Error installing Remote Desktop Agents. ' + $_.Exception.Message); exit 7}
+}
 
-		    # Wait for the SXS Network Agent and Geneva Agent to install
+
+# Wait for the SXS Network Agent and Geneva Agent to install
+	try{		    
 		    LogWrite "Wait for the SXS Network Agent and Geneva Agent to install"
 			$i=0
-			do {start-sleep -Seconds 2;$i++;} until(((get-package -name "*SXS*Network*" -ErrorAction SilentlyContinue).Status -eq 'Installed') -and ((get-package -name "*Geneva*" -ErrorAction SilentlyContinue).Status -eq 'Installed') -or $i -eq 20)
-		    }
-		    Else {logwrite ('Could not retrieve a WVD Host Token for HostPool:' + $HostPool + '. Skip join WVD Hostpool')}
-			if (((get-package -name "*SXS*Network*" -ErrorAction SilentlyContinue).Status -eq 'Installed') -and ((get-package -name "*Geneva*" -ErrorAction SilentlyContinue).Status -eq 'Installed'))
+			do {start-sleep -Seconds 1;$i++;} until(((get-package -name "*SXS*Network*" -ErrorAction SilentlyContinue).Status -eq 'Installed') -and ((get-package -name "*Geneva*" -ErrorAction SilentlyContinue).Status -eq 'Installed') -or $i -eq 20)
+		    if (((get-package -name "*SXS*Network*" -ErrorAction SilentlyContinue).Status -eq 'Installed') -and ((get-package -name "*Geneva*" -ErrorAction SilentlyContinue).Status -eq 'Installed'))
 			{LogWrite ("SXS Network Agent and Geneva Agent are installed")}
 			Else {LogWrite ("SXS Network Agent or Geneva Agent installation failed");LogWrite ("SXS Network Agent: " + ((get-package -name "*SXS*Network*" -ErrorAction SilentlyContinue).Status -eq 'Installed'));LogWrite ("Geneva Agent: " + ((get-package -name "*Geneva*" -ErrorAction SilentlyContinue).Status -eq 'Installed'));LogWrite("Check " + $env:ProgramFiles + "\Microsoft RDInfra. The MSI files don't download sometimes.")}
-        }
-        catch {logwrite('Error installing Remote Desktop Agents. ' + $_.Exception.Message); exit 7}
-	}
+		}
+    catch {logwrite('Error installing Remote Desktop Agents. ' + $_.Exception.Message); exit 8}
 
 # Logout of Azure
 Disconnect-AzAccount
@@ -203,10 +238,10 @@ exit 0
 
 
 # SIG # Begin signature block
-# MIInlgYJKoZIhvcNAQcCoIInhzCCJ4MCAQExDzANBglghkgBZQMEAgEFADB5Bgor
+# MIInlQYJKoZIhvcNAQcCoIInhjCCJ4ICAQExDzANBglghkgBZQMEAgEFADB5Bgor
 # BgEEAYI3AgEEoGswaTA0BgorBgEEAYI3AgEeMCYCAwEAAAQQH8w7YFlLCE63JNLG
-# KX7zUQIBAAIBAAIBAAIBAAIBADAxMA0GCWCGSAFlAwQCAQUABCCKAkpGG0pnk8kv
-# M6mJa9gudaanAOA3M9MrGfL31f4Il6CCIkEwggMwMIICtqADAgECAhA3dENPnrQO
+# KX7zUQIBAAIBAAIBAAIBAAIBADAxMA0GCWCGSAFlAwQCAQUABCAHJzBbwxXiZiUV
+# FSPlZObBInC1lbGCwjEXgL9WbduodKCCIkEwggMwMIICtqADAgECAhA3dENPnrQO
 # Ih+SNsofLycXMAoGCCqGSM49BAMDMFYxCzAJBgNVBAYTAkdCMRgwFgYDVQQKEw9T
 # ZWN0aWdvIExpbWl0ZWQxLTArBgNVBAMTJFNlY3RpZ28gUHVibGljIENvZGUgU2ln
 # bmluZyBSb290IEU0NjAeFw0yMTAzMjIwMDAwMDBaFw0zNjAzMjEyMzU5NTlaMFcx
@@ -389,30 +424,30 @@ exit 0
 # IwXMZUXBhtCyIaehr0XkBoDIGMUG1dUtwq1qmcwbdUfcSYCn+OwncVUXf53VJUNO
 # aMWMts0VlRYxe5nK+At+DI96HAlXHAL5SlfYxJ7La54i71McVWRP66bW+yERNpbJ
 # CjyCYG2j+bdpxo/1Cy4uPcU3AWVPGrbn5PhDBf3Froguzzhk++ami+r3Qrx5bIbY
-# 3TVzgiFI7Gq3zWcxggSrMIIEpwIBATBrMFcxCzAJBgNVBAYTAkdCMRgwFgYDVQQK
+# 3TVzgiFI7Gq3zWcxggSqMIIEpgIBATBrMFcxCzAJBgNVBAYTAkdCMRgwFgYDVQQK
 # Ew9TZWN0aWdvIExpbWl0ZWQxLjAsBgNVBAMTJVNlY3RpZ28gUHVibGljIENvZGUg
 # U2lnbmluZyBDQSBFViBFMzYCEDxolvyQov0GPgzdcbswAjcwDQYJYIZIAWUDBAIB
 # BQCggYQwGAYKKwYBBAGCNwIBDDEKMAigAoAAoQKAADAZBgkqhkiG9w0BCQMxDAYK
 # KwYBBAGCNwIBBDAcBgorBgEEAYI3AgELMQ4wDAYKKwYBBAGCNwIBFTAvBgkqhkiG
-# 9w0BCQQxIgQg1eIBWBCdnwuvN3UUaLPhuGENherIgJXcSyPukbSnlkUwCwYHKoZI
-# zj0CAQUABGgwZgIxANNLhdv+qRb1D6tMC2qpdnOOuW8Ve1UawzbVeBPC0r331/3W
-# 55GA755deD819oePCwIxAOeTyhx7tCkTIZg/mGW8m6oCJ15N4Yn3SXmnt4EhywmX
-# dsrny+EbVcRBg3GVgi1qMaGCAyYwggMiBgkqhkiG9w0BCQYxggMTMIIDDwIBATB9
-# MGkxCzAJBgNVBAYTAlVTMRcwFQYDVQQKEw5EaWdpQ2VydCwgSW5jLjFBMD8GA1UE
-# AxM4RGlnaUNlcnQgVHJ1c3RlZCBHNCBUaW1lU3RhbXBpbmcgUlNBNDA5NiBTSEEy
-# NTYgMjAyNSBDQTECEAqA7xhLjfEFgtHEdqeVdGgwDQYJYIZIAWUDBAIBBQCgaTAY
-# BgkqhkiG9w0BCQMxCwYJKoZIhvcNAQcBMBwGCSqGSIb3DQEJBTEPFw0yNTA4MjAw
-# MDAzNDdaMC8GCSqGSIb3DQEJBDEiBCDkkw6LBgB7sUr2L/Y981dwMIk3eBCWXuQA
-# me8QhdpU2zANBgkqhkiG9w0BAQEFAASCAgC+zZ5SU0sQRtKhClZ47B9ALSBnXZcN
-# wVBBe7pxrI4ancmZDNGM9yPJXhrQNRGayZvhfnptbUayguXUnMM9h2QohubRYFPY
-# 5yW+uFF1n4CQUTB8lqOljx4p5WWHeYZ8iU62T9uHcc73HUruPpONOQuz3y+4uTn9
-# UFd3sFcZxtxC9WxJXMhh/T8DcFkunSxIxON3b7K6jv9JTiUmFiVeYHosQj2gW/i3
-# zx3HsZNTwBtJ/r0IlErn79dEkvmvT/lPTptptrmBJcjuu9apwBR1ZOLU/IuyoXPs
-# o7D8xtXM0Wd31i4lTL9JjG9kxiqJfbS+GDvqIp+Ae7Xqqe5UvlYj8+FDo2BJrQOq
-# vFssNAaAOomkQ2MAdbVehhHaqasIK5lBt7T7LHdEkW8Cwrqw6EB452/Kc+DoZoRK
-# pmv12vsikPrR3DzamJttnV2QMBjvZpWAhzt0IsXHd7WIddyyMYljQqt22tfPAAHT
-# Qn2Z99McA0ykaTLOAbTE7CconDuYGhnN54pmXr0zq/Hh/R7vXFXwhgVFcWF3Ghld
-# dbgOSy5Ndkm8awugrVI8ahUO77LC/yXy0sbZ3Y33DuaRhkIoCKT4q9x6pSFOS92v
-# tAHPlDhjg1J11SYI6FgueyWdPZwUz+sOV9+W/7wBIF3sSHog1KPZzJFccaKT0K7G
-# z2Oz2CGEMz/UNA==
+# 9w0BCQQxIgQgo4VkL3fWa3/VI6mclpsAcxWQl6/xtvEkA/IqFst48QswCwYHKoZI
+# zj0CAQUABGcwZQIxAPUYz/s376GSbfkqD2XDJ0VYUSb2STCP1qaVVP9TDWCxsxmh
+# 5fU+ESYrgJwtTsicgAIwcsGD9YWA53+cfaJ4sD2B2VDBu0y/f8mUMGm3zALVr8Tz
+# wTRfa8x9hfG7SHg5o0L6oYIDJjCCAyIGCSqGSIb3DQEJBjGCAxMwggMPAgEBMH0w
+# aTELMAkGA1UEBhMCVVMxFzAVBgNVBAoTDkRpZ2lDZXJ0LCBJbmMuMUEwPwYDVQQD
+# EzhEaWdpQ2VydCBUcnVzdGVkIEc0IFRpbWVTdGFtcGluZyBSU0E0MDk2IFNIQTI1
+# NiAyMDI1IENBMQIQCoDvGEuN8QWC0cR2p5V0aDANBglghkgBZQMEAgEFAKBpMBgG
+# CSqGSIb3DQEJAzELBgkqhkiG9w0BBwEwHAYJKoZIhvcNAQkFMQ8XDTI1MDgyMTA1
+# MzAxMFowLwYJKoZIhvcNAQkEMSIEIIIL11dqRNbmkEa4IJ88Qt7z23L+KLYOKKX7
+# I8EaF6bVMA0GCSqGSIb3DQEBAQUABIICAE1sdj8QIwtvdxKpisHTD2C50NGRw8Z0
+# ggq2BMl1q3wI450AHvjXZjwORf8aHK34TCxP86PMG5erib/QgapiCuj/QEOeOo03
+# Bbl9CjICvwMGFpUmNkjkRqghce664tX+CNOSGfEO4hkZfwywYi8bJ1KrIWnnOrvi
+# a6W4ajTMRk0gEnLWRCQHQkyfDzbiRLdaBxxuQe90Dq6Dgntbp7ZdAaGBOhrO0YqC
+# gBqTrBFEf5ZeafoQqedDFEo0Md8L1T7wamALEKZdvsu90/76uz1zGp/7iTk98aye
+# 1TqmGI0yZp5CPoZv4szaUZofQ/20fGhoIQcUY2yYSQWDtjT1S/PNYfJpUKlz3J6j
+# GBAMsvBbjDjPlz7k4fsJgOJqQ9taRfLDupqckN4RkGxbB+wQ9pCTg9CKsEAsiEco
+# OzKCGMFiTasQn+Ap+2goG+GxLNg56NX8W/+8GfAOIOMxSaMgwEUz81QCkfgJc4pC
+# bpojwYwL5e2fcq1yCOLS0sMZAZ9Ke0hUvDIwxKnePrXsssGklRwGL9IZw25ZnyH9
+# XYVNyUocA4fxiNyk684IeEHdNuk67Js4NFGaAiHxxXRxyGNyOKiIyWk8iWqUjBSr
+# nID7L36Ywfqwp7dEJMIu7i2ZyrQZCw8aLE5bbyFp/gZMtyURKOBgDc2N8CG7XAeE
+# QFEYhzqe/qKi
 # SIG # End signature block

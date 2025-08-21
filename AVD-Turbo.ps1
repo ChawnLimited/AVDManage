@@ -134,7 +134,7 @@ Catch {LogWrite ($_.Exception.Message);exit 1}
 	catch{LogWrite ($_.Exception.Message);exit 200}
 
 
-
+%{
 	If ($HostPool) {
 		if (get-item -path "C:\Program Files\Microsoft RDInfra" -ErrorAction SilentlyContinue)
 		{LogWrite ("Remote Desktop Agents are already installed. Exit")
@@ -143,6 +143,7 @@ Catch {LogWrite ($_.Exception.Message);exit 1}
     else {LogWrite ($VMName + "." + $ADDomain + " deployment complete. Schedule a restart and exit.")
 	Start-Process -FilePath "shutdown.exe" -ArgumentList "/soft /r /t 5 /d p:0:0 /c 'AVDTurbo'"
 	exit 0}
+}
 
 # check the device is domain joined
 	%{
@@ -302,8 +303,8 @@ Disable-AzContextAutosave -Scope Process
 # SIG # Begin signature block
 # MIInlgYJKoZIhvcNAQcCoIInhzCCJ4MCAQExDzANBglghkgBZQMEAgEFADB5Bgor
 # BgEEAYI3AgEEoGswaTA0BgorBgEEAYI3AgEeMCYCAwEAAAQQH8w7YFlLCE63JNLG
-# KX7zUQIBAAIBAAIBAAIBAAIBADAxMA0GCWCGSAFlAwQCAQUABCCL52tO1XNTslR1
-# iHYnELo+gHLqMnObH6HO7QQ2nqLXdKCCIkEwggMwMIICtqADAgECAhA3dENPnrQO
+# KX7zUQIBAAIBAAIBAAIBAAIBADAxMA0GCWCGSAFlAwQCAQUABCBAOGU2Bv9ePvp/
+# wo/86YvvKNJIIdnC0H/2p6SLtTTD4KCCIkEwggMwMIICtqADAgECAhA3dENPnrQO
 # Ih+SNsofLycXMAoGCCqGSM49BAMDMFYxCzAJBgNVBAYTAkdCMRgwFgYDVQQKEw9T
 # ZWN0aWdvIExpbWl0ZWQxLTArBgNVBAMTJFNlY3RpZ28gUHVibGljIENvZGUgU2ln
 # bmluZyBSb290IEU0NjAeFw0yMTAzMjIwMDAwMDBaFw0zNjAzMjEyMzU5NTlaMFcx
@@ -491,25 +492,25 @@ Disable-AzContextAutosave -Scope Process
 # U2lnbmluZyBDQSBFViBFMzYCEDxolvyQov0GPgzdcbswAjcwDQYJYIZIAWUDBAIB
 # BQCggYQwGAYKKwYBBAGCNwIBDDEKMAigAoAAoQKAADAZBgkqhkiG9w0BCQMxDAYK
 # KwYBBAGCNwIBBDAcBgorBgEEAYI3AgELMQ4wDAYKKwYBBAGCNwIBFTAvBgkqhkiG
-# 9w0BCQQxIgQgErg889nlOER/lIZeLMXjGL7llz3Vz22hmv+zQIesQpowCwYHKoZI
-# zj0CAQUABGgwZgIxAO1UUkyIgkbiNQoPEvBpZN3dxdGYlROEbjdUXI56/3/v5eLa
-# uWOhzMcgxVR0mja8+QIxAMjfeNvWvQmVDOxbN0qNwO/5cm5RgajxAn0oea0sk7Qa
-# mtueGHouUUekxZSQ4Rs+4KGCAyYwggMiBgkqhkiG9w0BCQYxggMTMIIDDwIBATB9
+# 9w0BCQQxIgQg4DokgIhzjh9k8eNrJSMAj2lTbJe2OjeJitFpqrfJB4kwCwYHKoZI
+# zj0CAQUABGgwZgIxAMC1bjMUIsDJDLetduThvEuUEwB0m4reV056OTWZIXTPrhmO
+# PmBzBuyvMvJyrJKHbAIxAJnO1q7oSJF3jCSyq6BN6S4Fks4QxRkf9utEB4evq24P
+# D78Ln9KmzyoYuhpZwVRnbqGCAyYwggMiBgkqhkiG9w0BCQYxggMTMIIDDwIBATB9
 # MGkxCzAJBgNVBAYTAlVTMRcwFQYDVQQKEw5EaWdpQ2VydCwgSW5jLjFBMD8GA1UE
 # AxM4RGlnaUNlcnQgVHJ1c3RlZCBHNCBUaW1lU3RhbXBpbmcgUlNBNDA5NiBTSEEy
 # NTYgMjAyNSBDQTECEAqA7xhLjfEFgtHEdqeVdGgwDQYJYIZIAWUDBAIBBQCgaTAY
 # BgkqhkiG9w0BCQMxCwYJKoZIhvcNAQcBMBwGCSqGSIb3DQEJBTEPFw0yNTA4MjEw
-# MjU4NTFaMC8GCSqGSIb3DQEJBDEiBCAdK6MwaXMC12aaQB/qAe6tuuZfvnnzlErP
-# P0E8CyT3rDANBgkqhkiG9w0BAQEFAASCAgBbFyirZRENr9OpyPjTqbijyi8epb8S
-# 96xy5wtZlpv5oB64t0vQVlt+AnPm+jJVwcOeRtSbjq+UwlvZfYmfsu6QGtTVZIBb
-# ZiXZtIVR5/mq+VjmB9TW5gaVqPSqHsczdChGGypL65pUdfp/x0NKzFdaDPR3EZMu
-# mn2Ry0dfGdPexo8zzl6oRYFXFLQmGFNg1K2FRLxsG1SAz/0MVs8wlMdxrV771giZ
-# 1OP85rbX+gg0Zdg7G0Ti8XjXBlr+0Q8v70fajNpWnMHqPAS993SX+mlBfj/HukrN
-# IwlbWSC5zkuKw821tGBXcIROKoff2lJMjzSE6cttM6Awk1hymWv7EUQ2jFWJxgjH
-# s4z47lml5lSu7pA7UfNINO1mXi19vQzvsujWXeQjpeShUu9i473uYmLMSOaQg+Mu
-# 8YP4vZMvomOdLxID1QCQVERM+WmV/A7+XF8Trm2hM1EjVM5eMfkcGCwKw6a7kGEd
-# ckwwLzylQWddbBaJkjpeYeMNTr+QEXhCEVssJokfD3vSjXKzAg/5lHrohpKDCY38
-# BMdEnbZKwSdAJ8i6PZM9agf0LD8q4TcLBcGK9Lxi0tYmpTQwZB/Ncz/os+gLA/5h
-# TfdXkathWkQElzBOslxDUyQzP0eRK0tDazuompQsDg2Ob/QJZzlYN6dJC01BAzGY
-# VnID3TCv4QzqcA==
+# MzE2NTlaMC8GCSqGSIb3DQEJBDEiBCDogVDQwTAOQr7rIcugAFiHs7C3AD7Ncr9v
+# 3R+8owYiSzANBgkqhkiG9w0BAQEFAASCAgATiR+0oM12zt+cD8Wj1Tgnqw1wwzQG
+# gpgTTXBVRWcAglvkj6L3AT+wU9VO4Sfs5EKDcy+JB2o3nQNUTIX7/h3faa51jLPa
+# ThAxz2uhT0axKaDmoqx6IQh5JfS8DKTrlHexmLoQIFhgD1v1F2v1JtYTs2HtOQzQ
+# 3tGZ6sU76XKPcmKudX0o2iR62VvPxL63OU1D3UiJ+/ImaWaUbnK4rmqMVh4DEIcQ
+# OAV6ifm+2ZTpk0uMLbulYrhjUyd6cIXxKDmo1Z4gRomYRiDVWaWsVyowHP9QsdsX
+# gIrr0H8Sm4VBCqqzfQ9uzvt4BYbxWFTMqEsOT4HwCLan/EnC3PW2u5cUAyiPvFih
+# VPP433vCZqXBSLrsp6GVQ/zt5IhYcPnYZig9BXEvyKENHBK25m3rEHysX8Gd+GO9
+# H8RO11lwtXBPm+WvV06brqGLfWgHaxGXD+6EelQBZF7rZCTiHvf/A3wGqO2lBhuT
+# 5m2zm01LXVMaPaDKBIUoH5Xq/qTQr5HlVCSNorgM2ueRIsMLgWIRiOddNxlpg95P
+# FxRQGeLkFxXpGA1QgwZCdfb42w60IsCwc0yzMaI6tAXQaVzQpg6uSuIGv6A/UAjl
+# iazuDLX9RPI0Duuu0CJlI6yvxqrb+3Ir1WMiAuZXaXa9vsXQ7SrlFtptohCS9sKN
+# G74YCrMqzoVMeQ==
 # SIG # End signature block

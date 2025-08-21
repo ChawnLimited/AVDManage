@@ -126,8 +126,12 @@ Catch {LogWrite ($_.Exception.Message);exit 1}
 	}
 	catch{LogWrite ($_.Exception.Message);exit 2}
 
- 
-	
+ # Check for a Turbo deployment
+	try{
+		if ((Get-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\RDInfraAgent" -Name "RegistrationToken" -ErrorAction SilentlyContinue).RegistrationToken.Equals("AVDTurbo"))
+		{$TURBO='True';LogWrite ("Turbo Deployment started.");GOTO TURBO}
+	}
+	catch{LogWrite ($_.Exception.Message);exit 200}
 
 
 
@@ -160,13 +164,6 @@ Catch {LogWrite ($_.Exception.Message);exit 1}
         catch {logwrite('Error importing Az Modules' +  $_.Exception.Message); exit 3}
 }
 
-
-# get the DNS hostname of the VM
-	$hostname=$vmname + "." + $ADDomain
-	logwrite('Hostname:' + $hostname)
-	logwrite('Hostpool:' + $hostpool)
-	logwrite('ClientID:' + $ClientID)
-
 # Start the RDAGent downloads
 if ($HostPool) {
 		try {
@@ -179,6 +176,14 @@ if ($HostPool) {
 		    }
 		catch {LogWrite ("Failed to download RDAgents. " + $_.Exception.Message);exit 99}
 		}
+
+:TURBO
+# get the DNS hostname of the VM
+	$hostname=$vmname + "." + $ADDomain
+	logwrite('Hostname:' + $hostname)
+	logwrite('Hostpool:' + $hostpool)
+	logwrite('ClientID:' + $ClientID)
+
 
 ### Create the AVD Agent PSCredential
 	$AVDCred = New-Object pscredential -ArgumentList ([pscustomobject]@{
@@ -225,6 +230,25 @@ Disable-AzContextAutosave -Scope Process
 	}
 
 
+	try{
+		if ($Turbo) {
+			if ($WVDToken) {
+			LogWrite ("Starting Turbo Deployment")
+			Set-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\RDInfraAgent" -Name "RegistrationToken" -Value $WVDTOKEN -force
+			Get-Service -Name RDAgentBootLoader | Set-Service -StartupType Automatic
+			Get-Service -Name RDAgentBootLoader | start-service
+			LogWrite ("Turbo Deployment Complete")
+			GOTO AGENTS
+			}
+		}
+	}
+    catch {logwrite('Error with Turbo Deployment. ' + $_.Exception.Message); exit 201}
+
+
+
+
+
+
 # deploy the RDAgent and RDBootloader
 
 	%{
@@ -243,8 +267,14 @@ Disable-AzContextAutosave -Scope Process
 		    if (get-item -path C:\Source\RDBoot.msi){Start-Process msiexec.exe -Wait -ArgumentList "/I C:\Source\RDBoot.msi /qb  /L*V RDBoot.log"}
 			else{Logwrite("RDBoot.msi is not available. Exit");exit 99}
 		    LogWrite "Install RDS Agents completed."
+        }
+        catch {logwrite('Error installing Remote Desktop Agents. ' + $_.Exception.Message); exit 7}
+	}
 
-		    # Wait for the SXS Network Agent and Geneva Agent to install
+
+:AGENTS
+# Wait for the SXS Network Agent and Geneva Agent to install
+	try{		    
 		    LogWrite "Wait for the SXS Network Agent and Geneva Agent to install"
 			$i=0
 			do {start-sleep -Seconds 2;$i++;} until(((get-package -name "*SXS*Network*" -ErrorAction SilentlyContinue).Status -eq 'Installed') -and ((get-package -name "*Geneva*" -ErrorAction SilentlyContinue).Status -eq 'Installed') -or $i -eq 20)
@@ -252,11 +282,9 @@ Disable-AzContextAutosave -Scope Process
 		    Else {logwrite ('Could not retrieve a WVD Host Token for HostPool:' + $HostPool + '. Skip join WVD Hostpool')}
 			if (((get-package -name "*SXS*Network*" -ErrorAction SilentlyContinue).Status -eq 'Installed') -and ((get-package -name "*Geneva*" -ErrorAction SilentlyContinue).Status -eq 'Installed'))
 			{LogWrite ("SXS Network Agent and Geneva Agent are installed")}
-			Else {LogWrite ("SXS Network Agent or Geneva Agent installation failed");LogWrite ("SXS Network Agent: " + ((get-package -name "*SXS*Network*" -ErrorAction SilentlyContinue).Status -eq 'Installed'));LogWrite ("Geneva Agent: " + ((get-package -name "*Geneva*" -ErrorAction SilentlyContinue).Status -eq 'Installed'));LogWrite("Check " + $env:ProgramFiles + "\Microsoft RDInfra. The MSI files don't download sometimes.")} 
-
-        }
-        catch {logwrite('Error installing Remote Desktop Agents. ' + $_.Exception.Message); exit 7}
-	}
+			Else {LogWrite ("SXS Network Agent or Geneva Agent installation failed");LogWrite ("SXS Network Agent: " + ((get-package -name "*SXS*Network*" -ErrorAction SilentlyContinue).Status -eq 'Installed'));LogWrite ("Geneva Agent: " + ((get-package -name "*Geneva*" -ErrorAction SilentlyContinue).Status -eq 'Installed'));LogWrite("Check " + $env:ProgramFiles + "\Microsoft RDInfra. The MSI files don't download sometimes.")}
+		}
+    catch {logwrite('Error installing Remote Desktop Agents. ' + $_.Exception.Message); exit 8}
 
     # Logout of Azure
 	    Disconnect-AzAccount
@@ -272,10 +300,10 @@ Disable-AzContextAutosave -Scope Process
 
 
 # SIG # Begin signature block
-# MIInlAYJKoZIhvcNAQcCoIInhTCCJ4ECAQExDzANBglghkgBZQMEAgEFADB5Bgor
+# MIInlQYJKoZIhvcNAQcCoIInhjCCJ4ICAQExDzANBglghkgBZQMEAgEFADB5Bgor
 # BgEEAYI3AgEEoGswaTA0BgorBgEEAYI3AgEeMCYCAwEAAAQQH8w7YFlLCE63JNLG
-# KX7zUQIBAAIBAAIBAAIBAAIBADAxMA0GCWCGSAFlAwQCAQUABCDp+YCR/CHEz+WX
-# OonNO8yFfwm6JrF5E5/4i59mITuVKaCCIkEwggMwMIICtqADAgECAhA3dENPnrQO
+# KX7zUQIBAAIBAAIBAAIBAAIBADAxMA0GCWCGSAFlAwQCAQUABCBKNkxy/KbIuaOn
+# yrHHYljrmxe+u0Z/uElswr7Wv0RtWKCCIkEwggMwMIICtqADAgECAhA3dENPnrQO
 # Ih+SNsofLycXMAoGCCqGSM49BAMDMFYxCzAJBgNVBAYTAkdCMRgwFgYDVQQKEw9T
 # ZWN0aWdvIExpbWl0ZWQxLTArBgNVBAMTJFNlY3RpZ28gUHVibGljIENvZGUgU2ln
 # bmluZyBSb290IEU0NjAeFw0yMTAzMjIwMDAwMDBaFw0zNjAzMjEyMzU5NTlaMFcx
@@ -458,30 +486,30 @@ Disable-AzContextAutosave -Scope Process
 # IwXMZUXBhtCyIaehr0XkBoDIGMUG1dUtwq1qmcwbdUfcSYCn+OwncVUXf53VJUNO
 # aMWMts0VlRYxe5nK+At+DI96HAlXHAL5SlfYxJ7La54i71McVWRP66bW+yERNpbJ
 # CjyCYG2j+bdpxo/1Cy4uPcU3AWVPGrbn5PhDBf3Froguzzhk++ami+r3Qrx5bIbY
-# 3TVzgiFI7Gq3zWcxggSpMIIEpQIBATBrMFcxCzAJBgNVBAYTAkdCMRgwFgYDVQQK
+# 3TVzgiFI7Gq3zWcxggSqMIIEpgIBATBrMFcxCzAJBgNVBAYTAkdCMRgwFgYDVQQK
 # Ew9TZWN0aWdvIExpbWl0ZWQxLjAsBgNVBAMTJVNlY3RpZ28gUHVibGljIENvZGUg
 # U2lnbmluZyBDQSBFViBFMzYCEDxolvyQov0GPgzdcbswAjcwDQYJYIZIAWUDBAIB
 # BQCggYQwGAYKKwYBBAGCNwIBDDEKMAigAoAAoQKAADAZBgkqhkiG9w0BCQMxDAYK
 # KwYBBAGCNwIBBDAcBgorBgEEAYI3AgELMQ4wDAYKKwYBBAGCNwIBFTAvBgkqhkiG
-# 9w0BCQQxIgQg12TfDW9zN8kLd47wWJxHygVaksDHNJDcRHxqNkavslMwCwYHKoZI
-# zj0CAQUABGYwZAIwB140z01akI+csm0r69rvzsRiyDb0v/u76smuhVRiRx+coO6j
-# a2FtxCxzV7Uk3SXdAjAHvpeqE5qOek9IXVdMKBupzSaOitwxSISk9AgohDtm6MA5
-# A6JB2dQjbsZSg7f6THKhggMmMIIDIgYJKoZIhvcNAQkGMYIDEzCCAw8CAQEwfTBp
-# MQswCQYDVQQGEwJVUzEXMBUGA1UEChMORGlnaUNlcnQsIEluYy4xQTA/BgNVBAMT
-# OERpZ2lDZXJ0IFRydXN0ZWQgRzQgVGltZVN0YW1waW5nIFJTQTQwOTYgU0hBMjU2
-# IDIwMjUgQ0ExAhAKgO8YS43xBYLRxHanlXRoMA0GCWCGSAFlAwQCAQUAoGkwGAYJ
-# KoZIhvcNAQkDMQsGCSqGSIb3DQEHATAcBgkqhkiG9w0BCQUxDxcNMjUwODIwMDAw
-# MzIyWjAvBgkqhkiG9w0BCQQxIgQgeYuskj/sCzVnceUQKOnhyuTzzoAb7Ifils8M
-# epcLrZ8wDQYJKoZIhvcNAQEBBQAEggIAYv9FzPAkClZueAILvQYJWhTtCNjo0GK+
-# sf7AeQb9vFp+XiPRJUSVBD9IwB3kyO/laUxG4X7niogifHbTuSI6uz54d+7r6gqP
-# 3IBJ61eAoxpqRJj9KiHQ15SOp6xe2HG6saORNoTa73p2d48rFMsQ0AnrulXg5cs5
-# WQcjg+m9xgBmZW3I3HNNBNkh7+2/PjNunjkxzlIoF1R/YF7cRn35YzpXL6z7vLe/
-# 7U9Y/fw6wjMOO+ekduYzOkpsy2zSrnx6fwLAC+Td9FRuN/NfsJ7aPGe0T5CFJdD2
-# nf4t6jIPEWMPvx0s37ARBI1+4iin+EeMhYsySFP+vQ/nApjcrI8gSP4ZELnJT3Du
-# z3NUSs8qkNedYXTqsx/SM4Ic1G+xroLOOLMllcPMgEsVp4zVIXNiAcMHID9J4g4M
-# yYzvuESIq3pL9HASeVzc8W5ZYwiLfTjHjZ3/zCl39+cBkKXNN6kG/RYexm8t6vp5
-# 94JWVSO/H7frrAtRiINeIEsFyTfOmjVXnuYFL+m9sv9/bOom8Ry4yKaxrj+demsU
-# yTpWfzIY+QoospfQxRVMeHpBU170iSSjRgM8lb2k8e7UkkvEO7e0qfLPStE9OtUP
-# stcjQ/NK+cC8tEzgndy4suFIagogJtCP3omaIZPiNbjEqIejQABNqGcBDmYHzHMb
-# Cv9Xcdydgl0=
+# 9w0BCQQxIgQgLBoWnkByD76kxp3KNhPx1lKuI1B/hcI1lJ61V/OBp2MwCwYHKoZI
+# zj0CAQUABGcwZQIwUeS98Xw5Ug0bJqWHW4/yJMfS+CDgMbYoY9MTGKkfBEWGY8I7
+# Q8KGdc0EZrbgjPNYAjEA8DlPklaqKv4mPB4I+xqQSfqQzzOu4UXAKQndhuM+W5Uk
+# aAB4t6EbtAQKGl7KxWwEoYIDJjCCAyIGCSqGSIb3DQEJBjGCAxMwggMPAgEBMH0w
+# aTELMAkGA1UEBhMCVVMxFzAVBgNVBAoTDkRpZ2lDZXJ0LCBJbmMuMUEwPwYDVQQD
+# EzhEaWdpQ2VydCBUcnVzdGVkIEc0IFRpbWVTdGFtcGluZyBSU0E0MDk2IFNIQTI1
+# NiAyMDI1IENBMQIQCoDvGEuN8QWC0cR2p5V0aDANBglghkgBZQMEAgEFAKBpMBgG
+# CSqGSIb3DQEJAzELBgkqhkiG9w0BBwEwHAYJKoZIhvcNAQkFMQ8XDTI1MDgyMTAy
+# MTUzN1owLwYJKoZIhvcNAQkEMSIEIJK/xyGrlBlRaSxJhYc1Gdo/C3B9fcU3/x8K
+# 5EiK8eHBMA0GCSqGSIb3DQEBAQUABIICAMigdyYAGekKGLKxyxdbKXUxIpIFmBaR
+# rLOSFd/l2+An78eSGQx9nKbf871N0THMtxNDMYpx2j0DETz8cNBcItpjN0jnU7im
+# c5zxp89J+Ez2rda/o+hPSe1v7et517vtXA/g7iKX4w+/uDAIon2l7jMj76IlTJRu
+# 35dbXREj9HUZif7KKvvHvdICpAYh+eox3DEZCLnuLpnlsdSpODzcQzEakXVfqfWp
+# mQYlAtYDrzWWnG55rdVIe4sAb1kL9Tsdi6meFK/B6Dt/p8gdQgi6X/6snrl6jL3y
+# kGzZtUH79TinLidMhpgKadN0Ymeh/+k/IW1uPX454i0nAylwLkQxFb5fLw/+XGkj
+# q9lgbH9/zcqSSUqXlDCekl7Co3babZZxxiiYAsERSowQ/B6U2HtqPiBTK2CIBfCj
+# R5Eaph8VzaSibPfVOXVxXF8kXSJH6nl2GqUPEjo9s1QBIJsLw5uxQ8TcZZqvvX/3
+# unFMvq1wM9ixgkc4KQp01no+luFC6iyLhPNVlzZ9k2oTVj75uYceInHpvLEpNDpK
+# WLukK6LZuJhokbUFfuY8ILxzmt3RA/CTNJeE0o/Me6ocJYUbBMHX8/laFx0MgZbZ
+# YDdk+9+Ko+Z43zM+ZjdruN/+IYTPOGYXhHTd3LZM37prU7qpeQvvYoWaBGULe5tq
+# ySFqjVofnEYl
 # SIG # End signature block

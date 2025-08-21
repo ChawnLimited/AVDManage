@@ -430,6 +430,8 @@ mpexclude "C:\Program Files\Remote Desktop WebRTC Redirector\MsRdcWebRTCSvc.exe"
 mpexclude "C:\Program Files\Microsoft RDInfra\*\BootloaderUpdater.exe"
 mpexclude "C:\Program Files\Microsoft RDInfra\*\RDAgentBootLoader.exe"
 mpexclude "C:\Program Files\Microsoft RDInfra\*\WvdLauncher\RDMonitoringAgentLauncher.exe"
+mpexclude "C:\Source\*.msi"
+
 
 # Set page File to Memory Size on D:\
 function SetPageFile{

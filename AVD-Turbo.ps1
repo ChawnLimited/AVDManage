@@ -145,14 +145,16 @@ Catch {LogWrite ($_.Exception.Message);exit 1}
 
 
 %{
-	If ($HostPool) {
-		if ((get-item -path "C:\Program Files\Microsoft RDInfra" -ErrorAction SilentlyContinue) -and -not $turbo)
+	if ($Turbo -eq "False") {
+		If ($HostPool) {
+		if ((get-item -path "C:\Program Files\Microsoft RDInfra" -ErrorAction SilentlyContinue))
 		{LogWrite ("Remote Desktop Agents are already installed. Exit")
         exit 3}
+		}
+		else {LogWrite ($VMName + "." + $ADDomain + " deployment complete. Schedule a restart and exit.")
+		Start-Process -FilePath "shutdown.exe" -ArgumentList "/soft /r /t 5 /d p:0:0 /c 'AVDTurbo'"
+		exit 0}
 	}
-    else {LogWrite ($VMName + "." + $ADDomain + " deployment complete. Schedule a restart and exit.")
-	Start-Process -FilePath "shutdown.exe" -ArgumentList "/soft /r /t 5 /d p:0:0 /c 'AVDTurbo'"
-	exit 0}
 }
 
 
@@ -160,14 +162,16 @@ Catch {LogWrite ($_.Exception.Message);exit 1}
 
 # Check AZ Modules are present
 %{
-		try {
-		if (Get-Module -name Az.Accounts -ListAvailable) {Logwrite('Az.Accounts is available.')}
-		else {logwrite('Az.Accounts is not available. Will try and install.'); UpdateNuget; UpdateModule Az.Accounts;}
+	try {
+		if ($Turbo -eq "False") {
+			if (Get-Module -name Az.Accounts -ListAvailable) {Logwrite('Az.Accounts is available.')}
+			else {logwrite('Az.Accounts is not available. Will try and install.'); UpdateNuget; UpdateModule Az.Accounts;}
 
-		if (Get-Module -name Az.DesktopVirtualization -ListAvailable) {Logwrite('Az.DesktopVirtualization is available.')}
-		else {logwrite('Az.DesktopVirtualization is not available. Will try and install.'); UpdateModule Az.DesktopVirtualization;}
-		    }
-        catch {logwrite('Error importing Az Modules' +  $_.Exception.Message); exit 3}
+			if (Get-Module -name Az.DesktopVirtualization -ListAvailable) {Logwrite('Az.DesktopVirtualization is available.')}
+			else {logwrite('Az.DesktopVirtualization is not available. Will try and install.'); UpdateModule Az.DesktopVirtualization;}
+		}
+	}
+    catch {logwrite('Error importing Az Modules' +  $_.Exception.Message); exit 3}
 }
 
 # Start the RDAGent downloads
@@ -307,10 +311,10 @@ Disable-AzContextAutosave -Scope Process
 
 
 # SIG # Begin signature block
-# MIInlQYJKoZIhvcNAQcCoIInhjCCJ4ICAQExDzANBglghkgBZQMEAgEFADB5Bgor
+# MIInlAYJKoZIhvcNAQcCoIInhTCCJ4ECAQExDzANBglghkgBZQMEAgEFADB5Bgor
 # BgEEAYI3AgEEoGswaTA0BgorBgEEAYI3AgEeMCYCAwEAAAQQH8w7YFlLCE63JNLG
-# KX7zUQIBAAIBAAIBAAIBAAIBADAxMA0GCWCGSAFlAwQCAQUABCDBI+rPzxC2TJVl
-# y4JrH/3Za68CoAAprobn8mOUWVSwtqCCIkEwggMwMIICtqADAgECAhA3dENPnrQO
+# KX7zUQIBAAIBAAIBAAIBAAIBADAxMA0GCWCGSAFlAwQCAQUABCCWwHc333nYmF6j
+# lVVAm1+YLy3rug2lQ3Sy9m9qcaqHJqCCIkEwggMwMIICtqADAgECAhA3dENPnrQO
 # Ih+SNsofLycXMAoGCCqGSM49BAMDMFYxCzAJBgNVBAYTAkdCMRgwFgYDVQQKEw9T
 # ZWN0aWdvIExpbWl0ZWQxLTArBgNVBAMTJFNlY3RpZ28gUHVibGljIENvZGUgU2ln
 # bmluZyBSb290IEU0NjAeFw0yMTAzMjIwMDAwMDBaFw0zNjAzMjEyMzU5NTlaMFcx
@@ -493,30 +497,30 @@ Disable-AzContextAutosave -Scope Process
 # IwXMZUXBhtCyIaehr0XkBoDIGMUG1dUtwq1qmcwbdUfcSYCn+OwncVUXf53VJUNO
 # aMWMts0VlRYxe5nK+At+DI96HAlXHAL5SlfYxJ7La54i71McVWRP66bW+yERNpbJ
 # CjyCYG2j+bdpxo/1Cy4uPcU3AWVPGrbn5PhDBf3Froguzzhk++ami+r3Qrx5bIbY
-# 3TVzgiFI7Gq3zWcxggSqMIIEpgIBATBrMFcxCzAJBgNVBAYTAkdCMRgwFgYDVQQK
+# 3TVzgiFI7Gq3zWcxggSpMIIEpQIBATBrMFcxCzAJBgNVBAYTAkdCMRgwFgYDVQQK
 # Ew9TZWN0aWdvIExpbWl0ZWQxLjAsBgNVBAMTJVNlY3RpZ28gUHVibGljIENvZGUg
 # U2lnbmluZyBDQSBFViBFMzYCEDxolvyQov0GPgzdcbswAjcwDQYJYIZIAWUDBAIB
 # BQCggYQwGAYKKwYBBAGCNwIBDDEKMAigAoAAoQKAADAZBgkqhkiG9w0BCQMxDAYK
 # KwYBBAGCNwIBBDAcBgorBgEEAYI3AgELMQ4wDAYKKwYBBAGCNwIBFTAvBgkqhkiG
-# 9w0BCQQxIgQg4wHrXUe8bNyB4wyfqac83f1LVPbp91oRv+d49GRwAIowCwYHKoZI
-# zj0CAQUABGcwZQIwMGouVFR9lkUzpeaeKQKLjYwqWnuW/frbW+haxH18rcYF2K2T
-# JNIQF9zK6Kd75thyAjEAkMylfC1nBCj9ui1sMiuI/UnHrWgyK50gK3j/UdTm/D9f
-# iKZDERdkzhLPn8s2DjukoYIDJjCCAyIGCSqGSIb3DQEJBjGCAxMwggMPAgEBMH0w
-# aTELMAkGA1UEBhMCVVMxFzAVBgNVBAoTDkRpZ2lDZXJ0LCBJbmMuMUEwPwYDVQQD
-# EzhEaWdpQ2VydCBUcnVzdGVkIEc0IFRpbWVTdGFtcGluZyBSU0E0MDk2IFNIQTI1
-# NiAyMDI1IENBMQIQCoDvGEuN8QWC0cR2p5V0aDANBglghkgBZQMEAgEFAKBpMBgG
-# CSqGSIb3DQEJAzELBgkqhkiG9w0BBwEwHAYJKoZIhvcNAQkFMQ8XDTI1MDgyMTA0
-# MTg1OFowLwYJKoZIhvcNAQkEMSIEIBPoj/l21Ryf/EVk8Cah28aqKHOkPAP+1Q2N
-# sBw06DG4MA0GCSqGSIb3DQEBAQUABIICACeXkU24Vl3XGCamBeIDhOOHxQa8763T
-# atx2+lqTpJwVKHwJ4G8lwCNnqp1LULDQPmX/k8OnJALmycZp4aYasVx9OC6tlwN9
-# nl30rHWy5UWZzTJO/uK997XhwIJwcvuRip9CIIGML1Ic4niOz+HB5KCnNPXzw3Od
-# UpulHlyKwjHKl49Ac2LS9XUJ4Kh8G5oNh3h9ElOa5A2hXW/OUabQL9CJUo6KasVG
-# pa2GCbH+nreLX2mUiC+F18ltTMn5UxIWJQY7sr/fqx/hCHUI5xApSAHuhiOhkKwZ
-# 0+P7mGjdjYbL19Ude8YVfUQcL1WIKo8E/2p1N8PwoaQUjF7QkZJsluFJGTybHApM
-# fe7P7oQAtl2d+bXFt1A6xTyJPwO9BKWsMWbRuubMfRetpfVWPKZFhDRleyTZDk8q
-# hqGvPkQK0W5G8zBHRnjhMTvKBX2q03Xbi0xIxjPcXB0NgRuKArGipwF0q+veUfWq
-# WWTK6T8OTSn7LdwJomk3mQcn9GcxGYS0ajlgk51YapD7nMcxkM23uFXEHRnrqdZn
-# l7TKs/2ahxNsZI3a7PUx2YicuHxnN1Fz7EjW5c8NV57GdCSLFi+qhQTqLHXBFEkc
-# fgUzAtYQhIvxmYyOJ4hvPtpSCspL8DexWO/4fWroXK6XVBCY37j/I7Dp9+/mf4dr
-# Try4iQ43oVx8
+# 9w0BCQQxIgQg4bHm3Xw3k3tqtTYH5JixGNnNhuoQ0KrtD+HwAdiIDhswCwYHKoZI
+# zj0CAQUABGYwZAIwYpoV9WuoWc/57kC1FNiL/9btDzc57wdso61eG8BooeiMAOOr
+# ilYD2mh1i2jr5qNgAjAP7hyyxgxD6VBLzYJ/FHWEG5ViT8+X/H0ONDV5dbAJxnzk
+# x/4H+aXvdrlC7h4WDjuhggMmMIIDIgYJKoZIhvcNAQkGMYIDEzCCAw8CAQEwfTBp
+# MQswCQYDVQQGEwJVUzEXMBUGA1UEChMORGlnaUNlcnQsIEluYy4xQTA/BgNVBAMT
+# OERpZ2lDZXJ0IFRydXN0ZWQgRzQgVGltZVN0YW1waW5nIFJTQTQwOTYgU0hBMjU2
+# IDIwMjUgQ0ExAhAKgO8YS43xBYLRxHanlXRoMA0GCWCGSAFlAwQCAQUAoGkwGAYJ
+# KoZIhvcNAQkDMQsGCSqGSIb3DQEHATAcBgkqhkiG9w0BCQUxDxcNMjUwODIxMDQz
+# NzQ2WjAvBgkqhkiG9w0BCQQxIgQgbPYbA4gpLusVhkINCzbMjHQnQutw93jzAKXZ
+# u0okrW8wDQYJKoZIhvcNAQEBBQAEggIAw28MQxJK9dL7HAnIaJhxuFgCfoHRPdsh
+# Y+P+fCOVJ7JR7HC+5aOd/dsyB905qKse+SPJZW/Hj5H232P0gW/h1CYa9EJe0//S
+# GSbSxaeHpXSxHdn7tBPzZlZxZnjVJLI4MIjUsB1/UZp02Hfzi2M2oqtXtdXi3p6A
+# Ex0U5wOCqFHAJRP59HzhjnLeSn1OUL8RJkgXJ8Q4WmqVOFkXAQwP0Ptj7MCDDaxH
+# urpaaqW7nTknChktN7NYOx5jsbkbiVmliFOpcH2lg16HxXW+bq3M5BhMjPl/BiFJ
+# srFUFff6nJADqx8GtsCQoVDgub+2FP325vdNStOsn+rUuvV1r/CZkvOLGJ1osVK3
+# UR5Ughf5Z/ewRSRUKqvSv1BQwUeuHrDdehVjJKJe+D89zcD5B38vSeBJSb9dVw1g
+# Vfr0BRlh0xY3nZzXXRI8uk8BkNaA0rj7u6zcPdtmm/uq0TnucotiIOVod8Os4Sd2
+# tudwInomtNJcH71j/xWpaMn7g9wIkkn6RkAxY8DU+blj4sbBwRx1gzPGSh0FTikq
+# YqRS3XA/ybecrXtnBbDd1/iuGxGbLw+nor0sl5qDrYTjNtsah0Jt5VcdYsu4DYfH
+# G85K3s1x1iJa+NazDd3QmTfF+3PsF0xiQYxJRqJEExPCm2Uz2cYyremhvSynkZqr
+# eHnOwb206wM=
 # SIG # End signature block

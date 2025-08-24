@@ -83,7 +83,7 @@ try	{
 catch{}
 
 # Remove Ghost Hardware
-$devs=Get-PnpDevice -class CDrom,Diskdrive,Display,Monitor,Mouse,Net,Ports,Processor,PrintQueue,SCSIAdapter,SoftwareDevice,Volume -ErrorAction Ignore | ? status -eq unknown
+$devs=Get-PnpDevice -class Diskdrive,Display,Monitor,Mouse,Net,Ports,Processor,PrintQueue,SCSIAdapter,SoftwareDevice,Volume -ErrorAction Ignore | ? status -eq unknown
 	foreach ($d in $devs) 	{
  	&"pnputil" /remove-device $d.InstanceId
 				}
@@ -107,6 +107,7 @@ Write-Host "Remove temporary files"
 # Remove Azure Logs and Extensions
 	Remove-Item -Path C:\Packages\ -Recurse -Force -ErrorAction Ignore
 	Remove-Item -Path C:\WindowsAzure\Logs -Recurse -Force -ErrorAction Ignore
+	Remove-Item -Path C:\Windows\Temp -Recurse -Force -ErrorAction Ignore
 
 # empty folders
 	Stop-Service -ServiceName wuauserv,bits,msiserver

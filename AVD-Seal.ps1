@@ -107,6 +107,7 @@ Write-Host "Remove temporary files"
 # Remove Azure Logs and Extensions
 	Remove-Item -Path C:\Packages\ -Recurse -Force -ErrorAction Ignore
 	Remove-Item -Path C:\WindowsAzure\Logs -Recurse -Force -ErrorAction Ignore
+	Remove-Item -Path C:\Windows\Temp -Recurse -Force -ErrorAction Ignore
 
 # empty folders
 	Stop-Service -ServiceName wuauserv,bits,msiserver

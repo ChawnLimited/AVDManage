@@ -387,7 +387,7 @@ Function noBDE {
  	manage-bde -off D:
 	reg delete "HKEY_CLASSES_ROOT\Drive\shell\decrypt-bde" /f
 	reg delete "HKEY_CLASSES_ROOT\Drive\shell\encrypt-bde-elev" /f
-   Set-ItemProperty -Path "HKLM:\SYSTEM\CurrentControlSet\Control\BitLocker" -Name "PreventDeviceEncryption" -Value 1 -Force -ErrorAction SilentlyContinue
+   New-ItemProperty -Path "HKLM:\SYSTEM\CurrentControlSet\Control\BitLocker" -Name "PreventDeviceEncryption" -Value 1 -Force -ErrorAction SilentlyContinue
 }
 # UnComment to enable
 # noBDE
@@ -416,6 +416,7 @@ Catch{}
 
 # Add Defender Exclusions
 Copy-Item -Path C:\Windows\system32\robocopy.exe -Destination "C:\Program Files\FSLogix\Apps\frxrobocopy.exe" -Force
+New-Item -Path "C:\Program Files\FSLogix\Apps\en-US" -type directory -force
 Copy-Item -Path C:\Windows\system32\en-US\robocopy.exe.mui -Destination "C:\Program Files\FSLogix\Apps\en-US\frxrobocopy.exe.mui" -Force
 mpexclude C:\Windows\Azure\Packages\CollectGuestLogs.exe
 mpexclude C:\Windows\Azure\Packages\CollectVMHealth.exe

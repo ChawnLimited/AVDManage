@@ -131,25 +131,33 @@ try {
 catch {LogWrite ("Failed to download RDAgents. " + $_.Exception.Message);exit 99}
 
 
-
+logwrite('Create PSCreds for Azure')
 ### Create the AVD Agent PSCredential
+try{
 $AVDCred = New-Object pscredential -ArgumentList ([pscustomobject]@{
     UserName = $ClientId
     Password = (ConvertTo-SecureString -String $ClientSecret -AsPlainText -Force)[0]})
-logwrite('Created PSCreds for Azure')
-
-
-Disable-AzContextAutosave -Scope Process
-
-# Logon to Azure
-%{
-	try {Connect-AzAccount -ServicePrincipal -TenantId $TenantId -Subscription $subid -Credential $AVDCred
-	if ((Get-AZAccessToken -ErrorAction SilentlyContinue).count -ne 0) {logwrite('Connected to Azure')}
-	else {logwrite('Not connected to Azure. Exit.')
-	exit 4}
-	}
-	catch{"Failed to connect to Azure. " + $_.Exception.Message}
+logwrite('PSCreds for Azure Created ')
 }
+catch{LogWrite ("Failed to Create PSCreds for Azure. " + $_.Exception.Message);exit 111}
+
+try{
+Disable-AzContextAutosave -Scope Process
+}
+catch{LogWrite ("Failed to disable AZContextAutoSasve. " + $_.Exception.Message);exit 112}
+
+
+logwrite('Logon to Azure')
+# Logon to Azure
+	%{
+		try {Connect-AzAccount -ServicePrincipal -TenantId $TenantId -Subscription $subid -Credential $AVDCred
+		if ((Get-AZAccessToken -ErrorAction SilentlyContinue).count -ne 0) {logwrite('Connected to Azure')}
+		else {logwrite('Not connected to Azure. Exit.')
+		exit 4}
+		}
+		catch{logwrite('Error connecting to Azure' +  $_.Exception.Message)
+			exit 4}
+	}
 
 # check if the VM exists in the hostpool, if so remove it
 
@@ -238,10 +246,10 @@ exit 0
 
 
 # SIG # Begin signature block
-# MIInlQYJKoZIhvcNAQcCoIInhjCCJ4ICAQExDzANBglghkgBZQMEAgEFADB5Bgor
+# MIInlAYJKoZIhvcNAQcCoIInhTCCJ4ECAQExDzANBglghkgBZQMEAgEFADB5Bgor
 # BgEEAYI3AgEEoGswaTA0BgorBgEEAYI3AgEeMCYCAwEAAAQQH8w7YFlLCE63JNLG
-# KX7zUQIBAAIBAAIBAAIBAAIBADAxMA0GCWCGSAFlAwQCAQUABCCOH21AfmX8K4Cn
-# 1I6b5miSPM4AjIsXFZZ9CTsZ2pSA+qCCIkEwggMwMIICtqADAgECAhA3dENPnrQO
+# KX7zUQIBAAIBAAIBAAIBAAIBADAxMA0GCWCGSAFlAwQCAQUABCALl6wPSPxGeW/1
+# 7gXUnaidixeMaGIg0TlUV5cHajLERKCCIkEwggMwMIICtqADAgECAhA3dENPnrQO
 # Ih+SNsofLycXMAoGCCqGSM49BAMDMFYxCzAJBgNVBAYTAkdCMRgwFgYDVQQKEw9T
 # ZWN0aWdvIExpbWl0ZWQxLTArBgNVBAMTJFNlY3RpZ28gUHVibGljIENvZGUgU2ln
 # bmluZyBSb290IEU0NjAeFw0yMTAzMjIwMDAwMDBaFw0zNjAzMjEyMzU5NTlaMFcx
@@ -424,30 +432,30 @@ exit 0
 # IwXMZUXBhtCyIaehr0XkBoDIGMUG1dUtwq1qmcwbdUfcSYCn+OwncVUXf53VJUNO
 # aMWMts0VlRYxe5nK+At+DI96HAlXHAL5SlfYxJ7La54i71McVWRP66bW+yERNpbJ
 # CjyCYG2j+bdpxo/1Cy4uPcU3AWVPGrbn5PhDBf3Froguzzhk++ami+r3Qrx5bIbY
-# 3TVzgiFI7Gq3zWcxggSqMIIEpgIBATBrMFcxCzAJBgNVBAYTAkdCMRgwFgYDVQQK
+# 3TVzgiFI7Gq3zWcxggSpMIIEpQIBATBrMFcxCzAJBgNVBAYTAkdCMRgwFgYDVQQK
 # Ew9TZWN0aWdvIExpbWl0ZWQxLjAsBgNVBAMTJVNlY3RpZ28gUHVibGljIENvZGUg
 # U2lnbmluZyBDQSBFViBFMzYCEDxolvyQov0GPgzdcbswAjcwDQYJYIZIAWUDBAIB
 # BQCggYQwGAYKKwYBBAGCNwIBDDEKMAigAoAAoQKAADAZBgkqhkiG9w0BCQMxDAYK
 # KwYBBAGCNwIBBDAcBgorBgEEAYI3AgELMQ4wDAYKKwYBBAGCNwIBFTAvBgkqhkiG
-# 9w0BCQQxIgQgMkh6MQocxfR2ng0AeVuZGifaWtJuKPcAcAkTgDlo4Q0wCwYHKoZI
-# zj0CAQUABGcwZQIwFYslYCSqRR91a4BtUgi91Y+oHSSLhFmZGNlYn982RvhGmP1L
-# dLrg1HrxOI+WIjxcAjEAiDGeDtPoOvM/LhhxTb0/CERsRHPBEYKYFHPLrGDkkEd1
-# EasNRmGnsYWOTgUvUHWEoYIDJjCCAyIGCSqGSIb3DQEJBjGCAxMwggMPAgEBMH0w
-# aTELMAkGA1UEBhMCVVMxFzAVBgNVBAoTDkRpZ2lDZXJ0LCBJbmMuMUEwPwYDVQQD
-# EzhEaWdpQ2VydCBUcnVzdGVkIEc0IFRpbWVTdGFtcGluZyBSU0E0MDk2IFNIQTI1
-# NiAyMDI1IENBMQIQCoDvGEuN8QWC0cR2p5V0aDANBglghkgBZQMEAgEFAKBpMBgG
-# CSqGSIb3DQEJAzELBgkqhkiG9w0BBwEwHAYJKoZIhvcNAQkFMQ8XDTI1MDgyMTEz
-# MTExNFowLwYJKoZIhvcNAQkEMSIEIKIkelSuLq2Vkt6/Cyoc6F+hXwNvD6dZSL+P
-# RfLuKP24MA0GCSqGSIb3DQEBAQUABIICAKzy2gXVDauV7yTAMqv4A1UxS0HqoZTD
-# igCefxZ1IG9eHxSpJ/NKREew/2Tbw+xqz5gQqq1yjcjwd0oBqcgS2gbeCKPMrEfC
-# BC3WlQVH69EwCFImo/Olac0k7BTlX9apUvzCImxO5SFH2rZDLjl1Kpqhd7piR742
-# ffuyNDsaRjN7L5JFm/tOtENsYvpJlLGsSvNvPXgFfsfl/a2wbO7wZ4+XHoDOZPw6
-# CVt1pQdIKKVGf8R71oiGu2HqVr6x2hbOrEMdsxk6pyL+2Oc5qI3VeS2korOLRO/3
-# Qa6JnDt95xtXfWLZKMcpzs/q1/3tnoiBiunU/dz4YFUxxPRYeXPUVCP0aLGnxBsS
-# P7Ooy2s1ERPm6zYkH+ZSYF9YaWeT7mc76ykLBA5QxRRrqDOTjvuEVAUI3/vMZUZ1
-# rdFHfsW2uPKXOkyfdC2sjZFJgZH/SsvSgMo5n+luICp2rPo4sxmhfbr87Fzfc3on
-# Rw4u3vrFseZUJJvS3zG7D4eeJJq8wubRf8kJDFw9Wkz6pC9V7x3S4kT0wbnbqIai
-# Sck9CZsnfe/M7SGxYRdY8fJRsOnDXp5qiz1MCu2HzMINBHW5BGcqcCbnuKiG/3NR
-# oQYPWDkqKmtRQScDm28QzQUCX+/PdpxDLKJnABRZDxHyfr+EkjVoyk6bCKAjq+ky
-# VffzPXXCV/eW
+# 9w0BCQQxIgQg3BJP2F7qsy8Zcs+mlOyr+btbWMGiWVW8w4oUnH5uMK4wCwYHKoZI
+# zj0CAQUABGYwZAIwOi+P6myjhF0HPyC87ctBxib3eQjcgZGEuzMSz6FDO/r0EWw0
+# vv4Ulc0tdt0qzu2qAjAQvffT88iPRvjkkLAA5HLTRpcKMgBCIs+bIjnvdfpzclwo
+# qo9MTk+7Ro4U2PaC5F2hggMmMIIDIgYJKoZIhvcNAQkGMYIDEzCCAw8CAQEwfTBp
+# MQswCQYDVQQGEwJVUzEXMBUGA1UEChMORGlnaUNlcnQsIEluYy4xQTA/BgNVBAMT
+# OERpZ2lDZXJ0IFRydXN0ZWQgRzQgVGltZVN0YW1waW5nIFJTQTQwOTYgU0hBMjU2
+# IDIwMjUgQ0ExAhAKgO8YS43xBYLRxHanlXRoMA0GCWCGSAFlAwQCAQUAoGkwGAYJ
+# KoZIhvcNAQkDMQsGCSqGSIb3DQEHATAcBgkqhkiG9w0BCQUxDxcNMjUwOTA3MTQz
+# NTI2WjAvBgkqhkiG9w0BCQQxIgQgce2pVd+HdTxHAZQPHWpW6ymbPE0jwHeWo2Iw
+# 71r1VhQwDQYJKoZIhvcNAQEBBQAEggIAowGee9gVVY916IZ8kTkznHHLF2GhP79q
+# IzxKm/rFx66FuDiDPYGKJNp4wVQcKnpcGcXPN/x39ppidjDKm2kopcHyxAyyRLJ9
+# 57CxYnU1uUWN3hgCn7MHkaTHVMPYzSEngPTTJjeKvDTuqdGR5eEV4FGUFimwaYKj
+# xjycun4WDkuEAkLI573PKFdwOYpATzEeJOy5lUnns3dx2KAA5Nsys5e8NRnBny7E
+# 8LAMarVq+/J0xlxMzWr3pfWsaqEdbB9czSsv7soTHs5lbQ5WPbEB1u1OPjY902vA
+# FYAQYq9m9fv5brj44rcvjpLg5NDFK7zcKAoAZaB2fLF10ePHxV/a+27ImLwOQT4c
+# e+uWKtQI2xzO2AzEzdfkHYUnFS27xlI/DiKOfDFSMuHn4OOWq8VB1oVU67h6BLPY
+# NazU40Lxf6okFsp3pH92akJNgByKYjhkWnzMV+xySFIx5v69wFHEmr9XwBf+rabD
+# YYH+U0NgytI9H3s576nhH4trfVXgMhNaZ8X6fMZ1UGU3thQPnJ0e5bOzBmn3upz0
+# 1UT05xSM2NR+vDP/pQUqAw0aKSFAoOlFelCOafg7qXArm7Gl5MuTsPzLE5Ek/z+u
+# d8/ZKEU/TJBkVdzcC6ukK+ZgM4bzU3hE9LQTmarDk0MBCsrdBQDISojnnfO2bfoK
+# QIX7T+2mivQ=
 # SIG # End signature block

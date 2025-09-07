@@ -83,23 +83,26 @@ Function UpdateModule
 
 
 # Deploy and Neutralise RD Agents
-	LogWrite ("Failed to configure RDAgents.")
+	LogWrite ("Install & Configure RDAgents.")
 	try {
 	    if (get-item -path C:\Source\RDagent.msi){Start-Process msiexec.exe -Wait -ArgumentList "/I C:\Source\RDAgent.msi REGISTRATIONTOKEN=[INVALIDTOKEN] /qb /L*V RDAgent.log"}
 	    if (get-item -path C:\Source\RDBoot.msi){Start-Process msiexec.exe -Wait -ArgumentList "/I C:\Source\RDBoot.msi /qb  /L*V RDBoot.log"}
 		start-sleep -seconds 5
-		Get-Service -Name RDAgentBootLoader | Stop-Service
 		Get-Service -Name RDAgentBootLoader | Set-Service -StartupType Disabled
+		Get-Service -Name RDAgentBootLoader | Stop-Service
 		start-sleep -seconds 10
 		Remove-Item -Path "HKLM:\SOFTWARE\Microsoft\RDInfraAgent" -Recurse -Force
 		new-Item -Path "HKLM:\SOFTWARE\Microsoft\RDInfraAgent" -force
 		Set-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\RDInfraAgent" -Name "RegistrationToken" -Value "AVDTurbo" -force
 		Set-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\RDInfraAgent" -Name "HostPoolType" -Value "Default" -force
 		New-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\RDInfraAgent" -PropertyType dword -Name "IsRegistered" -Value 0 -Force
+		LogWrite ("RDAgents Complete.")
 	}
 catch {LogWrite ("Failed to configure RDAgents. " + $_.Exception.Message);exit 999}
 
-Write-Host "You can now either shudown the VM or run Sysprep"
+$log=Get-Content .\AVD-Prep.log -Delimiter :
+write-host $log
+Write-Host "You can now either shudown the VM (Specialize) or run Sysprep (Generalize)"
 
 
 

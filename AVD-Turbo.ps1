@@ -304,7 +304,7 @@ logwrite('Logon to Azure')
 	try{		    
 		    LogWrite "Wait for the SXS Network Agent and Geneva Agent to install"
 			$i=0
-			do {start-sleep -Seconds 1;$i++;} until(((get-package -name "*SXS*Network*" -ErrorAction SilentlyContinue).Status -eq 'Installed') -and ((get-package -name "*Geneva*" -ErrorAction SilentlyContinue).Status -eq 'Installed') -or $i -eq 20)
+			do {start-sleep -Seconds 1;$i++;} until(((get-package -name "*SXS*Network*" -ErrorAction SilentlyContinue).Status -eq 'Installed') -and ((get-package -name "*Geneva*" -ErrorAction SilentlyContinue).Status -eq 'Installed') -or $i -eq 50)
 		    if (((get-package -name "*SXS*Network*" -ErrorAction SilentlyContinue).Status -eq 'Installed') -and ((get-package -name "*Geneva*" -ErrorAction SilentlyContinue).Status -eq 'Installed'))
 			{LogWrite ("SXS Network Agent and Geneva Agent are installed")}
 			Else {LogWrite ("SXS Network Agent or Geneva Agent installation failed");LogWrite ("SXS Network Agent: " + ((get-package -name "*SXS*Network*" -ErrorAction SilentlyContinue).Status -eq 'Installed'));LogWrite ("Geneva Agent: " + ((get-package -name "*Geneva*" -ErrorAction SilentlyContinue).Status -eq 'Installed'));LogWrite("Check " + $env:ProgramFiles + "\Microsoft RDInfra. The MSI files don't download sometimes.")}
@@ -327,8 +327,8 @@ logwrite('Logon to Azure')
 # SIG # Begin signature block
 # MIInlQYJKoZIhvcNAQcCoIInhjCCJ4ICAQExDzANBglghkgBZQMEAgEFADB5Bgor
 # BgEEAYI3AgEEoGswaTA0BgorBgEEAYI3AgEeMCYCAwEAAAQQH8w7YFlLCE63JNLG
-# KX7zUQIBAAIBAAIBAAIBAAIBADAxMA0GCWCGSAFlAwQCAQUABCDyuaEP45kjpbBJ
-# Gr7S6HxKXE2n4h/r/6ySbG3gTz/oyqCCIkEwggMwMIICtqADAgECAhA3dENPnrQO
+# KX7zUQIBAAIBAAIBAAIBAAIBADAxMA0GCWCGSAFlAwQCAQUABCADqwYDIA//L13W
+# 07GI9JG3EfTKaLwF5S1o7IK1z4VWvaCCIkEwggMwMIICtqADAgECAhA3dENPnrQO
 # Ih+SNsofLycXMAoGCCqGSM49BAMDMFYxCzAJBgNVBAYTAkdCMRgwFgYDVQQKEw9T
 # ZWN0aWdvIExpbWl0ZWQxLTArBgNVBAMTJFNlY3RpZ28gUHVibGljIENvZGUgU2ln
 # bmluZyBSb290IEU0NjAeFw0yMTAzMjIwMDAwMDBaFw0zNjAzMjEyMzU5NTlaMFcx
@@ -516,25 +516,25 @@ logwrite('Logon to Azure')
 # U2lnbmluZyBDQSBFViBFMzYCEDxolvyQov0GPgzdcbswAjcwDQYJYIZIAWUDBAIB
 # BQCggYQwGAYKKwYBBAGCNwIBDDEKMAigAoAAoQKAADAZBgkqhkiG9w0BCQMxDAYK
 # KwYBBAGCNwIBBDAcBgorBgEEAYI3AgELMQ4wDAYKKwYBBAGCNwIBFTAvBgkqhkiG
-# 9w0BCQQxIgQgMjswsd2UlNonMMsXvR8xxCnFuUh9qVYJmngFJNbD7FUwCwYHKoZI
-# zj0CAQUABGcwZQIwA2bhEo7vtIii3dnYSK0pV9UJdQbL7B2hDY8K3NO3CYALD4cx
-# czmjqeA2/qaALqEYAjEA2O6VZmZ+BOtp+rYxD4w9UdIUgnfjixzkBAKOoWs+VSUT
-# AmEwZ6Lrr2m7uF80tNaToYIDJjCCAyIGCSqGSIb3DQEJBjGCAxMwggMPAgEBMH0w
+# 9w0BCQQxIgQg63cD6sLUiUXyRxo8rbMA/LMan/hOk/QWkuCVQFiKQLMwCwYHKoZI
+# zj0CAQUABGcwZQIwD9xRj/QeUpxl2sfBm3T39jUuI7/mWPcehpoHzqDbFQVobJAO
+# K+okPL/hMhxC5HebAjEAnlrNceFFzclJPW844MPqEwEXm/pazABi2JwdIhfgMril
+# lb1W5GIbmDq5jT0bmNPyoYIDJjCCAyIGCSqGSIb3DQEJBjGCAxMwggMPAgEBMH0w
 # aTELMAkGA1UEBhMCVVMxFzAVBgNVBAoTDkRpZ2lDZXJ0LCBJbmMuMUEwPwYDVQQD
 # EzhEaWdpQ2VydCBUcnVzdGVkIEc0IFRpbWVTdGFtcGluZyBSU0E0MDk2IFNIQTI1
 # NiAyMDI1IENBMQIQCoDvGEuN8QWC0cR2p5V0aDANBglghkgBZQMEAgEFAKBpMBgG
-# CSqGSIb3DQEJAzELBgkqhkiG9w0BBwEwHAYJKoZIhvcNAQkFMQ8XDTI1MDkwNzE0
-# MzQ0NFowLwYJKoZIhvcNAQkEMSIEIL8tUuxU97v2pztdIk4SCwLIbqFrhRrnrKs5
-# URElOiEsMA0GCSqGSIb3DQEBAQUABIICAC2TM1NZ5BPZyofgscBi3vmcsXdL850z
-# IR8wajtPr1CSVLZL/gy/MUyNOsMYyDGnHH5tT7Ctasd3lfYqlmGRnm/Dkgj9Lxti
-# BtO0DIIh7qKQwIZEgv+qKSSQk7VchgCpIAWvJUu3hQLCWjlQ2Dp9nDABc6i7u13/
-# ILSJu9L+Jcd0+oezptkNXkEERLYBFhK2S3ENL7D9lyQtEd1XciwV7hUr1rGhbSPb
-# NXJImVy6SfjozXpeFi9Fls1OaXvhDcjbAp1GbpR6/De5Y2sGqTK2+vRLiIxumd55
-# 50SISb8gtxfTPasY57z7pwzaDiLJMG1//he+hCTt4D3LZhkR6ic+CTD4Tjy/GL0Y
-# 66otHrauU+tjY/HtF1Cfk5GD6QZuAs5yf7T3Ja9g6BVogezkOMnu/P+9mv6oaEpM
-# 9RX4XcN21TzO7yKd1jO+37cPklE2UZIPRi3cEqEh0lvfoBBxJQsAY5CM+MDAFgWZ
-# uAObNuiNSTZtc7dcafkAS3pmeRH8Ta3bXDctmUSO6nHdrMi2XgqZiGEXR25i8jG3
-# dFFYLklP5ZSXYnHAEinUuQDsAtIdS9IRD2oAu19vAEk6+0f91TmIrfVhlQwZbUw+
-# nXFMyajChIft8s6LMxGzmfPrMB1QaN29rWMvvXL04f/kHoJ4jNd+C17ZaPoJ89df
-# dtskiSSSg77y
+# CSqGSIb3DQEJAzELBgkqhkiG9w0BBwEwHAYJKoZIhvcNAQkFMQ8XDTI1MDkwODE2
+# NDA0M1owLwYJKoZIhvcNAQkEMSIEIBlghXz6VDXDW8rvEZDzI+yUjoZuX/m4yUls
+# UlWP3vMPMA0GCSqGSIb3DQEBAQUABIICAAVV9rUXaW0DoXFJjbKKyDbq3dpba6V1
+# CtqbYG5dKOaVaBCnUXJddTv2aBlRVlfhZ+pYEo1nuatVwKupd2R1cQ5opz1EHzPL
+# bA1MPACVSa38rD2nM4QpVQneTWJIaXnB/wk+HKzQRS0OK3O0dgFziawVwDiVKbAz
+# lyo86cNfH4Lr3Gl6NmmovTa5kxeENAg87Twd+GpV5Or2n29dHSapz4sXP5YharmI
+# 6VyHLUtvrrDHUqZH+66Y8r7Q8bp9NCvjNDoZXQySWq9R0g7GqTSJb+K6irGxLQrm
+# orDh5TNitY5OIfHTjCx9EKETCb4QvcrEEF/Z1EpRVUxuy8F0W1ygklStWf9TQ3Bi
+# PSlry0yQxT2Vq64RabDehvqEjOm6EN0LaB8OG3+7MRiZAz/Bbt5GOzfSDUqM9zS8
+# ILTIJdl1YiHtoOoH70Vw838F13RSM5HuG1tjXL3mOtG4aOY/rf675EJHlNVEiQyI
+# RL+5yPLenLhEm82yUz0vi19TCooIXiUgffzJpcWI3XGvMhqZZPADMeTp+gKqacPi
+# DW3Rc83HTfEbJSahbz1iHFr+UxKeLa/Lb56pFcceSfNbZP6wwi3Y5TIiOam3HTLG
+# +3yOtI+EgT2yajZjqgH7oH/bMDRI8HNNABaBZ9k/QfLSX5PA8aYM7Q6NJoJo8W44
+# 79r1MzM6VCiT
 # SIG # End signature block

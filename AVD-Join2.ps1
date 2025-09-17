@@ -117,6 +117,11 @@ else {logwrite('Device is AD Domain joined.')}
     catch {logwrite('200: Error importing Az Modules. ' + $_.Exception.Message); exit 200}
 }
 
+try {
+	set-azconfig -CheckForUpgrade $false -DisplayBreakingChangeWarning $false -DisplaySurveyMessage $false -EnableDataCollection $false
+	}
+catch{}
+
 # get the DNS hostname of the VM
 $hostname=[System.Net.Dns]::GetHostByName($env:computerName).HostName
 logwrite('Hostname:' + $hostname)

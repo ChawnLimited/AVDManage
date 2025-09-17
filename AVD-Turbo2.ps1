@@ -137,7 +137,7 @@ Catch {LogWrite ("300: " + $_.Exception.Message);exit 300}
  # Check for a Turbo deployment
 	try{
 		if ((Get-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\RDInfraAgent" -Name "RegistrationToken" -ErrorAction SilentlyContinue).RegistrationToken)
-		{$TURBO=(Get-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\RDInfraAgent" -Name "RegistrationToken" -ErrorAction SilentlyContinue).RegistrationToken;LogWrite ("Turbo Deployment started.")}
+		{$TURBO=(Get-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\RDInfraAgent" -Name "RegistrationToken" -ErrorAction SilentlyContinue).RegistrationToken;LogWrite ("Turbo Deployment started.");set-azconfig -CheckForUpgrade $false -DisplayBreakingChangeWarning $false -DisplaySurveyMessage $false -EnableDataCollection $false}
 		else {$Turbo='False'}
 	}
 	catch{LogWrite ("400: " + $_.Exception.Message);exit 400}

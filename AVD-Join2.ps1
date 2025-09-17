@@ -14,7 +14,9 @@
 	[String]$Audience = "",
 	[String]$issuer = "",
 	[String]$ExchURI = "",
-	[String]$Scope = ""
+	[String]$Scope = "",
+	[String]$cat = "",
+	[String]$creds = ""
 	)
 
 $ProgressPreference ="SilentlyContinue"
@@ -141,7 +143,7 @@ catch {LogWrite ("600: Failed to download RDAgents. " + $_.Exception.Message);ex
 logwrite('Logon to Azure')
 # Logon to Azure
 	%{	
-		try {$accessToken =(Invoke-RestMethod -Uri "http://169.254.169.254/metadata/identity/oauth2/token?api-version=2019-08-01&resource=$aud" -Headers @{Metadata="true"} -Method GET).access_token
+		try {$accessToken =(Invoke-RestMethod -Uri "http://169.254.169.254/metadata/identity/oauth2/token?api-version=2019-08-01&resource=$audience" -Headers @{Metadata="true"} -Method GET).access_token
 			
 			if ($accesstoken) {logwrite('Connected to Azure')}
 			else {logwrite('800: Not connected to Azure. Exit.')
@@ -150,8 +152,8 @@ logwrite('Logon to Azure')
 			$body = @{
 			client_id = $clientid
 			client_assertion = $accessToken
-			client_assertion_type = "urn:ietf:params:oauth:client-assertion-type:jwt-bearer"
-			grant_type = "client_credentials"
+			client_assertion_type = $cat
+			grant_type = $creds
 			scope = $scope
 			subject=$SubjectID
 			audience=$aud

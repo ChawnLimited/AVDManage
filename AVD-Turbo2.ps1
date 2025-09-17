@@ -225,7 +225,7 @@ logwrite('Logon to Azure')
 			grant_type = $creds
 			scope = $scope
 			subject=$SubjectID
-			audience=$aud
+			audience=$audience
 			issuer=$ISS
 			}
 	

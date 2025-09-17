@@ -1,6 +1,6 @@
 # Chawn Limited 2025
-# AVDJoin.ps1
-# Version 2.0
+# AVD-Join2.ps1
+# Version 2.2
 # Joins a session host to an Azure AVD Hostpool using the AVD-Join Custom Script Extension at startup or rebuild
 
   #Parameters
@@ -117,10 +117,6 @@ else {logwrite('Device is AD Domain joined.')}
     catch {logwrite('200: Error importing Az Modules. ' + $_.Exception.Message); exit 200}
 }
 
-try {
-	set-azconfig -CheckForUpgrade $false -DisplayBreakingChangeWarning $false -DisplaySurveyMessage $false -EnableDataCollection $false
-	}
-catch{}
 
 # get the DNS hostname of the VM
 $hostname=[System.Net.Dns]::GetHostByName($env:computerName).HostName
@@ -166,7 +162,7 @@ logwrite('Logon to Azure')
 			}
 	
 			$response = Invoke-RestMethod -Uri $ExchUri -Method POST -Body $body -ContentType "application/x-www-form-urlencoded"
-					if ($response) {logwrite('Connected to AzureX');Connect-AzAccount -accountid $clientid -AccessToken $response.access_token -tenantid $tenantid -subscriptionid $subid}
+					if ($response) {logwrite('Connected to AzureX');Connect-AzAccount -scope process -accountid $clientid -AccessToken $response.access_token -tenantid $tenantid -subscriptionid $subid}
 				else {logwrite('801: Not connected to Azure. Exit.')
 				exit 801}
 				

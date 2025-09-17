@@ -1,5 +1,5 @@
 # Chawn Limited 2025
-# AVD-Turbo.ps1
+# AVD-Turbo2.ps1
 # Version 2.2
 # Rename the VM (created from a specialized image), optionally Join VM to Active Directory, and optionally install AVD Agents
 
@@ -137,7 +137,7 @@ Catch {LogWrite ("300: " + $_.Exception.Message);exit 300}
  # Check for a Turbo deployment
 	try{
 		if ((Get-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\RDInfraAgent" -Name "RegistrationToken" -ErrorAction SilentlyContinue).RegistrationToken)
-		{$TURBO=(Get-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\RDInfraAgent" -Name "RegistrationToken" -ErrorAction SilentlyContinue).RegistrationToken;LogWrite ("Turbo Deployment started.");set-azconfig -CheckForUpgrade $false -DisplayBreakingChangeWarning $false -DisplaySurveyMessage $false -EnableDataCollection $false}
+		{$TURBO=(Get-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\RDInfraAgent" -Name "RegistrationToken" -ErrorAction SilentlyContinue).RegistrationToken;LogWrite ("Turbo Deployment started.")}
 		else {$Turbo='False'}
 	}
 	catch{LogWrite ("400: " + $_.Exception.Message);exit 400}
@@ -228,7 +228,7 @@ logwrite('Logon to Azure')
 			}
 	
 			$response = Invoke-RestMethod -Uri $ExchUri -Method POST -Body $body -ContentType "application/x-www-form-urlencoded"
-					if ($response) {logwrite('Connected to AzureX');Connect-AzAccount -accountid $clientid -AccessToken $response.access_token -tenantid $tenantid -subscriptionid $subid}
+					if ($response) {logwrite('Connected to AzureX');Connect-AzAccount -scope process -accountid $clientid -AccessToken $response.access_token -tenantid $tenantid -subscriptionid $subid}
 				else {logwrite('801: Not connected to Azure. Exit.')
 				exit 801}
 				

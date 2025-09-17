@@ -96,8 +96,8 @@ else {logwrite('Device is AD Domain joined.')}
 		if (get-item -path "C:\Program Files\Microsoft RDInfra" -ErrorAction SilentlyContinue)
 		{logwrite('Remote Desktop Agents are already installed. Exit.');exit 500}
 		}
-	catch {logwrite('500: RDAgents are already installed' +  $_.Exception.Message); exit 500}
 	}
+	catch {logwrite('500: RDAgents are already installed' +  $_.Exception.Message); exit 500}
 }
 
 

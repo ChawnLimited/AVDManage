@@ -205,14 +205,7 @@ Catch {LogWrite ("300: " + $_.Exception.Message);exit 300}
 	$hostname=$vmname + "." + $ADDomain
 	logwrite('Hostname:' + $hostname)
 	logwrite('Hostpool:' + $hostpool)
-	logwrite('ClientID:' + $ClientID)
-	logwrite('ClientID:' + $SubjectID)
-	logwrite('ClientID:' + $Audience)
-	logwrite('ClientID:' + $Issuer)
-	logwrite('ClientID:' + $ExchURI)
-		logwrite('ClientID:' + $scope)
-		logwrite('ClientID:' + $cat)
-		logwrite('ClientID:' + $Creds)
+
 
 logwrite('Logon to Azure')
 # Logon to Azure

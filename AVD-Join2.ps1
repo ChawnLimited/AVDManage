@@ -247,12 +247,11 @@ $now=(get-date).addhours(2)
 		    LogWrite "Wait for the SXS Network Agent and Geneva Agent to install"
 			$i=0
 			do {start-sleep -Seconds 2;$i++;} until((($SXS=get-package -name "*SXS*Network*" -ErrorAction SilentlyContinue).Status -eq 'Installed') -and (($Geneva=get-package -name "*Geneva*" -ErrorAction SilentlyContinue).Status -eq 'Installed') -or $i -eq 50)
+				if ($SXS -and $Geneva)
+				{LogWrite ("SXS Network Agent and Geneva Agent are installed")}
+				Else {LogWrite ("1000: SXS Network Agent installed: " + $SXS + ". Geneva Agent installed: " + $Geneva + "Check " + $env:ProgramFiles + "\Microsoft RDInfra. The MSI files don't download sometimes.")}
 		}
     	catch {logwrite('1000: Error installing Remote Desktop Agents. ' + $_.Exception.Message); exit 1000}
-
-	if ($SXS -and $Geneva)
-	{LogWrite ("SXS Network Agent and Geneva Agent are installed")}
-	Else {LogWrite ("1000: SXS Network Agent installed: " + $SXS + ". Geneva Agent installed: " + $Geneva + "Check " + $env:ProgramFiles + "\Microsoft RDInfra. The MSI files don't download sometimes.")}
 }
 
 

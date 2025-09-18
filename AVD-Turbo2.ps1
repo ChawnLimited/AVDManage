@@ -1,7 +1,7 @@
 # Chawn Limited 2025
 # AVD-Turbo2.ps1
 # Version 2.2
-# Rename the VM (created from a specialized image), optionally Join VM to Active Directory, and optionally install AVD Agents
+# Rename the VM (created from a specialized image), optionally Join VM to Active Directory, and optionally install AVD Agents - For Specialized Images
 
 #### Parameters
 
@@ -56,8 +56,8 @@ Function UpdateNuget
     	}
     catch {LogWrite "NuGet Update Failed"; exit 101}
 
-# trust PSGalllery
-# access to www.powershellgallery.com
+	# trust PSGalllery
+	# access to www.powershellgallery.com
     try	{
 	    if (-not(Get-PSRepository -Name "PSGallery"))
 	    	{Register-PSRepository -Default -InstallationPolicy Trusted
@@ -73,7 +73,7 @@ Function UpdateModule
 {
    Param ([string]$module)
 	try {
-	install-module $module
+		install-module $module
     	Logwrite ('Installed ' + $module)
     	}
     catch {Logwrite ('201: Failed to update ' + $module + " " + $_.Exception.Message);exit 201}
@@ -83,7 +83,6 @@ Function UpdateModule
 
 
 LogWrite "Rename Computer"
-
 	$d1=get-Date
 	LogWrite ("Renaming Computer")
 	do {
@@ -91,7 +90,7 @@ LogWrite "Rename Computer"
 	} until ((Get-ChildItem -Path C:\WindowsAzure\config -Filter *.xml | Sort-Object -Property LastAccessTime | select -Last 1).count -eq 1)
 
 
-
+# Wait for the Azure Windows Guest Agent to startup
 try {
 	$d2=get-Date
 	$dur=$d2-$d1
@@ -136,58 +135,53 @@ Catch {LogWrite ("300: " + $_.Exception.Message);exit 300}
 
  # Check for a Turbo deployment
 	try{
-		if ((Get-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\RDInfraAgent" -Name "RegistrationToken" -ErrorAction SilentlyContinue).RegistrationToken)
-		{$TURBO=(Get-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\RDInfraAgent" -Name "RegistrationToken" -ErrorAction SilentlyContinue).RegistrationToken;LogWrite ("Turbo Deployment started.")}
+		if (($TURBO=Get-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\RDInfraAgent" -Name "RegistrationToken" -ErrorAction SilentlyContinue).RegistrationToken)
+		{LogWrite ("Turbo Deployment started. " + $Turbo)}
 		else {$Turbo='False'}
 	}
 	catch{LogWrite ("400: " + $_.Exception.Message);exit 400}
 
 # check the device is domain joined
-	%{
+%{
 	if ((gwmi win32_computersystem).partofdomain -eq $false) {logwrite('401: Device is not AD Domain joined. Exit.')
 	exit 401}
 	else {logwrite('Device is AD Domain joined.')}
-	}
-
-
-
-
-%{
-	try {
-		If ($HostPool) {
-			if ((get-item -path "C:\Program Files\Microsoft RDInfra" -ErrorAction SilentlyContinue) -and $Turbo -ne "AVDTurbo")
-			{LogWrite ("500: Remote Desktop Agents are already installed. Exit")
-			exit 500}
-			}
-		else {LogWrite ($VMName + "." + $ADDomain + " deployment complete. Schedule a restart and exit.")
-		Start-Process -FilePath "shutdown.exe" -ArgumentList "/soft /r /t 5 /d p:0:0 /c 'AVDTurbo'"
-		exit 0}
-	}
-	catch {logwrite('500: RDAgents are already installed' +  $_.Exception.Message); exit 500}
 }
 
 
-
+# check if the RDAgent is already installed - Traditional deployment
+if ($Turbo -ne "AVDTurbo")
+{
+	%{
+		try {
+			If ($HostPool) {
+				if (get-item -path "C:\Program Files\Microsoft RDInfra" -ErrorAction SilentlyContinue)
+				{LogWrite ("500: Remote Desktop Agents are already installed. Exit")
+				exit 500}
+				}
+			else {LogWrite ($VMName + "." + $ADDomain + " deployment complete. Schedule a restart and exit.")
+			Start-Process -FilePath "shutdown.exe" -ArgumentList "/soft /r /t 5 /d p:0:0 /c 'AVDTurbo'"
+			exit 0}
+		}
+		catch {logwrite('500: RDAgents are already installed' +  $_.Exception.Message); exit 500}
+	}
 
 # Check AZ Modules are present
-%{
-	try {
-		if ($Turbo -ne "AVDTurbo") {
-			if (Get-Module -name Az.Accounts -ListAvailable) {Logwrite('Az.Accounts is available.')}
-			else {logwrite('Az.Accounts is not available. Will try and install.'); UpdateNuget; UpdateModule Az.Accounts;}
+	%{
+		try {
+							if (Get-Module -name Az.Accounts -ListAvailable) {Logwrite('Az.Accounts is available.')}
+				else {logwrite('Az.Accounts is not available. Will try and install.'); UpdateNuget; UpdateModule Az.Accounts;}
 
-			if (Get-Module -name Az.DesktopVirtualization -ListAvailable) {Logwrite('Az.DesktopVirtualization is available.')}
-			else {logwrite('Az.DesktopVirtualization is not available. Will try and install.'); UpdateModule Az.DesktopVirtualization;}
-		}
+				if (Get-Module -name Az.DesktopVirtualization -ListAvailable) {Logwrite('Az.DesktopVirtualization is available.')}
+				else {logwrite('Az.DesktopVirtualization is not available. Will try and install.'); UpdateModule Az.DesktopVirtualization;}
+			}
+		catch {logwrite('200: Error importing Az Modules' +  $_.Exception.Message); exit 200}
 	}
-    catch {logwrite('200: Error importing Az Modules' +  $_.Exception.Message); exit 200}
-}
 
 # Start the RDAGent downloads
-
+	%{
 		try {
-			if ($Turbo -ne "AVDTurbo") {
-				if ($HostPool) {
+			if ($HostPool) {
 				LogWrite ("Download RD Agents")
 				New-Item -Path C:\Source -ItemType Directory -Force
 				$URI="https://query.prod.cms.rt.microsoft.com/cms/api/am/binary/RWrmXv";Invoke-WebRequest -Uri $URI -OutFile C:\Source\RDagent.msi -UseBasicParsing;
@@ -196,10 +190,9 @@ Catch {LogWrite ("300: " + $_.Exception.Message);exit 300}
 				LogWrite ("Downloaded RDBoot.msi")		
 				}
 			}
-		}
 		catch {LogWrite ("600: Failed to download RDAgents. " + $_.Exception.Message);exit 600}
-
-
+	}
+}
 
 # get the DNS hostname of the VM
 	$hostname=$vmname + "." + $ADDomain
@@ -209,42 +202,36 @@ Catch {LogWrite ("300: " + $_.Exception.Message);exit 300}
 
 logwrite('Logon to Azure')
 # Logon to Azure
-	%{	
-		try {$accessToken =(Invoke-RestMethod -Uri "http://169.254.169.254/metadata/identity/oauth2/token?api-version=2019-08-01&resource=$audience" -Headers @{Metadata="true"} -Method GET).access_token
+%{	
+	try {$accessToken =(Invoke-RestMethod -Uri "http://169.254.169.254/metadata/identity/oauth2/token?api-version=2019-08-01&resource=$audience" -Headers @{Metadata="true"} -Method GET).access_token
 			
-			if ($accesstoken) {logwrite('Connected to Azure')}
-			else {logwrite('800: Not connected to Azure. Exit.')
-			exit 800}
+		if ($accesstoken) {logwrite('Connected to Azure')}
+		else {logwrite('800: Not connected to Azure. Exit.')
+		exit 800}
 		
-			$body = @{
-			client_id = $clientid
-			client_assertion = $accessToken
-			client_assertion_type = $cat
-			grant_type = $creds
-			scope = $scope
-			subject=$SubjectID
-			audience=$audience
-			issuer=$ISS
-			}
+		$body = @{
+		client_id = $clientid
+		client_assertion = $accessToken
+		client_assertion_type = $cat
+		grant_type = $creds
+		scope = $scope
+		subject=$SubjectID
+		audience=$audience
+		issuer=$ISS
+		}
 	
-			$response = Invoke-RestMethod -Uri $ExchUri -Method POST -Body $body -ContentType "application/x-www-form-urlencoded"
-					if ($response) {logwrite('Connected to AzureX');Connect-AzAccount -scope process -accountid $clientid -AccessToken $response.access_token -tenantid $tenantid -subscriptionid $subid}
+		$response = Invoke-RestMethod -Uri $ExchUri -Method POST -Body $body -ContentType "application/x-www-form-urlencoded"
+				if ($response) {logwrite('Connected to AzureX');Connect-AzAccount -scope process -accountid $clientid -AccessToken $response.access_token -tenantid $tenantid -subscriptionid $subid}
 				else {logwrite('801: Not connected to Azure. Exit.')
 				exit 801}
-				
 		}
-		catch{logwrite('800: Error connecting to Azure' +  $_.Exception.Message)
-			exit 800}
-	}
+		catch{logwrite('800: Error connecting to Azure' +  $_.Exception.Message);exit 800}
+}
 $accessToken="null"
 $response="null"
 
 
-
-
-
 # check if the VM exists in the hostpool, if so remove it
-
 	%{
 	try{
 		if (Get-AzWvdSessionHost -HostPoolName $hostpool -ResourceGroupName $RG -Name $hostname -ErrorAction SilentlyContinue) 
@@ -255,22 +242,20 @@ $response="null"
 	}
 
 # check if a valid Token exists to join the hostpool, if not generate one
-
 	$now=(get-date).addhours(2)
 	%{
         try {
-		if ($now -gt (Get-AzWvdRegistrationInfo -ResourceGroupName $RG -HostPoolName $HostPool).ExpirationTime)
+		if ($now -gt ($WVDToken=Get-AzWvdRegistrationInfo -ResourceGroupName $RG -HostPoolName $HostPool).ExpirationTime)
 			{logwrite ('Generate new WVD Token to join WVD Hostpool: ' + $HostPool)
 			$WVDToken=(New-AzWvdRegistrationInfo -ResourceGroupName $RG -HostPoolName $HostPool -ExpirationTime $((get-date).ToUniversalTime().AddHours(25).ToString('yyyy-MM-ddTHH:mm:ss.fffffffZ'))).Token}
 		Else {logwrite ('WVDToken exists for Hostpool: ' + $HostPool)
-		$WVDToken=(Get-AzWvdRegistrationInfo -ResourceGroupName $RG -HostPoolName $HostPool).Token}
+		$WVDToken=($WVDToken.Token}
         }
         catch{Logwrite("901: " + $_.Exception.Message); exit 901}
 	}
 
 
-
-
+# Start an AVDTurbo deployment
 	try{
 		if ($Turbo -eq "AVDTurbo") {
 			if ($WVDToken) {
@@ -285,12 +270,7 @@ $response="null"
     catch {logwrite('900: Error with Turbo Deployment. ' + $_.Exception.Message); exit 902}
 
 
-
-
-
-
-# deploy the RDAgent and RDBootloader
-
+# Start a traditional deplyment with the RDAgent and RDBootloader
 %{
     try {
 		if ($Turbo -ne "AVDTurbo"){
@@ -314,28 +294,23 @@ $response="null"
     catch {logwrite('903: Error installing Remote Desktop Agents. ' + $_.Exception.Message); exit 905}
 }
 
-
-
 # Wait for the SXS Network Agent and Geneva Agent to install
 %{
 	try{		    
 		    LogWrite "Wait for the SXS Network Agent and Geneva Agent to install"
 			$i=0
-			do {start-sleep -Seconds 2;$i++;} until((($SXS=get-package -name "*SXS*Network*" -ErrorAction SilentlyContinue).Status -eq 'Installed') -and (($Geneva=get-package -name "*Geneva*" -ErrorAction SilentlyContinue).Status -eq 'Installed') -or $i -eq 50)
-				if ($SXS -and $Geneva)
+			do {start-sleep -Seconds 2;$i++;} until((($SXS=(get-package -name "*SXS*Network*" -ErrorAction SilentlyContinue).Status -eq 'Installed')) -and (($Geneva=(get-package -name "*Geneva*" -ErrorAction SilentlyContinue).Status -eq 'Installed')) -or $i -eq 50)
+				if (($SXS -eq 'Installed' ) -and ($Geneva -eq 'Installed'))
 				{LogWrite ("SXS Network Agent and Geneva Agent are installed")}
-				Else {LogWrite ("1000: SXS Network Agent installed: " + $SXS + ". Geneva Agent installed: " + $Geneva + "Check " + $env:ProgramFiles + "\Microsoft RDInfra. The MSI files don't download sometimes.")}
+				Else {LogWrite ("1000: SXS Network Agent installed: " + $SXS + ". Geneva Agent installed: " + $Geneva + ". Check " + $env:ProgramFiles + "\Microsoft RDInfra. The MSI files don't download sometimes.")}
 		}
     	catch {logwrite('1000: Error installing Remote Desktop Agents. ' + $_.Exception.Message); exit 1000}
 }
 
-
-
 	# Logout of Azure
     Disconnect-AzAccount
     logwrite ('Disconnected from Azure')
-
-
+	# Finished
 	LogWrite ($VMName + " deployment complete. Schedule a restart and exit.")
 	Start-Process -FilePath "shutdown.exe" -ArgumentList "/soft /r /t 5 /d p:0:0 /c 'AVDTurbo'"
 	exit 0

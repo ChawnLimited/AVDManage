@@ -170,16 +170,14 @@ $accessToken="null"
 $response="null"
 
 # check if the VM exists in the hostpool, if so remove it
-
-%{
+	%{
 	try{
-	if (Get-AzWvdSessionHost -HostPoolName $hostpool -ResourceGroupName $RG -Name $hostname -ErrorAction SilentlyContinue) 
-
-	{Remove-AzWvdSessionHost -ResourceGroupName $RG -HostPoolName $HostPool -Name $hostname -ErrorAction stop
-	logwrite ($hostname + ' exists in the ' + $hostpool + ' host pool. Will remove so the VM may join again.')}
+		if (Get-AzWvdSessionHost -HostPoolName $hostpool -ResourceGroupName $RG -Name $hostname -ErrorAction SilentlyContinue) 
+			{Remove-AzWvdSessionHost -ResourceGroupName $RG -HostPoolName $HostPool -Name $hostname
+			logwrite ($hostname + ' exists in the ' + $hostpool + ' host pool. Will remove so the VM may join again.')}
+		}
+		catch{Logwrite("900: " + $_.Exception.Message); exit 900}
 	}
-	catch{Logwrite("900: " + $_.Exception.Message); exit 900}
-}
 
 
 # check if a valid Token exists to join the hostpool, if not generate one

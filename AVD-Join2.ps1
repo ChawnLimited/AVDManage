@@ -75,7 +75,7 @@ Function UpdateModule
 
  # Check for a Turbo deployment
 	try{
-		if (($TURBO=Get-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\RDInfraAgent" -Name "RegistrationToken" -ErrorAction SilentlyContinue).RegistrationToken)
+		if ($TURBO=((Get-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\RDInfraAgent" -Name "RegistrationToken" -ErrorAction SilentlyContinue).RegistrationToken))
 		{LogWrite ("Turbo Deployment started. " + $Turbo)}
 		else {$Turbo='False'}
 	}
@@ -190,7 +190,7 @@ $response="null"
 			{logwrite ('Generate new WVD Token to join WVD Hostpool: ' + $HostPool)
 			$WVDToken=(New-AzWvdRegistrationInfo -ResourceGroupName $RG -HostPoolName $HostPool -ExpirationTime $((get-date).ToUniversalTime().AddHours(25).ToString('yyyy-MM-ddTHH:mm:ss.fffffffZ'))).Token}
 		Else {logwrite ('WVDToken exists for Hostpool: ' + $HostPool)
-		$WVDToken=($WVDToken.Token}
+		$WVDToken=($WVDToken.Token)}
         }
         catch{Logwrite("901: " + $_.Exception.Message); exit 901}
 	}

@@ -20,7 +20,7 @@
 	)
 
 $ProgressPreference ="SilentlyContinue"
-$Logfile = "AVD-Join.log"
+$Logfile = "AVD-Join2.log"
 
 
 Function LogWrite
@@ -146,7 +146,6 @@ logwrite('Logon to Azure')
 # Logon to Azure
 	%{	
 		try {
-			Connect-AzAccount -identity
 			$accessToken =(Invoke-RestMethod -Uri "http://169.254.169.254/metadata/identity/oauth2/token?api-version=2019-08-01&resource=$audience" -Headers @{Metadata="true"} -Method GET).access_token
 			
 			if ($accesstoken) {logwrite('Connected to Azure')}

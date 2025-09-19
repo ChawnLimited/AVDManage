@@ -145,7 +145,9 @@ logwrite('ClientID:' + $ClientID)
 logwrite('Logon to Azure')
 # Logon to Azure
 	%{	
-		try {$accessToken =(Invoke-RestMethod -Uri "http://169.254.169.254/metadata/identity/oauth2/token?api-version=2019-08-01&resource=$audience" -Headers @{Metadata="true"} -Method GET).access_token
+		try {
+			Connect-AzAccount -identity
+			$accessToken =(Invoke-RestMethod -Uri "http://169.254.169.254/metadata/identity/oauth2/token?api-version=2019-08-01&resource=$audience" -Headers @{Metadata="true"} -Method GET).access_token
 			
 			if ($accesstoken) {logwrite('Connected to Azure')}
 			else {logwrite('800: Not connected to Azure. Exit.')

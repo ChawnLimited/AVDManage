@@ -181,17 +181,22 @@ if ($Turbo -ne "AVDTurbo")
 # Start the RDAGent downloads
 	%{
 		try {
-			if ($HostPool) {
-				LogWrite ("Download RD Agents")
-				New-Item -Path C:\Source -ItemType Directory -Force
-				$URI="https://query.prod.cms.rt.microsoft.com/cms/api/am/binary/RWrmXv";Invoke-WebRequest -Uri $URI -OutFile C:\Source\RDagent.msi -UseBasicParsing;
-				LogWrite ("Downloaded RDAgent.msi")
-				$URI="https://query.prod.cms.rt.microsoft.com/cms/api/am/binary/RWrxrH";Invoke-WebRequest -Uri $URI -OutFile C:\Source\RDBoot.msi -UseBasicParsing;
-				LogWrite ("Downloaded RDBoot.msi")		
+			if ($HostPool) {				
+				if (-not(get-item c:\source\RDAgent.msi)) {
+					LogWrite ("Download RDAgent")
+					New-Item -Path C:\Source -ItemType Directory -Force
+					$URI="https://query.prod.cms.rt.microsoft.com/cms/api/am/binary/RWrmXv";Invoke-WebRequest -Uri $URI -OutFile C:\Source\RDagent.msi -UseBasicParsing;
+					LogWrite ("Downloaded RDAgent.msi")
+				}	
+				if (-not(get-item c:\source\RDBoot.msi)) {
+					LogWrite ("Download RDBoot")
+					$URI="https://query.prod.cms.rt.microsoft.com/cms/api/am/binary/RWrxrH";Invoke-WebRequest -Uri $URI -OutFile C:\Source\RDBoot.msi -UseBasicParsing;
+					LogWrite ("Downloaded RDBoot.msi")		
 				}
 			}
+		}
 		catch {LogWrite ("600: Failed to download RDAgents. " + $_.Exception.Message);exit 600}
-	}
+	}	
 }
 
 # get the DNS hostname of the VM
@@ -275,8 +280,7 @@ $response="null"
     try {
 		if ($Turbo -ne "AVDTurbo"){
 			if ($WVDToken) {
-  		    logwrite ('WVD Token to join WVD Hostpool: ' + $WVDToken)
-
+  		    
     		### Install RDAgent
 	    	logwrite('Install Remote Desktop Services Infrastructure Agent')
 		    if (get-item -path C:\Source\RDagent.msi){Start-Process msiexec.exe -Wait -ArgumentList "/I C:\Source\RDAgent.msi REGISTRATIONTOKEN=$WVDToken /qb /L*V RDAgent.log"}

@@ -128,7 +128,7 @@ Catch {LogWrite ("300: " + $_.Exception.Message);exit 300}
 			}
 		}
 		else {LogWrite ($VMName + " deployment complete. Schedule a restart and exit.")
-		Start-Process -FilePath "shutdown.exe" -ArgumentList "/soft /r /t 5 /d p:0:0 /c 'AVDTurbo'"
+		Start-Process -FilePath "shutdown.exe" -ArgumentList "/r /t 5 /d p:0:0 /c 'AVDTurbo'"
 		exit 0}
 	}
 	catch{LogWrite ("301: " + $_.Exception.Message);exit 301}
@@ -148,7 +148,7 @@ Catch {LogWrite ("300: " + $_.Exception.Message);exit 300}
 		exit 401}
 		else {logwrite('Device is AD Domain joined.')}
 		If (-not $HostPool) {LogWrite ($VMName + " deployment complete. Schedule a restart and exit.")
-			Start-Process -FilePath "shutdown.exe" -ArgumentList "/soft /r /t 5 /d p:0:0 /c 'AVDTurbo'"
+			Start-Process -FilePath "shutdown.exe" -ArgumentList "/r /t 5 /d p:0:0 /c 'AVDTurbo'"
 			exit 0}
 	}
 	catch{LogWrite ("402: " + $_.Exception.Message);exit 402}
@@ -167,7 +167,7 @@ if ($Turbo -ne "AVDTurbo")
 				exit 500}
 				}
 			else {LogWrite ($VMName + "." + $ADDomain + " deployment complete. Schedule a restart and exit.")
-			Start-Process -FilePath "shutdown.exe" -ArgumentList "/soft /r /t 5 /d p:0:0 /c 'AVDTurbo'"
+			Start-Process -FilePath "shutdown.exe" -ArgumentList "/r /t 5 /d p:0:0 /c 'AVDTurbo'"
 			exit 0}
 		}
 		catch {logwrite('500: RDAgents are already installed' +  $_.Exception.Message); exit 500}
@@ -325,16 +325,16 @@ $response="null"
 
 	# Finished
 	LogWrite ($VMName + " deployment complete. Schedule a restart and exit.")
-	Start-Process -FilePath "shutdown.exe" -ArgumentList "/soft /r /t 5 /d p:0:0 /c 'AVDTurbo'"
+	Start-Process -FilePath "shutdown.exe" -ArgumentList "/r /t 5 /d p:0:0 /c 'AVDTurbo'"
 	exit 0
 
 
 
 # SIG # Begin signature block
-# MIInlQYJKoZIhvcNAQcCoIInhjCCJ4ICAQExDzANBglghkgBZQMEAgEFADB5Bgor
+# MIInlgYJKoZIhvcNAQcCoIInhzCCJ4MCAQExDzANBglghkgBZQMEAgEFADB5Bgor
 # BgEEAYI3AgEEoGswaTA0BgorBgEEAYI3AgEeMCYCAwEAAAQQH8w7YFlLCE63JNLG
-# KX7zUQIBAAIBAAIBAAIBAAIBADAxMA0GCWCGSAFlAwQCAQUABCADREf5ayNiPPkC
-# 5C60WM5CzQvSPqK/lHw6N017H9zmaaCCIkEwggMwMIICtqADAgECAhA3dENPnrQO
+# KX7zUQIBAAIBAAIBAAIBAAIBADAxMA0GCWCGSAFlAwQCAQUABCD/r5zd4rixfSII
+# tGVBBsMRmmQ4tTS06DCHWA4T0BjvHKCCIkEwggMwMIICtqADAgECAhA3dENPnrQO
 # Ih+SNsofLycXMAoGCCqGSM49BAMDMFYxCzAJBgNVBAYTAkdCMRgwFgYDVQQKEw9T
 # ZWN0aWdvIExpbWl0ZWQxLTArBgNVBAMTJFNlY3RpZ28gUHVibGljIENvZGUgU2ln
 # bmluZyBSb290IEU0NjAeFw0yMTAzMjIwMDAwMDBaFw0zNjAzMjEyMzU5NTlaMFcx
@@ -517,30 +517,30 @@ $response="null"
 # IwXMZUXBhtCyIaehr0XkBoDIGMUG1dUtwq1qmcwbdUfcSYCn+OwncVUXf53VJUNO
 # aMWMts0VlRYxe5nK+At+DI96HAlXHAL5SlfYxJ7La54i71McVWRP66bW+yERNpbJ
 # CjyCYG2j+bdpxo/1Cy4uPcU3AWVPGrbn5PhDBf3Froguzzhk++ami+r3Qrx5bIbY
-# 3TVzgiFI7Gq3zWcxggSqMIIEpgIBATBrMFcxCzAJBgNVBAYTAkdCMRgwFgYDVQQK
+# 3TVzgiFI7Gq3zWcxggSrMIIEpwIBATBrMFcxCzAJBgNVBAYTAkdCMRgwFgYDVQQK
 # Ew9TZWN0aWdvIExpbWl0ZWQxLjAsBgNVBAMTJVNlY3RpZ28gUHVibGljIENvZGUg
 # U2lnbmluZyBDQSBFViBFMzYCEDxolvyQov0GPgzdcbswAjcwDQYJYIZIAWUDBAIB
 # BQCggYQwGAYKKwYBBAGCNwIBDDEKMAigAoAAoQKAADAZBgkqhkiG9w0BCQMxDAYK
 # KwYBBAGCNwIBBDAcBgorBgEEAYI3AgELMQ4wDAYKKwYBBAGCNwIBFTAvBgkqhkiG
-# 9w0BCQQxIgQgofx0ZmjltuBZaKW0ZKmpgVJM0uwlpHeTDJorDyEHff4wCwYHKoZI
-# zj0CAQUABGcwZQIxAMDQr6lyJMJAyAKg2qr8bTJ8tvtBzoKqjPZ4EuO7aVVZA3nJ
-# uPQj7g/svSzzHh4CHgIwfeRhclH3kKgwpAjst6c6fDerjChMpKc0v7g3lMA9NSjw
-# hLAWp1XOwNFc90QA0S33oYIDJjCCAyIGCSqGSIb3DQEJBjGCAxMwggMPAgEBMH0w
-# aTELMAkGA1UEBhMCVVMxFzAVBgNVBAoTDkRpZ2lDZXJ0LCBJbmMuMUEwPwYDVQQD
-# EzhEaWdpQ2VydCBUcnVzdGVkIEc0IFRpbWVTdGFtcGluZyBSU0E0MDk2IFNIQTI1
-# NiAyMDI1IENBMQIQCoDvGEuN8QWC0cR2p5V0aDANBglghkgBZQMEAgEFAKBpMBgG
-# CSqGSIb3DQEJAzELBgkqhkiG9w0BBwEwHAYJKoZIhvcNAQkFMQ8XDTI1MDkyMTE3
-# MjAxNVowLwYJKoZIhvcNAQkEMSIEINy9XFfxy1QqKFcSZCy/n/+w6CRBzNJIwUmC
-# ZsqW9Mj5MA0GCSqGSIb3DQEBAQUABIICAGgcW2KZKWKeieC1bTK9EFUCoiq48BgH
-# NruG9EMD0VpbPDwBduhCbiMKB8cRABL1p6YlXPwBfbaTCSTH+Pbj9j7SSFk0G6jB
-# DjjZXOgI6vl1IWgju2S0mZyOLK7UWNQTwU0SjmxZptZ7gFHr0rkvTq6oXCsKxluI
-# AkOCkEh+2OaArM4ZyMpnk9a3i1Jyl5BffKDBF91muKL+YVL1xGUQqSfbM+lLQR2+
-# Woa874nrolkyKv/UD3pPmVuIr3xNpbQCRV7cQEpIFHKMZpiHGxDsSqIr0alUI7d7
-# PlPfanO3l4vf/4eq4T8AIRTtbaO386B0c83SepioPHUAkg4skzy6uEeu4DWVgy54
-# /lTKKWMg6iE+7PkECDVno7MBlPicq9lqok4hqdxJOcxSIb/e89CufMC7R9FhGGtz
-# 7AyvzviEiEdWjOBDRimIyUAtmR2WaueY3KJGvpBQLy9SjsAsWsX3AHvVW1l/Tfoh
-# dro6itlyb7YdxssbYqAx9uv80KLzkj99j7Y9ynV03T46/XwTHvGgm5QRPZ4MXRtf
-# oXYJSYPbl/dKJ1KO5h/lTtv/JBktulS3jiBZcEEMvPRAkywGpujZW0wCHSS+YtPp
-# r3W/EWvDYPJO6DHx1IaRR6/LMD0JKsQ4/ftZPxTZ2Wm7ubai0Jz1umTtMgVuCO/E
-# Cd9xQqMLRTGv
+# 9w0BCQQxIgQg+RB1xpCtCA3DowMgfxQS0WdV4tm4RiNfQ3l5GuInchswCwYHKoZI
+# zj0CAQUABGgwZgIxALSeRLgdoYlFUW6dlBtw2baDAxaZD5ieMT2LoLpt6kZlOuJ7
+# zg/SBDLCghp27fGFcAIxAKZbXnIj6segTm/xoD6ykEduMJ+7xvW8WgDoQmxIwv8E
+# oCm6WJcmUyPpMe6LOb9lkqGCAyYwggMiBgkqhkiG9w0BCQYxggMTMIIDDwIBATB9
+# MGkxCzAJBgNVBAYTAlVTMRcwFQYDVQQKEw5EaWdpQ2VydCwgSW5jLjFBMD8GA1UE
+# AxM4RGlnaUNlcnQgVHJ1c3RlZCBHNCBUaW1lU3RhbXBpbmcgUlNBNDA5NiBTSEEy
+# NTYgMjAyNSBDQTECEAqA7xhLjfEFgtHEdqeVdGgwDQYJYIZIAWUDBAIBBQCgaTAY
+# BgkqhkiG9w0BCQMxCwYJKoZIhvcNAQcBMBwGCSqGSIb3DQEJBTEPFw0yNTA5MjEx
+# NzQ0MzdaMC8GCSqGSIb3DQEJBDEiBCCxFOYZDiD/p2Rrs7YIaSumlXtT9iqFDjZ/
+# xwwBe7Nb2DANBgkqhkiG9w0BAQEFAASCAgDLULRWuy/Kt/jUH9/F3B67jdwI8roU
+# /DJZdGNb4cM1O21XLhw+KweqmXn03XGISx5LkBfBcCegcLiUl7MnvmSlXT4t4BSY
+# bv4J8QoAtVtf3MrGBpDAWW2NcIsFHusBnqYEgum7H9/eQqRjlwARsX5xZeV5AJ52
+# kVyDD+seezewn+Rniokyqxm3QWZO0SYeTlJneXwGSlXjl9ifUfDvzdpOTfKD8tAK
+# 5KfhRSNISlJuYgPH4CPKx4gcU1b2sXl7DOxQ/1X4r8iwgjUNyO7vC/5M7Vuvshcf
+# pnlWMBHW0q/rCJEURGvp9Oo3VyCU35wY2sEAogw5czxBdYyLKiM1vRv3P+NHOu29
+# eg4GbTL+QowcZduyj3nja6xKhGSjLWBuiSAsG20UwCtWL+QhDiHy30ak0FnkdUfH
+# 1GiDrlToqLylRHkYRpr+n3Q7aEB6OFZs5kMhSAiTGgbiKojwE6Tnm9dooHr6Y2KM
+# odT6+zVxd4HL3DtiIgpCUu8rjJnC246kZGjiGfcCZCv6fyBKYc/FAjCqo1Wfhpur
+# GFJ6+rTspukHzX2Xji1cS9NEMAcnl3Yzb7vPW5AiyS4T3uqNoyuY+VZl5jjBdf7d
+# kn+kXi8vA1QKRzFmvd92xlvqgaaKSBbEPLr/Pvqn9FHcTIVkV5fm5Kuz1qCO0z5A
+# rmJZToI79w4ueQ==
 # SIG # End signature block

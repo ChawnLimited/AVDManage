@@ -143,10 +143,17 @@ Catch {LogWrite ("300: " + $_.Exception.Message);exit 300}
 
 # check the device is domain joined
 %{
-	if ((gwmi win32_computersystem).partofdomain -eq $false) {logwrite('401: Device is not AD Domain joined. Exit.')
-	exit 401}
-	else {logwrite('Device is AD Domain joined.')}
+	try {
+		if ((gwmi win32_computersystem).partofdomain -eq $false) {logwrite('401: Device is not AD Domain joined. Exit.')
+		exit 401}
+		else {logwrite('Device is AD Domain joined.')}
+		If (-not $HostPool) {LogWrite ($VMName + " deployment complete. Schedule a restart and exit.")
+			Start-Process -FilePath "shutdown.exe" -ArgumentList "/soft /r /t 5 /d p:0:0 /c 'AVDTurbo'"
+			exit 0}
+	}
+	catch{LogWrite ("402: " + $_.Exception.Message);exit 402}
 }
+
 
 
 # check if the RDAgent is already installed - Traditional deployment
@@ -324,10 +331,10 @@ $response="null"
 
 
 # SIG # Begin signature block
-# MIInlAYJKoZIhvcNAQcCoIInhTCCJ4ECAQExDzANBglghkgBZQMEAgEFADB5Bgor
+# MIInlQYJKoZIhvcNAQcCoIInhjCCJ4ICAQExDzANBglghkgBZQMEAgEFADB5Bgor
 # BgEEAYI3AgEEoGswaTA0BgorBgEEAYI3AgEeMCYCAwEAAAQQH8w7YFlLCE63JNLG
-# KX7zUQIBAAIBAAIBAAIBAAIBADAxMA0GCWCGSAFlAwQCAQUABCBfnQb8gscGMkHs
-# iDDqrFmo25FjskIo5eqYse2J5mTkY6CCIkEwggMwMIICtqADAgECAhA3dENPnrQO
+# KX7zUQIBAAIBAAIBAAIBAAIBADAxMA0GCWCGSAFlAwQCAQUABCADREf5ayNiPPkC
+# 5C60WM5CzQvSPqK/lHw6N017H9zmaaCCIkEwggMwMIICtqADAgECAhA3dENPnrQO
 # Ih+SNsofLycXMAoGCCqGSM49BAMDMFYxCzAJBgNVBAYTAkdCMRgwFgYDVQQKEw9T
 # ZWN0aWdvIExpbWl0ZWQxLTArBgNVBAMTJFNlY3RpZ28gUHVibGljIENvZGUgU2ln
 # bmluZyBSb290IEU0NjAeFw0yMTAzMjIwMDAwMDBaFw0zNjAzMjEyMzU5NTlaMFcx
@@ -510,30 +517,30 @@ $response="null"
 # IwXMZUXBhtCyIaehr0XkBoDIGMUG1dUtwq1qmcwbdUfcSYCn+OwncVUXf53VJUNO
 # aMWMts0VlRYxe5nK+At+DI96HAlXHAL5SlfYxJ7La54i71McVWRP66bW+yERNpbJ
 # CjyCYG2j+bdpxo/1Cy4uPcU3AWVPGrbn5PhDBf3Froguzzhk++ami+r3Qrx5bIbY
-# 3TVzgiFI7Gq3zWcxggSpMIIEpQIBATBrMFcxCzAJBgNVBAYTAkdCMRgwFgYDVQQK
+# 3TVzgiFI7Gq3zWcxggSqMIIEpgIBATBrMFcxCzAJBgNVBAYTAkdCMRgwFgYDVQQK
 # Ew9TZWN0aWdvIExpbWl0ZWQxLjAsBgNVBAMTJVNlY3RpZ28gUHVibGljIENvZGUg
 # U2lnbmluZyBDQSBFViBFMzYCEDxolvyQov0GPgzdcbswAjcwDQYJYIZIAWUDBAIB
 # BQCggYQwGAYKKwYBBAGCNwIBDDEKMAigAoAAoQKAADAZBgkqhkiG9w0BCQMxDAYK
 # KwYBBAGCNwIBBDAcBgorBgEEAYI3AgELMQ4wDAYKKwYBBAGCNwIBFTAvBgkqhkiG
-# 9w0BCQQxIgQg+CXgYjVw84g3BmdoTFrhkh5DeT+CHHnOd1Cp9u9vncwwCwYHKoZI
-# zj0CAQUABGYwZAIwBkWgpPGhyAkbYhTTVlH3k1PcisE+IJm95j+O9VtSOHJnccBR
-# KGCoS2z0zrCxNwFOAjBqOzGIPbyb7g4cow3Zb0PUDdiBIKUwCcv6km0/yYKSg/n2
-# vSWjmGwS/Jgf2ahIRgChggMmMIIDIgYJKoZIhvcNAQkGMYIDEzCCAw8CAQEwfTBp
-# MQswCQYDVQQGEwJVUzEXMBUGA1UEChMORGlnaUNlcnQsIEluYy4xQTA/BgNVBAMT
-# OERpZ2lDZXJ0IFRydXN0ZWQgRzQgVGltZVN0YW1waW5nIFJTQTQwOTYgU0hBMjU2
-# IDIwMjUgQ0ExAhAKgO8YS43xBYLRxHanlXRoMA0GCWCGSAFlAwQCAQUAoGkwGAYJ
-# KoZIhvcNAQkDMQsGCSqGSIb3DQEHATAcBgkqhkiG9w0BCQUxDxcNMjUwOTE5MjIw
-# OTI2WjAvBgkqhkiG9w0BCQQxIgQgKf/myq5GUUka7a/89EnALriNYJH3f6VqBJhg
-# osRCc2UwDQYJKoZIhvcNAQEBBQAEggIAAEemw72scmnKx3tTPTxa2XDhMdH/884h
-# Dz2nSiZBSguihPl5ANLdaMeZR9T3Ed2ekVNPSplTkj05A+Gs+6rNgIeSpsAE4kGs
-# no35cMSrxyfC8GKiudSZ5wjOJ6XDaUpzFkeqee+Gml9udoV9GUy5oqZ8fgevXdsh
-# dIQ7QDx9zbbArlEhAsW9Q9xZofrJQyAwbsTEYHq/NN1l33R5J+I+/OOSQM+/b1E/
-# rgVoPt12/XFc5e9ISTbGR9ZgWzb++Nx9yf4jpbZgEDaoujOB04Pz9zEmQksabyZx
-# tIiS6pIo5WCBO7c2aWcIBgxI++3HP6wYObXJIprTHMIRT/jCRZGBAX/hFLfqNYMn
-# TUpP9Q44Q2m1zwx6CTR+O65FrdkCMAHkSeioLWomoYsbXSFYpC2mmToZ0V0oY9Ck
-# rVPUPBP95cAQXWSDROfl8rfQ5HM2jEqmkX9/MDl/x1RKC/gWyujnd3llM17gDrnx
-# AfB0NamLDCoHtEP65xm/gx9rPzS6w03+YhNIc0fzoFYIP1uo+Grdg7WaU18PcUpt
-# cXsWNk3aMYa6OFnt2dlS3zOTWnfBJN4GOYmtjqyHS+8tjATZCkl1B2dwBT3gt0OJ
-# gHO+sARGz2Uj6WKfPBBC5hPKwQWxi5pjmligcR1R3hK2D8jyBqZjuEyLo59wmcqB
-# TafRlIHrP14=
+# 9w0BCQQxIgQgofx0ZmjltuBZaKW0ZKmpgVJM0uwlpHeTDJorDyEHff4wCwYHKoZI
+# zj0CAQUABGcwZQIxAMDQr6lyJMJAyAKg2qr8bTJ8tvtBzoKqjPZ4EuO7aVVZA3nJ
+# uPQj7g/svSzzHh4CHgIwfeRhclH3kKgwpAjst6c6fDerjChMpKc0v7g3lMA9NSjw
+# hLAWp1XOwNFc90QA0S33oYIDJjCCAyIGCSqGSIb3DQEJBjGCAxMwggMPAgEBMH0w
+# aTELMAkGA1UEBhMCVVMxFzAVBgNVBAoTDkRpZ2lDZXJ0LCBJbmMuMUEwPwYDVQQD
+# EzhEaWdpQ2VydCBUcnVzdGVkIEc0IFRpbWVTdGFtcGluZyBSU0E0MDk2IFNIQTI1
+# NiAyMDI1IENBMQIQCoDvGEuN8QWC0cR2p5V0aDANBglghkgBZQMEAgEFAKBpMBgG
+# CSqGSIb3DQEJAzELBgkqhkiG9w0BBwEwHAYJKoZIhvcNAQkFMQ8XDTI1MDkyMTE3
+# MjAxNVowLwYJKoZIhvcNAQkEMSIEINy9XFfxy1QqKFcSZCy/n/+w6CRBzNJIwUmC
+# ZsqW9Mj5MA0GCSqGSIb3DQEBAQUABIICAGgcW2KZKWKeieC1bTK9EFUCoiq48BgH
+# NruG9EMD0VpbPDwBduhCbiMKB8cRABL1p6YlXPwBfbaTCSTH+Pbj9j7SSFk0G6jB
+# DjjZXOgI6vl1IWgju2S0mZyOLK7UWNQTwU0SjmxZptZ7gFHr0rkvTq6oXCsKxluI
+# AkOCkEh+2OaArM4ZyMpnk9a3i1Jyl5BffKDBF91muKL+YVL1xGUQqSfbM+lLQR2+
+# Woa874nrolkyKv/UD3pPmVuIr3xNpbQCRV7cQEpIFHKMZpiHGxDsSqIr0alUI7d7
+# PlPfanO3l4vf/4eq4T8AIRTtbaO386B0c83SepioPHUAkg4skzy6uEeu4DWVgy54
+# /lTKKWMg6iE+7PkECDVno7MBlPicq9lqok4hqdxJOcxSIb/e89CufMC7R9FhGGtz
+# 7AyvzviEiEdWjOBDRimIyUAtmR2WaueY3KJGvpBQLy9SjsAsWsX3AHvVW1l/Tfoh
+# dro6itlyb7YdxssbYqAx9uv80KLzkj99j7Y9ynV03T46/XwTHvGgm5QRPZ4MXRtf
+# oXYJSYPbl/dKJ1KO5h/lTtv/JBktulS3jiBZcEEMvPRAkywGpujZW0wCHSS+YtPp
+# r3W/EWvDYPJO6DHx1IaRR6/LMD0JKsQ4/ftZPxTZ2Wm7ubai0Jz1umTtMgVuCO/E
+# Cd9xQqMLRTGv
 # SIG # End signature block

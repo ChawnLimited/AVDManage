@@ -84,7 +84,6 @@ Function UpdateModule
 
 LogWrite "Rename Computer"
 	$d1=get-Date
-	LogWrite ("Renaming Computer")
 	do {
 	start-sleep -seconds 1
 	} until ((Get-ChildItem -Path C:\WindowsAzure\config -Filter *.xml | Sort-Object -Property LastAccessTime | select -Last 1).count -eq 1)
@@ -95,7 +94,7 @@ try {
 	$d2=get-Date
 	$dur=$d2-$d1
 	LogWrite ("Duration: " + $dur.Hours + " hours " + $dur.Minutes + " mins " + $dur.Seconds + " secs")
-	$xml=Get-ChildItem -Path C:\WindowsAzure\config -Filter *.xml | sort-object -Property CreationTime -descending
+	$xml=Get-ChildItem -Path C:\WindowsAzure\config -Filter *.xml | sort-object -Property LastAccessTime | select -Last 1
 	
 	$xmlfile = New-Object xml
 	$xmlfile.Load($xml[0].fullname)
@@ -331,10 +330,10 @@ $response="null"
 
 
 # SIG # Begin signature block
-# MIInlgYJKoZIhvcNAQcCoIInhzCCJ4MCAQExDzANBglghkgBZQMEAgEFADB5Bgor
+# MIInlAYJKoZIhvcNAQcCoIInhTCCJ4ECAQExDzANBglghkgBZQMEAgEFADB5Bgor
 # BgEEAYI3AgEEoGswaTA0BgorBgEEAYI3AgEeMCYCAwEAAAQQH8w7YFlLCE63JNLG
-# KX7zUQIBAAIBAAIBAAIBAAIBADAxMA0GCWCGSAFlAwQCAQUABCD/r5zd4rixfSII
-# tGVBBsMRmmQ4tTS06DCHWA4T0BjvHKCCIkEwggMwMIICtqADAgECAhA3dENPnrQO
+# KX7zUQIBAAIBAAIBAAIBAAIBADAxMA0GCWCGSAFlAwQCAQUABCCXnaITS3edMMK4
+# Bp/+Bhd5XNl6F8GCI5S+c7jiUCbK8qCCIkEwggMwMIICtqADAgECAhA3dENPnrQO
 # Ih+SNsofLycXMAoGCCqGSM49BAMDMFYxCzAJBgNVBAYTAkdCMRgwFgYDVQQKEw9T
 # ZWN0aWdvIExpbWl0ZWQxLTArBgNVBAMTJFNlY3RpZ28gUHVibGljIENvZGUgU2ln
 # bmluZyBSb290IEU0NjAeFw0yMTAzMjIwMDAwMDBaFw0zNjAzMjEyMzU5NTlaMFcx
@@ -517,30 +516,30 @@ $response="null"
 # IwXMZUXBhtCyIaehr0XkBoDIGMUG1dUtwq1qmcwbdUfcSYCn+OwncVUXf53VJUNO
 # aMWMts0VlRYxe5nK+At+DI96HAlXHAL5SlfYxJ7La54i71McVWRP66bW+yERNpbJ
 # CjyCYG2j+bdpxo/1Cy4uPcU3AWVPGrbn5PhDBf3Froguzzhk++ami+r3Qrx5bIbY
-# 3TVzgiFI7Gq3zWcxggSrMIIEpwIBATBrMFcxCzAJBgNVBAYTAkdCMRgwFgYDVQQK
+# 3TVzgiFI7Gq3zWcxggSpMIIEpQIBATBrMFcxCzAJBgNVBAYTAkdCMRgwFgYDVQQK
 # Ew9TZWN0aWdvIExpbWl0ZWQxLjAsBgNVBAMTJVNlY3RpZ28gUHVibGljIENvZGUg
 # U2lnbmluZyBDQSBFViBFMzYCEDxolvyQov0GPgzdcbswAjcwDQYJYIZIAWUDBAIB
 # BQCggYQwGAYKKwYBBAGCNwIBDDEKMAigAoAAoQKAADAZBgkqhkiG9w0BCQMxDAYK
 # KwYBBAGCNwIBBDAcBgorBgEEAYI3AgELMQ4wDAYKKwYBBAGCNwIBFTAvBgkqhkiG
-# 9w0BCQQxIgQg+RB1xpCtCA3DowMgfxQS0WdV4tm4RiNfQ3l5GuInchswCwYHKoZI
-# zj0CAQUABGgwZgIxALSeRLgdoYlFUW6dlBtw2baDAxaZD5ieMT2LoLpt6kZlOuJ7
-# zg/SBDLCghp27fGFcAIxAKZbXnIj6segTm/xoD6ykEduMJ+7xvW8WgDoQmxIwv8E
-# oCm6WJcmUyPpMe6LOb9lkqGCAyYwggMiBgkqhkiG9w0BCQYxggMTMIIDDwIBATB9
-# MGkxCzAJBgNVBAYTAlVTMRcwFQYDVQQKEw5EaWdpQ2VydCwgSW5jLjFBMD8GA1UE
-# AxM4RGlnaUNlcnQgVHJ1c3RlZCBHNCBUaW1lU3RhbXBpbmcgUlNBNDA5NiBTSEEy
-# NTYgMjAyNSBDQTECEAqA7xhLjfEFgtHEdqeVdGgwDQYJYIZIAWUDBAIBBQCgaTAY
-# BgkqhkiG9w0BCQMxCwYJKoZIhvcNAQcBMBwGCSqGSIb3DQEJBTEPFw0yNTA5MjEx
-# NzQ0MzdaMC8GCSqGSIb3DQEJBDEiBCCxFOYZDiD/p2Rrs7YIaSumlXtT9iqFDjZ/
-# xwwBe7Nb2DANBgkqhkiG9w0BAQEFAASCAgDLULRWuy/Kt/jUH9/F3B67jdwI8roU
-# /DJZdGNb4cM1O21XLhw+KweqmXn03XGISx5LkBfBcCegcLiUl7MnvmSlXT4t4BSY
-# bv4J8QoAtVtf3MrGBpDAWW2NcIsFHusBnqYEgum7H9/eQqRjlwARsX5xZeV5AJ52
-# kVyDD+seezewn+Rniokyqxm3QWZO0SYeTlJneXwGSlXjl9ifUfDvzdpOTfKD8tAK
-# 5KfhRSNISlJuYgPH4CPKx4gcU1b2sXl7DOxQ/1X4r8iwgjUNyO7vC/5M7Vuvshcf
-# pnlWMBHW0q/rCJEURGvp9Oo3VyCU35wY2sEAogw5czxBdYyLKiM1vRv3P+NHOu29
-# eg4GbTL+QowcZduyj3nja6xKhGSjLWBuiSAsG20UwCtWL+QhDiHy30ak0FnkdUfH
-# 1GiDrlToqLylRHkYRpr+n3Q7aEB6OFZs5kMhSAiTGgbiKojwE6Tnm9dooHr6Y2KM
-# odT6+zVxd4HL3DtiIgpCUu8rjJnC246kZGjiGfcCZCv6fyBKYc/FAjCqo1Wfhpur
-# GFJ6+rTspukHzX2Xji1cS9NEMAcnl3Yzb7vPW5AiyS4T3uqNoyuY+VZl5jjBdf7d
-# kn+kXi8vA1QKRzFmvd92xlvqgaaKSBbEPLr/Pvqn9FHcTIVkV5fm5Kuz1qCO0z5A
-# rmJZToI79w4ueQ==
+# 9w0BCQQxIgQgeQa1uijf5D1pb5y7w/wUpQrXbT0S7Fv9QB+C2jf1SPYwCwYHKoZI
+# zj0CAQUABGYwZAIwQ1vM9VQ/ObXh6ygU9fNVzmNItFJSgBh8wVVAJhPAIDZjHu/k
+# 5hZotnk2YKa5DP3bAjAXXV6Mh0QBXLt5afrFxYsXahJDnz/2IRAO+9gJF03dkyAm
+# 69bsYs7akXuF2/GoUAqhggMmMIIDIgYJKoZIhvcNAQkGMYIDEzCCAw8CAQEwfTBp
+# MQswCQYDVQQGEwJVUzEXMBUGA1UEChMORGlnaUNlcnQsIEluYy4xQTA/BgNVBAMT
+# OERpZ2lDZXJ0IFRydXN0ZWQgRzQgVGltZVN0YW1waW5nIFJTQTQwOTYgU0hBMjU2
+# IDIwMjUgQ0ExAhAKgO8YS43xBYLRxHanlXRoMA0GCWCGSAFlAwQCAQUAoGkwGAYJ
+# KoZIhvcNAQkDMQsGCSqGSIb3DQEHATAcBgkqhkiG9w0BCQUxDxcNMjUwOTIxMTgy
+# OTQ2WjAvBgkqhkiG9w0BCQQxIgQg7dSjDAOaf0eXB1AT+EIp5uBqF3ggJPd5ei1l
+# 3WZikOkwDQYJKoZIhvcNAQEBBQAEggIAClM4yVEaTrjLXlOtyU1ZB0m9+/EMtk/M
+# zM07tV/Bmpjz6GfQ+xD+uDcqN7wLIKH1H2rcsGw3dd1YSmdefuyJ2/zAqOx7GK8z
+# ODC21x1gC4q2BuavTIIVpxhXsQwECeuNSbjxXQatROkAjrVdW90MnW6qMVVdvdHq
+# hdoYOEuIek0DXaNxZEUAhg9QCDb+6vAiqCxFwYuc8Rx+A992Fs14xi4xXvmC7urv
+# h5e4uzgkqL4zaHe0JQltax2oAwmDGOWdwaIV77wLDpg9lo/7Vs8ArgJweg7/eyvn
+# kRgaD74MQXS7ouXjpWr6Eq9a7n3yRMHWuXZk6jPUM8c1kRpTEU9IYqttK37Y8/PO
+# aMbdCrVaxvwfn4kFPeRIpQSCTZV+59BgoJjVgszsyFOL6YsOSglyFaRMTNHOxNB2
+# pRzdwC9+gZpuQxM1Xq39KvimyQjg+RuDImFnDa/k2lkDZMrqbRw8aDUbMeQRbM3W
+# QLLsXfBp1BQQibF3HWc+44ybBfnuBknzuYqp4AbraLB5qPCuKwW4n2buT+HGMPsf
+# nq2+xkLeJ1gkwQ/zo4mL3w9eCY4kEQlLa/vEsUX7Ilo2vT3Jwd7af8HSnGZJPwWn
+# HQdAYjYQQ/hO1WCqMr0qp3PSrSAbcEaspm5VSKXQOLshWzwTuH7zNq2GyhN09wyr
+# eY1mLdVfvm8=
 # SIG # End signature block

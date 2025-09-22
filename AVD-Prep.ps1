@@ -40,7 +40,6 @@ Function UpdateNuget
     try	{
 	    if (-not(Get-PSRepository -Name "PSGallery"))
 	    	{Register-PSRepository -Default -InstallationPolicy Trusted
-	    	Register-PSRepository -Name PSGallery -InstallationPolicy Trusted -SourceLocation "https://www.powershellgallery.com/api/v2"
 	    	LogWrite "Added PSGallery as trusted repo"}
 	    Else {Set-PSRepository -Name "PSGallery" -InstallationPolicy Trusted}
 	    }
@@ -52,7 +51,7 @@ Function UpdateModule
 {
    Param ([string]$module)
 	try {
-	install-module $module
+		install-module $module -scope AllUsers
     	Logwrite ('Installed ' + $module)
     	}
     catch {Logwrite ('Failed to update ' + $module + " " + $_.Exception.Message);exit 3}
@@ -67,7 +66,7 @@ Function UpdateModule
 		if (Get-Module -name Az.DesktopVirtualization -ListAvailable) {Logwrite('Az.DesktopVirtualization is available.')}
 		else {logwrite('Az.DesktopVirtualization is not available. Will try and install.'); UpdateModule Az.DesktopVirtualization;}
 		    }
-        	catch {logwrite('Error importing Az Modules' +  $_.Exception.Message); exit 3}
+        	catch {logwrite('Error Installing Az Modules' +  $_.Exception.Message); exit 3}
 }
 
 # Start the RDAGent downloads

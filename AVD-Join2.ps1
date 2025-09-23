@@ -150,8 +150,12 @@ logwrite('Hostpool:' + $hostpool)
 logwrite('Load Modules')
 	%{
 		try{
-			import-module -Name Az.Accounts -Function Connect-AzAccount,Disconnect-AzAccount -force
-			import-module -Name Az.DesktopVirtualization -Function Get-AzWvdSessionHost,Get-AzWvdRegistrationInfo,New-AzWvdRegistrationInfo -force
+			if (Get-Module -name Az.Accounts -ListAvailable) {Logwrite('Az.Accounts is available.')
+			import-module -Name Az.Accounts -Function Connect-AzAccount,Disconnect-AzAccount -force}
+			else{Logwrite ('Az.Accounts is not available. Exit.');exit 203}
+			if (Get-Module -name Az.DesktopVirtualization -ListAvailable) {Logwrite('Az.DesktopVirtualization is available.')
+			import-module -Name Az.DesktopVirtualization -Function Get-AzWvdSessionHost,Get-AzWvdRegistrationInfo,New-AzWvdRegistrationInfo -force}
+			else{Logwrite ('Az.DesktopVirtualization is not available. Exit.');exit 202}
 		}
 		catch{logwrite('201: Error importing Az Modules' +  $_.Exception.Message); exit 201}
 	}

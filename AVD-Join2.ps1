@@ -201,9 +201,9 @@ $response="null"
 		if (Get-AzWvdSessionHost -HostPoolName $hostpool -ResourceGroupName $RG -Name $hostname -ErrorAction SilentlyContinue) 
 			{Remove-AzWvdSessionHost -ResourceGroupName $RG -HostPoolName $HostPool -Name $hostname
 			logwrite ($hostname + ' exists in the ' + $hostpool + ' host pool. Will remove so the VM may join again.')}
-			else {logwrite ($hostname + ' does not exists in the ' + $hostpool + ' host pool.)}
+			else {logwrite ($hostname + ' does not exists in the ' + $hostpool + ' host pool.')}
 		}
-		catch{Logwrite("900: " + $_.Exception.Message); exit 900}
+		catch {Logwrite("900: " + $_.Exception.Message); exit 900}
 	}
 
 
@@ -214,7 +214,7 @@ $response="null"
 		if ($now -gt ($WVDToken=Get-AzWvdRegistrationInfo -ResourceGroupName $RG -HostPoolName $HostPool).ExpirationTime)
 			{logwrite ('Generate new WVD Token to join WVD Hostpool: ' + $HostPool)
 			$WVDToken=(New-AzWvdRegistrationInfo -ResourceGroupName $RG -HostPoolName $HostPool -ExpirationTime $((get-date).ToUniversalTime().AddHours(25).ToString('yyyy-MM-ddTHH:mm:ss.fffffffZ'))).Token}
-		Else {logwrite ('WVDToken exists for Hostpool: ' + $HostPool)
+		Else {logwrite ('WVDToken exists for Hostpool: ' + $HostPool)}
 		$WVDToken=($WVDToken.Token)}
         }
         catch{Logwrite("901: " + $_.Exception.Message); exit 901}
@@ -285,8 +285,8 @@ exit 0
 # SIG # Begin signature block
 # MIInlQYJKoZIhvcNAQcCoIInhjCCJ4ICAQExDzANBglghkgBZQMEAgEFADB5Bgor
 # BgEEAYI3AgEEoGswaTA0BgorBgEEAYI3AgEeMCYCAwEAAAQQH8w7YFlLCE63JNLG
-# KX7zUQIBAAIBAAIBAAIBAAIBADAxMA0GCWCGSAFlAwQCAQUABCBGrlTHetvcLlcR
-# oQJsiGXD9GB3HHbvdOW7H8+lzGNnZKCCIkEwggMwMIICtqADAgECAhA3dENPnrQO
+# KX7zUQIBAAIBAAIBAAIBAAIBADAxMA0GCWCGSAFlAwQCAQUABCBDKtu6ALtlg0zH
+# T0Rh8dxU4Hn6wlJbuhw/lPX5Ix96KqCCIkEwggMwMIICtqADAgECAhA3dENPnrQO
 # Ih+SNsofLycXMAoGCCqGSM49BAMDMFYxCzAJBgNVBAYTAkdCMRgwFgYDVQQKEw9T
 # ZWN0aWdvIExpbWl0ZWQxLTArBgNVBAMTJFNlY3RpZ28gUHVibGljIENvZGUgU2ln
 # bmluZyBSb290IEU0NjAeFw0yMTAzMjIwMDAwMDBaFw0zNjAzMjEyMzU5NTlaMFcx
@@ -474,25 +474,25 @@ exit 0
 # U2lnbmluZyBDQSBFViBFMzYCEDxolvyQov0GPgzdcbswAjcwDQYJYIZIAWUDBAIB
 # BQCggYQwGAYKKwYBBAGCNwIBDDEKMAigAoAAoQKAADAZBgkqhkiG9w0BCQMxDAYK
 # KwYBBAGCNwIBBDAcBgorBgEEAYI3AgELMQ4wDAYKKwYBBAGCNwIBFTAvBgkqhkiG
-# 9w0BCQQxIgQg3tc/htMSwhbkeMe+vtri5F2OSyJ1aNIVN1rPXRJLITowCwYHKoZI
-# zj0CAQUABGcwZQIxAJtwIraMh1X2lQM3XMJEacd+4wq2rVisfha5HzEBSJoYscYq
-# CIpRyZogj/9/aTkiPwIwTn1l8YB+wITTbyc7+Wjsg5SugAtUVujTv0ZG72HPbkpM
-# lj6CiWNL1iFRNwXMAk7uoYIDJjCCAyIGCSqGSIb3DQEJBjGCAxMwggMPAgEBMH0w
+# 9w0BCQQxIgQgNT8zrnl/AJLC21lEEF5J6/GvimoomkP28yIsGdC7C44wCwYHKoZI
+# zj0CAQUABGcwZQIxAPtGG4E2I30zvVKu53ASGECR6336FovYi/1s71Zzy11oi3rf
+# YAXVC2a30bbrtrtBkAIwOEWR7h/h79ifA7cwo6CfnKXLXMDCiJkmPa5KRlMp2rWd
+# 2A0sIrykPYJYKHIUPVzBoYIDJjCCAyIGCSqGSIb3DQEJBjGCAxMwggMPAgEBMH0w
 # aTELMAkGA1UEBhMCVVMxFzAVBgNVBAoTDkRpZ2lDZXJ0LCBJbmMuMUEwPwYDVQQD
 # EzhEaWdpQ2VydCBUcnVzdGVkIEc0IFRpbWVTdGFtcGluZyBSU0E0MDk2IFNIQTI1
 # NiAyMDI1IENBMQIQCoDvGEuN8QWC0cR2p5V0aDANBglghkgBZQMEAgEFAKBpMBgG
-# CSqGSIb3DQEJAzELBgkqhkiG9w0BBwEwHAYJKoZIhvcNAQkFMQ8XDTI1MDkyMzEz
-# NTc1OVowLwYJKoZIhvcNAQkEMSIEIIxKRJFg2NvnQxxdDz57UINP0qVoAjxpUxm2
-# 55BkMVcDMA0GCSqGSIb3DQEBAQUABIICAJzFigWCUoPwDHlKqfdlZj8kAeJXTZlp
-# N83yMrusYF/ayxqcWx+3Hp8FuU09QMeKfjiaZOrWbBi/DZt5xxQaetcmeU3ouhs6
-# zG0dy+8EbPREz0i1LQChSRkJ3DL3cV0L0+p+tFAZZY7/onP+eC7Nv1xhpqQvsrYT
-# Hqbnu5y7RAZgIBW2PIzFTov86+zcGjoBppU0eWWLTvphyYY7zAI8CRtUxnlnloZf
-# mc4wD8Fe7C5/YDb0fnIgBgfdh0CMwjSD2i1mhJwRl+bb1rrm8I52it0K20lR58hW
-# 9NpELG1Tp/YhPdE+gQ+vJerCM6VH159mYk0OE9M5GpG65OmQ+pOm1t+FMB96rPPa
-# eoFpAMFmuLJL+IoGFUJMYtENEC7gw/LmdVFHmsZfSgzVXYT/jAUgVuDGVl8SW32z
-# II4/EmXIXwIIK7dD6P0kaMpnyni0yi6mz/ZFqXWFAVsEEajoSXpvFJeS6UN3a6GR
-# ksA0MhNBHTa1CkQcF6udtl4Z1f1cMt/WGWE0xgbJgBwdi9wni6PMtpcJaSizWPYN
-# SNcsA8p5yk8HHkN2oXkn0DV2qEwIgrvbPVCqQBjuM2FBFz3KBn8oRsq4y+OzTS/X
-# xBL/jKId1YB86oT1lxSuyD2ftMmigAx5MorP3rzZEg1g3/lXshGLSAqtrZCZK8n8
-# q2tvszg5pMYm
+# CSqGSIb3DQEJAzELBgkqhkiG9w0BBwEwHAYJKoZIhvcNAQkFMQ8XDTI1MDkyMzE0
+# MDcwNVowLwYJKoZIhvcNAQkEMSIEIOM4LnVMehTxjmhkGJCU5z+4TzXHwM0Nhmcg
+# rx406/VdMA0GCSqGSIb3DQEBAQUABIICAJz0x/kVKsQo/NfGZ6YpA60TMiFuGwTh
+# 3M4UheJnp2xvElDhMNGLg+IBJ8xh6L4/6C/YOxPDET/KSCUALFz7vMB9a8smkf0w
+# gZ6Ykd2qSwbRPLSRhB5wHhaUFuN8knod3HMSTj3PAZE6HX3IodeJpl/YzKkafMVg
+# Pr+EMYhqOCHncIzG3QAomO1fTqIUOshWlHFmJQD0LvgWWFdyxiLnDOzpLe90R2/G
+# Nu0TaVCqnOMkwfzcr++ALGzJKRMOyur6slN1EJcJN42ER1gMPkemMpOaIUh/g4Ii
+# FlLBvfnhOS3FqsoZhfOuxB7zjRTHBGO0UPoRABYuOLZ7IdSy4XxHJXFDuOpSxDO5
+# pj+T/+6PKQ/Z5LvTXKx2c2J45JABxZivciWIHxxpflZ99T5npaqt7Xa1HCnGBubW
+# jx/G+/eL5WuKrvts1mH30nMQFBFrASFGNitj8HJuYuWT7/6j/iVnpEvHf9h3W/Dd
+# kjKkBTYCLM+QEDeE2DNjg0jxIoyIDXIt4XYS8EW5UtCxL6eTonDGaOuYDh0JVwYl
+# O/bek3+WWsrXdFs26ewPo1+LApIxG/yYsODh2oj1vJ8cSnnKjJfHGhvgrS6Nbsy1
+# ARwcaCORxcU0rITyvHxoInn38fyzQpvI4VyRXpgVoKN3fJX0qZCmy52lduNz5lPB
+# oL0qxd5d4qZh
 # SIG # End signature block

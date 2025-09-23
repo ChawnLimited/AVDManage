@@ -81,11 +81,22 @@ Function UpdateModule
 		catch {LogWrite ("Failed to download RDAgents. " + $_.Exception.Message);exit 99}
 
 
-# Deploy and Neutralise RD Agents
-	LogWrite ("Install & Configure RDAgents.")
-	try {
+# Deploy RDS Agents
+LogWrite ("Install & Configure RDAgents.")
+%{
+	try{
 	    if (get-item -path C:\Source\RDagent.msi){Start-Process msiexec.exe -Wait -ArgumentList "/I C:\Source\RDAgent.msi REGISTRATIONTOKEN=[INVALIDTOKEN] /qb /L*V RDAgent.log"}
-	    if (get-item -path C:\Source\RDBoot.msi){Start-Process msiexec.exe -Wait -ArgumentList "/I C:\Source\RDBoot.msi /qb  /L*V RDBoot.log"}
+	    if (get-item -path C:\Source\RDBoot.msi){Start-Process msiexec.exe -Wait -ArgumentList "/I C:\Source\RDBoot.msi /qb  /L*V RDBoot.log"}		
+			$i=0
+			do {start-sleep -Seconds 2;$i++;} until((($RDSIA=(get-package -name "Remote Desktop Services Infrastructure Agent" -ErrorAction SilentlyContinue).Status -eq 'Installed')) -and (($RDABL=(get-package -name "Remote Desktop Agent Boot Loader" -ErrorAction SilentlyContinue).Status -eq 'Installed')) -or $i -eq 50)
+				if (($RDSIA -eq 'Installed' ) -and ($RDSABL -eq 'Installed'))
+				{logwrite ("Remote Desktop Services Infrastructure Agent and Remote Desktop Agent Boot Loader are installed")}
+				Else {logwrite ("Remote Desktop Services Infrastructure Agent installed: " + $RDSIA + ". Remote Desktop Agent Boot Loader installed: " + $RDSABL)}
+		}
+    	catch {logwrite('Error installing Remote Desktop Agents. ' + $_.Exception.Message); exit 999}
+}
+		
+		
 		start-sleep -seconds 5
 		Get-Service -Name RDAgentBootLoader | Set-Service -StartupType Disabled
 		Get-Service -Name RDAgentBootLoader | Stop-Service
@@ -96,8 +107,7 @@ Function UpdateModule
 		Set-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\RDInfraAgent" -Name "HostPoolType" -Value "Default" -force
 		New-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\RDInfraAgent" -PropertyType dword -Name "IsRegistered" -Value 0 -Force
 		LogWrite ("RDAgents Complete.")
-	}
-catch {LogWrite ("Failed to configure RDAgents. " + $_.Exception.Message);exit 999}
+
 
 $log=Get-Content .\AVD-Prep.log -Delimiter :
 write-host $log

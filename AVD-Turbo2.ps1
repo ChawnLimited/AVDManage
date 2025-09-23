@@ -246,7 +246,7 @@ logwrite('Logon to Azure')
 		}
 	
 		$response = Invoke-RestMethod -Uri $ExchUri -Method POST -Body $body -ContentType "application/x-www-form-urlencoded"
-				if ($response) {logwrite('Connected to AzureX');Connect-AzAccount -scope process -accountid $clientid -AccessToken $response.access_token -tenantid $tenantid -subscriptionid $subid}
+				if ($response) {logwrite('Connected to AzureX');Connect-AzAccount -accountid $clientid -AccessToken $response.access_token -tenantid $tenantid -subscriptionid $subid}
 				else {logwrite('801: Not connected to Azure. Exit.')
 				exit 801}
 		}
@@ -346,8 +346,8 @@ $response="null"
 # SIG # Begin signature block
 # MIInlQYJKoZIhvcNAQcCoIInhjCCJ4ICAQExDzANBglghkgBZQMEAgEFADB5Bgor
 # BgEEAYI3AgEEoGswaTA0BgorBgEEAYI3AgEeMCYCAwEAAAQQH8w7YFlLCE63JNLG
-# KX7zUQIBAAIBAAIBAAIBAAIBADAxMA0GCWCGSAFlAwQCAQUABCCPMN3pw/hrs1b5
-# zrz2KdUdAJXi/a1EEWzzl/S+Xzi4L6CCIkEwggMwMIICtqADAgECAhA3dENPnrQO
+# KX7zUQIBAAIBAAIBAAIBAAIBADAxMA0GCWCGSAFlAwQCAQUABCC4X+C6fWHVeb6T
+# 9k6EyrGiYVTrVigGXOx1flwArU+nYaCCIkEwggMwMIICtqADAgECAhA3dENPnrQO
 # Ih+SNsofLycXMAoGCCqGSM49BAMDMFYxCzAJBgNVBAYTAkdCMRgwFgYDVQQKEw9T
 # ZWN0aWdvIExpbWl0ZWQxLTArBgNVBAMTJFNlY3RpZ28gUHVibGljIENvZGUgU2ln
 # bmluZyBSb290IEU0NjAeFw0yMTAzMjIwMDAwMDBaFw0zNjAzMjEyMzU5NTlaMFcx
@@ -535,25 +535,25 @@ $response="null"
 # U2lnbmluZyBDQSBFViBFMzYCEDxolvyQov0GPgzdcbswAjcwDQYJYIZIAWUDBAIB
 # BQCggYQwGAYKKwYBBAGCNwIBDDEKMAigAoAAoQKAADAZBgkqhkiG9w0BCQMxDAYK
 # KwYBBAGCNwIBBDAcBgorBgEEAYI3AgELMQ4wDAYKKwYBBAGCNwIBFTAvBgkqhkiG
-# 9w0BCQQxIgQgVrbtHa9rCsIwIFZgy2DLr6hQ2Q20dz/bs6SS47RLhiowCwYHKoZI
-# zj0CAQUABGcwZQIxANV1a1RTXKUHatTjXWjgy3KixIezOPWVhJR/vxOOJp/8I9Rn
-# OTpCyXQmUtYd/cvfwQIwdEoFH/6eKB4avn7jZWN07EWX+R2w950Dot5mNTl4ML6g
-# lgRpI8pMbPDs8jDR5zwvoYIDJjCCAyIGCSqGSIb3DQEJBjGCAxMwggMPAgEBMH0w
+# 9w0BCQQxIgQgfZkpBxRC+nQp68kWoCKJ4MBIRZ+oirN3TT39s8uQEKcwCwYHKoZI
+# zj0CAQUABGcwZQIwG1OtAxfPLfQnNKPtpSVRi75oy6LEVcL33y5AjN8EgPBMfUo5
+# 3aPaZcJ3lt0IeHNfAjEA7SD3rmSfd+qU4WiGgN8tfXNqXtYeH1Gyr5LIWrjBhKS1
+# qUoYgsBGLgFB8WTj3iihoYIDJjCCAyIGCSqGSIb3DQEJBjGCAxMwggMPAgEBMH0w
 # aTELMAkGA1UEBhMCVVMxFzAVBgNVBAoTDkRpZ2lDZXJ0LCBJbmMuMUEwPwYDVQQD
 # EzhEaWdpQ2VydCBUcnVzdGVkIEc0IFRpbWVTdGFtcGluZyBSU0E0MDk2IFNIQTI1
 # NiAyMDI1IENBMQIQCoDvGEuN8QWC0cR2p5V0aDANBglghkgBZQMEAgEFAKBpMBgG
-# CSqGSIb3DQEJAzELBgkqhkiG9w0BBwEwHAYJKoZIhvcNAQkFMQ8XDTI1MDkyMzE0
-# MTk0NVowLwYJKoZIhvcNAQkEMSIEIBpI602aIGXFPpJY7di8k1R3VVm3gntBKHDR
-# ieonIXqEMA0GCSqGSIb3DQEBAQUABIICADPKNlxnAIwWdwgg7BiJ5+fUSQ1YAVHJ
-# WAVuO4nSpatR4NrdNLEPO95JZ44Wy8nkXl//YLjrJJzCgt/uxwFeqmPhZyyUxNpt
-# gyL4t4dAaOQGNBtYkT6IxJ03OF8DFV8cdClNLTeqECB1uBGGZTUT5cAlX37IbK/e
-# RnhNp6/Jk4htB0EhVMQ/95KKjQAJZKvsyDEZbuXQVXfmftoPScu5Ccpvz4S6/0yG
-# GF/w14f08nKGv/GKlO4O3lYlMhXGiFDIwh5vIBdruiBL4bQmOsE4PnbvSp6pndhr
-# jjkkVz05FNCGG/j5aIO37RfavSwY5IROb7RV39vRVkXmzAKHzywYfL3ZIMkHAKRu
-# 6ZTPl46Ep4+aMJ9K42jIGal1yAd8V+StONib3vxUkVbAooJ/EnwoBZhTEl+odoV2
-# mnc7tlvi/4s9q2LQPHh7/uhXted1jCLGSqTygU0uXiK0rgOesvzteG+SGVwKNolL
-# aiSktfC+2pefGSaydcRQoYYFhZXuEWHIjyKkZKzw6Lsra70xhf3lpi3j2PFqAeZu
-# xyUoCBzKE4+DjWLUU2JPT8HiggsgS+2yKmydkctxgfzHkF6dG0kE6+gE02+0pPXz
-# lZFfXD3Lszk9HXnA4anvPbiRef9R7phWGrF71mnh+6/OeZMUR4R6/+4klUZESO/g
-# DaFZ/QEj6rc9
+# CSqGSIb3DQEJAzELBgkqhkiG9w0BBwEwHAYJKoZIhvcNAQkFMQ8XDTI1MDkyMzE3
+# MjIyMlowLwYJKoZIhvcNAQkEMSIEIAwEC7w/9egqv/7vRNJr/C4nEroSrlv/8yKS
+# FZN7sB2uMA0GCSqGSIb3DQEBAQUABIICAGsMUHG/cwBYcRAlJ0uw4A63UMCh1gny
+# bFo/QfIf8KpFe6u8cBg4iEnEb2ojh4JmKk6iY16xVdlyT9H/+7dxL+FJJu/26sBi
+# TCtqDiKE0rVEExMuxszbuz9dGB3jmDDolkNyZSudO55HU/No2LfJzzQNdu23IG/s
+# UcfA86qMqOMywlxadxpLExyvcb/XG0YWmg/r2nEqs4oZe+2dfGr4Qza/Jj0EE1Af
+# 8QCl2UlNSS9u6oyFY7GCkciSZiYX1iAuFf6LvVzZSK2D0vj9ZgIQVEyKK4NCbbeH
+# DFc3/s0+d0nGs4MdHR89Iru0vUuoVFBqAP1JIXMztaKBzl110LGRkWLOa6jgEeSN
+# 8Zhrd1er+xFbYyHl6IRQm9tEPNkd44V7rIS+thSq8m3Kxc60QHwvylzlT5P4a1f/
+# AIYm6bEGHA1PLYgmMb0OooFV1ZzawLjhLtE+Qp7+I+VpV32tGVxYUlUSteMjKIps
+# T2Qv5dfCbh/iH3WolKIyI1emnhPrnX2WqXwwkZXxwXeWxjv5mFDhPBUFJ1VUPEkg
+# qLAJ9JYIgRsQpAc5f8JW91jBXOvX9VFIwh2fgJTeKYi0Q2lUGSHweS+qEaFmg7h4
+# pEoxj9t7N+CRF8ThK/nNa6A0ZjL2+ueCAOnaemLtSgrAKJWCosOAeza+xetpuU/m
+# Le7JOLKQ3/Cz
 # SIG # End signature block

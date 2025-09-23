@@ -175,7 +175,7 @@ if ($Turbo -ne "AVDTurbo")
 # Check AZ Modules are present
 	%{
 		try {
-							if (Get-Module -name Az.Accounts -ListAvailable) {Logwrite('Az.Accounts is available.')}
+				if (Get-Module -name Az.Accounts -ListAvailable) {Logwrite('Az.Accounts is available.')}
 				else {logwrite('Az.Accounts is not available. Will try and install.'); UpdateNuget; UpdateModule Az.Accounts;}
 
 				if (Get-Module -name Az.DesktopVirtualization -ListAvailable) {Logwrite('Az.DesktopVirtualization is available.')}
@@ -213,7 +213,12 @@ if ($Turbo -ne "AVDTurbo")
 logwrite('Load Modules')
 	%{
 		try{
-			import-module -name Az.Accounts,Az.DesktopVirtualization
+			if (Get-Module -name Az.Accounts -ListAvailable) {Logwrite('Az.Accounts is available.')
+			import-module -Name Az.Accounts -force}
+			else{Logwrite ('Az.Accounts is not available. Exit.');exit 203}
+			if (Get-Module -name Az.DesktopVirtualization -ListAvailable) {Logwrite('Az.DesktopVirtualization is available.')
+			import-module -Name Az.DesktopVirtualization -force}
+			else{Logwrite ('Az.DesktopVirtualization is not available. Exit.');exit 202}
 		}
 		catch{logwrite('201: Error importing Az Modules' +  $_.Exception.Message); exit 201}
 	}
@@ -257,6 +262,7 @@ $response="null"
 		if (Get-AzWvdSessionHost -HostPoolName $hostpool -ResourceGroupName $RG -Name $hostname -ErrorAction SilentlyContinue) 
 			{Remove-AzWvdSessionHost -ResourceGroupName $RG -HostPoolName $HostPool -Name $hostname
 			logwrite ($hostname + ' exists in the ' + $hostpool + ' host pool. Will remove so the VM may join again.')}
+			else {logwrite ($hostname + ' does not exists in the ' + $hostpool + ' host pool.)}
 		}
 		catch{Logwrite("900: " + $_.Exception.Message); exit 900}
 	}
@@ -338,10 +344,10 @@ $response="null"
 
 
 # SIG # Begin signature block
-# MIInlAYJKoZIhvcNAQcCoIInhTCCJ4ECAQExDzANBglghkgBZQMEAgEFADB5Bgor
+# MIInlQYJKoZIhvcNAQcCoIInhjCCJ4ICAQExDzANBglghkgBZQMEAgEFADB5Bgor
 # BgEEAYI3AgEEoGswaTA0BgorBgEEAYI3AgEeMCYCAwEAAAQQH8w7YFlLCE63JNLG
-# KX7zUQIBAAIBAAIBAAIBAAIBADAxMA0GCWCGSAFlAwQCAQUABCD65GlB7bWacSJ4
-# 6D78srLYshsMQsPowNIp21eS3pGDHKCCIkEwggMwMIICtqADAgECAhA3dENPnrQO
+# KX7zUQIBAAIBAAIBAAIBAAIBADAxMA0GCWCGSAFlAwQCAQUABCCB0+6VGxPnPY3j
+# 9fAWBhsGXbzhwigPQIF0FL1YhxMRCaCCIkEwggMwMIICtqADAgECAhA3dENPnrQO
 # Ih+SNsofLycXMAoGCCqGSM49BAMDMFYxCzAJBgNVBAYTAkdCMRgwFgYDVQQKEw9T
 # ZWN0aWdvIExpbWl0ZWQxLTArBgNVBAMTJFNlY3RpZ28gUHVibGljIENvZGUgU2ln
 # bmluZyBSb290IEU0NjAeFw0yMTAzMjIwMDAwMDBaFw0zNjAzMjEyMzU5NTlaMFcx
@@ -524,30 +530,30 @@ $response="null"
 # IwXMZUXBhtCyIaehr0XkBoDIGMUG1dUtwq1qmcwbdUfcSYCn+OwncVUXf53VJUNO
 # aMWMts0VlRYxe5nK+At+DI96HAlXHAL5SlfYxJ7La54i71McVWRP66bW+yERNpbJ
 # CjyCYG2j+bdpxo/1Cy4uPcU3AWVPGrbn5PhDBf3Froguzzhk++ami+r3Qrx5bIbY
-# 3TVzgiFI7Gq3zWcxggSpMIIEpQIBATBrMFcxCzAJBgNVBAYTAkdCMRgwFgYDVQQK
+# 3TVzgiFI7Gq3zWcxggSqMIIEpgIBATBrMFcxCzAJBgNVBAYTAkdCMRgwFgYDVQQK
 # Ew9TZWN0aWdvIExpbWl0ZWQxLjAsBgNVBAMTJVNlY3RpZ28gUHVibGljIENvZGUg
 # U2lnbmluZyBDQSBFViBFMzYCEDxolvyQov0GPgzdcbswAjcwDQYJYIZIAWUDBAIB
 # BQCggYQwGAYKKwYBBAGCNwIBDDEKMAigAoAAoQKAADAZBgkqhkiG9w0BCQMxDAYK
 # KwYBBAGCNwIBBDAcBgorBgEEAYI3AgELMQ4wDAYKKwYBBAGCNwIBFTAvBgkqhkiG
-# 9w0BCQQxIgQgMJeMbk5LF+tpn/Qfb6x7yIwyJxhIwG/7A1AvnK3kr4wwCwYHKoZI
-# zj0CAQUABGYwZAIwUuMp5jgu8P1aOLNyPyDe9VXtBduEF3chGYLPPF6On+t3yl/6
-# l/+SQiF27GJi+ssCAjBKmO+uRqIWN1A1lZeRYIIbzyMJafIZbqBISe3Q1U22CWVg
-# hc21Ervd4rxxigkqvdOhggMmMIIDIgYJKoZIhvcNAQkGMYIDEzCCAw8CAQEwfTBp
-# MQswCQYDVQQGEwJVUzEXMBUGA1UEChMORGlnaUNlcnQsIEluYy4xQTA/BgNVBAMT
-# OERpZ2lDZXJ0IFRydXN0ZWQgRzQgVGltZVN0YW1waW5nIFJTQTQwOTYgU0hBMjU2
-# IDIwMjUgQ0ExAhAKgO8YS43xBYLRxHanlXRoMA0GCWCGSAFlAwQCAQUAoGkwGAYJ
-# KoZIhvcNAQkDMQsGCSqGSIb3DQEHATAcBgkqhkiG9w0BCQUxDxcNMjUwOTIzMTA0
-# NDQ0WjAvBgkqhkiG9w0BCQQxIgQgr8WmCDj6BJHgZH/zgG7qWMXS8ntjQ3pe1eXm
-# 8XamoUUwDQYJKoZIhvcNAQEBBQAEggIAP+9Uc5Je7SoWK6iL7DjkJ9Aa8aTSf9yq
-# IL3iUEQVQDSECWiOISCOHlDzv5dQv5cTM9RXgw7SuZgjucTtU79lWRKFR16Cs7EE
-# zMq4xcS2y2PT9cnQpnD0KG5KoKa2QoGwfFpMxd1WlY9bb1ExrqUqjQfkNhJIO8dZ
-# 0KOmEruTPh1GtxOfVduiCr4NuSckF+IXW77HxwOnDz0TOnuWK0Ol69UdeXWGwqyS
-# sDg9XH/MoDzlkdLS/EYpVU8t6qrujEfcmK9ps8soIhpUH+g2MRDH1Zn5t+iQV9PU
-# VDbxCEbWT7J85DMDnlVpK+bUsA0IwRMHoO/Ep0xN8s0Iq3yZghaXJqfh5xPrKVYS
-# dfYToLezUU+gxXgAo59VBgzBCKlcRGzAatxv6dcKQR3FYxH03l7VN8Rm/vv21oKc
-# NrI+m2Wsbcde/U5BYJ2gjNaLUHtapcZu3vRFQFi05GCRg9r2d/N9L4agmJh0mRvN
-# hpcTuzPTMwiEZxvgMB++9gVoBkw2pIsXv57b7pHX0Y4QwWidmDMvITedzalpXN8X
-# iEqhjFEBAQBNFBAeqiL7tvFYT5aOEIUbpSPDR4QAWFLYPlB4dscDmB4R5a3rDz7M
-# Yw72QiFcL2nGtgHqK0+VcKBRTj14wHG9+5Wi/6JU0+J97ZMsxS2NzNot8EuatRIA
-# 0LUrisqMyJk=
+# 9w0BCQQxIgQg2qZOTITT4qOalIlLfN9/bsyv4oueyhk9Ie5Cy5azoFgwCwYHKoZI
+# zj0CAQUABGcwZQIxAIVd3/fB2R65LnQKruiyw5eE2n4w9dNWff8YI9TH475Mi2CR
+# Gan136vPISn6Fx+khwIwSnYJKyONGWPW8zG4oyGqs87IJQfbTtCkHMfyyO8lspHE
+# 1buU5ihk1pwtT6zUMUseoYIDJjCCAyIGCSqGSIb3DQEJBjGCAxMwggMPAgEBMH0w
+# aTELMAkGA1UEBhMCVVMxFzAVBgNVBAoTDkRpZ2lDZXJ0LCBJbmMuMUEwPwYDVQQD
+# EzhEaWdpQ2VydCBUcnVzdGVkIEc0IFRpbWVTdGFtcGluZyBSU0E0MDk2IFNIQTI1
+# NiAyMDI1IENBMQIQCoDvGEuN8QWC0cR2p5V0aDANBglghkgBZQMEAgEFAKBpMBgG
+# CSqGSIb3DQEJAzELBgkqhkiG9w0BBwEwHAYJKoZIhvcNAQkFMQ8XDTI1MDkyMzEz
+# MzIyNFowLwYJKoZIhvcNAQkEMSIEIKP1+kY6nIU01ogNiqzsLPsZESLUx/VjWhuc
+# TBmIkM4iMA0GCSqGSIb3DQEBAQUABIICABu/HFmyk2NVWItSEugwAebCJvxkl2D+
+# IVN33PPCTOhI79q9z5fZyzr/zcNQaeOp1duNkNqg2FBB8tR3DhqKpsvhH4ZMwtrE
+# 9ppqsq4Pu3Nq/GnkFPOeX8Nn203i1ujX79e2vMzeSxKxTFJ6aOEx/eu6TKsTx0p+
+# aMu9Cl/KtrZgXPtTuSR2UA0/UdxvSPSObawN1Fe4xkOkH1FY8ceO59y8ax6fJIbe
+# QR2cYWuh8W5CAB4wUOn/69ii5FEfr6qLJXz6/yhKX0TXM7SYm2QNsfhHs+btwPPQ
+# g2L1Bn2bAxl/3tjNjVHmgRYjf4kvWbzkFDCCLYSmg4BvX5FnB2/ZSaOaAfrbphu8
+# L9iHV0Wo8etvOMW2ATOJG3tUCQth43SV5T2aPeLcCQbKFIt0Avv/ySUO6sXYJ8VG
+# o1/9TpnYEklMg6x23uayx16255GWHLLYbDgX4/dgpELjqLSgFGUd2ElYh1T7TTjh
+# ybugP342GYdmirBoXR047nNlyFxiKgMImiONHh63+lPlsh5NnSCR78Xm7X+gsnij
+# 0OkG8Htaif57e3XNi5xKlfw3PkLML9p+PiT1e31N+1rlGMGhgGn7m+Db7ifs2C7s
+# T3amraMWNSu18qvWi1bh4qIWWZq4j/FbFSkHQ8QhMyAowJ/erLJfkmEYcDvAakc4
+# hiI51PDsAOjA
 # SIG # End signature block

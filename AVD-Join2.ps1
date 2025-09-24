@@ -89,15 +89,7 @@ logwrite('Load Modules')
 		logwrite('Modules Loaded')
 }
 
-Function CheckAVDTurbo
-{
-	try{
-		if ($TURBO=((Get-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\RDInfraAgent" -Name "RegistrationToken" -ErrorAction SilentlyContinue).RegistrationToken))
-		{LogWrite ("Turbo Deployment started. " + $Turbo)}
-		else {$Turbo='False';LogWrite ("Normal Deployment started.")}
-	}
-	catch{LogWrite ("400: " + $_.Exception.Message);exit 400}
-}
+
 
 Function CheckDomain
 {
@@ -123,13 +115,13 @@ Function DownloadAgents
 # Start the RDAGent downloads
 	try {
 		if ($HostPool) {				
-			if (-not(get-item c:\source\RDAgent.msi)) {
+			if (-not(get-item c:\source\RDAgent.msi -ErrorAction SilentlyContinue)) {
 				LogWrite ("Download RDAgent")
 				New-Item -Path C:\Source -ItemType Directory -Force
 				$URI="https://query.prod.cms.rt.microsoft.com/cms/api/am/binary/RWrmXv";Invoke-WebRequest -Uri $URI -OutFile C:\Source\RDagent.msi -UseBasicParsing;
 				LogWrite ("Downloaded RDAgent.msi")
 			}	
-			if (-not(get-item c:\source\RDBoot.msi)) {
+			if (-not(get-item c:\source\RDBoot.msi -ErrorAction SilentlyContinue)) {
 				LogWrite ("Download RDBoot")
 				$URI="https://query.prod.cms.rt.microsoft.com/cms/api/am/binary/RWrxrH";Invoke-WebRequest -Uri $URI -OutFile C:\Source\RDBoot.msi -UseBasicParsing;
 				LogWrite ("Downloaded RDBoot.msi")		
@@ -186,16 +178,24 @@ Function CheckToken
     try {
 		if ($now -gt ($WVDToken=Get-AzWvdRegistrationInfo -ResourceGroupName $RG -HostPoolName $HostPool).ExpirationTime)
 			{logwrite ('Generate new WVD Token to join WVD Hostpool: ' + $HostPool)
-			$WVDToken=(New-AzWvdRegistrationInfo -ResourceGroupName $RG -HostPoolName $HostPool -ExpirationTime $((get-date).ToUniversalTime().AddHours(25).ToString('yyyy-MM-ddTHH:mm:ss.fffffffZ'))).Token}
+			$global:WVDToken=(New-AzWvdRegistrationInfo -ResourceGroupName $RG -HostPoolName $HostPool -ExpirationTime $((get-date).ToUniversalTime().AddHours(25).ToString('yyyy-MM-ddTHH:mm:ss.fffffffZ'))).Token}
 		Else {logwrite ('WVDToken exists for Hostpool: ' + $HostPool)
-		$WVDToken=($WVDToken.Token)}
+		$global:WVDToken=($WVDToken.Token)}
     }
     catch{Logwrite("901: " + $_.Exception.Message); exit 901}
 }
 
 
- # Check for a Turbo deployment
-CheckAVDTurbo
+# Check for a Turbo deployment
+%{
+	try{
+		$TURBO='False'
+		if ($TURBO=((Get-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\RDInfraAgent" -Name "RegistrationToken" -ErrorAction SilentlyContinue).RegistrationToken))
+		{LogWrite ("Turbo Deployment started. " + $Turbo)}
+		else {LogWrite ("Normal Deployment started. AVDTurbo: " + $TURBO)}
+	}
+	catch{LogWrite ("400: " + $_.Exception.Message);exit 400}
+}
 
 # check the device is domain joined
 CheckDomain

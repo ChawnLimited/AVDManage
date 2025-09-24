@@ -155,7 +155,7 @@ logwrite('Hostpool:' + $hostpool)
 	    Else {Set-PSRepository -Name "PSGallery" -InstallationPolicy Trusted}
 	    }
     catch {LogWrite ("Failed to add PSGallery as trusted repo. " + $_.Exception.Message); exit 102}
-}
+
 logwrite('Load Modules')
 	%{
 		try{

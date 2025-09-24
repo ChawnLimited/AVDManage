@@ -72,6 +72,36 @@ Function UpdateModule
     catch {Logwrite ('201: Failed to update ' + $module + "" +  $_.Exception.Message);exit 201}
 }
 
+
+Function LoadModules
+{
+	# trust PSGalllery
+# access to www.powershellgallery.com
+    try	{
+	    if (-not(Get-PSRepository -Name "PSGallery"))
+	    	{Register-PSRepository -Default -InstallationPolicy Trusted
+	    	LogWrite "Added PSGallery as trusted repo"}
+	    Else {Set-PSRepository -Name "PSGallery" -InstallationPolicy Trusted}
+	    }
+    catch {LogWrite ("Failed to add PSGallery as trusted repo. " + $_.Exception.Message); exit 102}
+
+logwrite('Load Modules')
+
+		try{
+			if (Get-Module -name Az.Accounts -ListAvailable) {Logwrite('Az.Accounts is available.')
+			import-module -Name Az.Accounts -noclobber}
+			else{Logwrite ('Az.Accounts is not available. Exit.');exit 203}
+			if (Get-Module -name Az.DesktopVirtualization -ListAvailable) {Logwrite('Az.DesktopVirtualization is available.')
+			import-module -Name Az.DesktopVirtualization -noclobber}
+			else{Logwrite ('Az.DesktopVirtualization is not available. Exit.');exit 202}
+		}
+		catch{logwrite('201: Error importing Az Modules' +  $_.Exception.Message); exit 201}
+logwrite('Modules Loaded')
+	
+}
+
+
+
  # Check for a Turbo deployment
 	try{
 		if ($TURBO=((Get-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\RDInfraAgent" -Name "RegistrationToken" -ErrorAction SilentlyContinue).RegistrationToken))
@@ -146,29 +176,7 @@ $hostname=[System.Net.Dns]::GetHostByName($env:computerName).HostName
 logwrite('Hostname:' + $hostname)
 logwrite('Hostpool:' + $hostpool)
 
-# trust PSGalllery
-# access to www.powershellgallery.com
-    try	{
-	    if (-not(Get-PSRepository -Name "PSGallery"))
-	    	{Register-PSRepository -Default -InstallationPolicy Trusted
-	    	LogWrite "Added PSGallery as trusted repo"}
-	    Else {Set-PSRepository -Name "PSGallery" -InstallationPolicy Trusted}
-	    }
-    catch {LogWrite ("Failed to add PSGallery as trusted repo. " + $_.Exception.Message); exit 102}
-
-logwrite('Load Modules')
-	%{
-		try{
-			if (Get-Module -name Az.Accounts -ListAvailable) {Logwrite('Az.Accounts is available.')
-			import-module -Name Az.Accounts -force}
-			else{Logwrite ('Az.Accounts is not available. Exit.');exit 203}
-			if (Get-Module -name Az.DesktopVirtualization -ListAvailable) {Logwrite('Az.DesktopVirtualization is available.')
-			import-module -Name Az.DesktopVirtualization -force}
-			else{Logwrite ('Az.DesktopVirtualization is not available. Exit.');exit 202}
-		}
-		catch{logwrite('201: Error importing Az Modules' +  $_.Exception.Message); exit 201}
-	}
-logwrite('Modules Loaded')
+LoadModules
 
 
 logwrite('Logon to Azure')

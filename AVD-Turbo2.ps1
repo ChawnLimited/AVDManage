@@ -99,7 +99,7 @@ Function CheckAVDTurbo
 	try{
 		if ($TURBO=((Get-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\RDInfraAgent" -Name "RegistrationToken" -ErrorAction SilentlyContinue).RegistrationToken))
 		{LogWrite ("Turbo Deployment started. " + $Turbo)}
-		else {$Turbo='False';LogWrite ("Normal Deployment started."}
+		else {$Turbo='False';LogWrite ("Normal Deployment started.")}
 	}
 	catch{LogWrite ("400: " + $_.Exception.Message);exit 400}
 }

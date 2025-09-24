@@ -210,9 +210,10 @@ Function RenameComputer
 		$vmname=$vmname.Substring(1)
 
 		if ($vmname -eq $env:computerName) {LogWrite ("Computer is already named " + $VMName + ".")}
-		else (if ((gwmi win32_computersystem).partofdomain -eq 0) {
+		else {if ((gwmi win32_computersystem).partofdomain -eq 0) {
 		LogWrite ("Renaming Computer to " + $VMName)
 		Rename-Computer -NewName $VMName -Force | Out-File -FilePath $Logfile -Append
+             }
 		}
 	}
 	Catch {LogWrite ("300: " + $_.Exception.Message);exit 300}
@@ -249,10 +250,9 @@ JoinDomain
 # Check for a Turbo deployment
 %{
 	try{
-		$TURBO='False'
 		if ($TURBO=((Get-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\RDInfraAgent" -Name "RegistrationToken" -ErrorAction SilentlyContinue).RegistrationToken))
 		{LogWrite ("Turbo Deployment started. " + $Turbo)}
-		else {LogWrite ("Normal Deployment started. AVDTurbo: " + $TURBO)}
+		else {$TURBO='False';LogWrite ("Normal Deployment started. AVDTurbo: " + $TURBO)}
 	}
 	catch{LogWrite ("400: " + $_.Exception.Message);exit 400}
 }

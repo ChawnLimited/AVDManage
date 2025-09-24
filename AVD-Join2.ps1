@@ -79,7 +79,7 @@ Function LoadModules
 # access to www.powershellgallery.com
     try	{
 	    if (-not(Get-PSRepository -Name "PSGallery"))
-	    	{Register-PSRepository -Default -InstallationPolicy Trusted
+	    	{Register-PSRepository -Default -InstallationPolicy Trusted;
 	    	LogWrite "Added PSGallery as trusted repo"}
 	    Else {Set-PSRepository -Name "PSGallery" -InstallationPolicy Trusted}
 	    }
@@ -88,10 +88,10 @@ Function LoadModules
 logwrite('Load Modules')
 
 		try{
-			if (Get-Module -name Az.Accounts -ListAvailable) {Logwrite('Az.Accounts is available.')
+			if (Get-Module -name Az.Accounts -ListAvailable) {Logwrite('Az.Accounts is available.');
 			import-module -Name Az.Accounts -noclobber}
 			else{Logwrite ('Az.Accounts is not available. Exit.');exit 203}
-			if (Get-Module -name Az.DesktopVirtualization -ListAvailable) {Logwrite('Az.DesktopVirtualization is available.')
+			if (Get-Module -name Az.DesktopVirtualization -ListAvailable) {Logwrite('Az.DesktopVirtualization is available.');
 			import-module -Name Az.DesktopVirtualization -noclobber}
 			else{Logwrite ('Az.DesktopVirtualization is not available. Exit.');exit 202}
 		}
@@ -148,7 +148,7 @@ if ($Turbo -ne "AVDTurbo")
 			}
 		catch {logwrite('200: Error importing Az Modules' +  $_.Exception.Message); exit 200}
 	}
-
+LoadModules
 
 # Start the RDAGent downloads
 	%{
@@ -176,7 +176,7 @@ $hostname=[System.Net.Dns]::GetHostByName($env:computerName).HostName
 logwrite('Hostname:' + $hostname)
 logwrite('Hostpool:' + $hostpool)
 
-LoadModules
+
 
 
 logwrite('Logon to Azure')

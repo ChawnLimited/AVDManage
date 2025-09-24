@@ -190,7 +190,7 @@ Function CheckToken
     catch{Logwrite("901: " + $_.Exception.Message); exit 901}
 }
 
-Funtion RenameComputer
+Function RenameComputer
 {
 	try {
 		LogWrite "Rename Computer"
@@ -218,7 +218,7 @@ Funtion RenameComputer
 	Catch {LogWrite ("300: " + $_.Exception.Message);exit 300}
 }
 
-Funtion JoinDomain
+Function JoinDomain
 {
 		try {
 		If ($ADDomain) {

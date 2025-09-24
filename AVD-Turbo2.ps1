@@ -214,8 +214,9 @@ Function RenameComputer
 		$xmlfile.Load($xml[0].fullname)
 		$xpath="/RDConfig/Instances/Instance"
 		$vmname=(Select-Xml -Path $xml.fullname -XPath $xpath | Select-Object -ExpandProperty Node).id
-		$Global:vmname=$vmname.Substring(1)
-
+		$vmname=$vmname.Substring(1)
+		$Global:AZVMNAME=$VMNAME
+		
 		if ($vmname -eq $env:computerName) {LogWrite ("Computer is already named " + $VMName + ".")}
 		else {if ((gwmi win32_computersystem).partofdomain -eq 0) {
 		LogWrite ("Renaming Computer to " + $VMName)
@@ -296,7 +297,7 @@ if ($Turbo -ne "AVDTurbo")
 
 
 # get the DNS hostname of the VM
-	$hostname=$vmname + "." + $ADDomain
+	$hostname=$AZVMName + "." + $ADDomain
 	logwrite('Hostname:' + $hostname)
 	logwrite('Hostpool:' + $hostpool)
 
@@ -380,8 +381,8 @@ LogWrite ($VMName + " Deployment complete. Schedule a restart and exit.")
 # SIG # Begin signature block
 # MIInlQYJKoZIhvcNAQcCoIInhjCCJ4ICAQExDzANBglghkgBZQMEAgEFADB5Bgor
 # BgEEAYI3AgEEoGswaTA0BgorBgEEAYI3AgEeMCYCAwEAAAQQH8w7YFlLCE63JNLG
-# KX7zUQIBAAIBAAIBAAIBAAIBADAxMA0GCWCGSAFlAwQCAQUABCByJEHcvGF56T80
-# CG46ULbH1GaNycluGAbEHvvV+ZwU4aCCIkEwggMwMIICtqADAgECAhA3dENPnrQO
+# KX7zUQIBAAIBAAIBAAIBAAIBADAxMA0GCWCGSAFlAwQCAQUABCAzmlbL7QtHR7Nt
+# +uvSHUxqhvstvDTPko0fLWJa3Q3Yp6CCIkEwggMwMIICtqADAgECAhA3dENPnrQO
 # Ih+SNsofLycXMAoGCCqGSM49BAMDMFYxCzAJBgNVBAYTAkdCMRgwFgYDVQQKEw9T
 # ZWN0aWdvIExpbWl0ZWQxLTArBgNVBAMTJFNlY3RpZ28gUHVibGljIENvZGUgU2ln
 # bmluZyBSb290IEU0NjAeFw0yMTAzMjIwMDAwMDBaFw0zNjAzMjEyMzU5NTlaMFcx
@@ -569,25 +570,25 @@ LogWrite ($VMName + " Deployment complete. Schedule a restart and exit.")
 # U2lnbmluZyBDQSBFViBFMzYCEDxolvyQov0GPgzdcbswAjcwDQYJYIZIAWUDBAIB
 # BQCggYQwGAYKKwYBBAGCNwIBDDEKMAigAoAAoQKAADAZBgkqhkiG9w0BCQMxDAYK
 # KwYBBAGCNwIBBDAcBgorBgEEAYI3AgELMQ4wDAYKKwYBBAGCNwIBFTAvBgkqhkiG
-# 9w0BCQQxIgQgYVpQz5CaA3Ezov6nwa3NjUJnxKN02ckG00+Sxsjw5FMwCwYHKoZI
-# zj0CAQUABGcwZQIwC7ThDH1c0zOVR12McAtWespbvMIwYw8Xv13iLl3xtbLkf570
-# 8d5uNfs4ZVj0+LfjAjEA65ib9bjxow6meNwITKLT5+PI0QsdlJszwHRuAZED2WBk
-# ofSx9ZtnPC4w7zJav3N2oYIDJjCCAyIGCSqGSIb3DQEJBjGCAxMwggMPAgEBMH0w
+# 9w0BCQQxIgQgBzrNWm+miJZTExrgmyf9UwVaTOJwNia/HJBzYgRjlGQwCwYHKoZI
+# zj0CAQUABGcwZQIwRmNKkVlAE4YUpQ5Hhpe4flEviJPICQ1dLoX54tTXvdXNhEZt
+# vburcw/Gk9ygEKPcAjEAp1mgdwCN3NDvRQSknRnJFAeTR28ULwE6T6da99tbw8mJ
+# F2R+/Bn9u77rU4woTXReoYIDJjCCAyIGCSqGSIb3DQEJBjGCAxMwggMPAgEBMH0w
 # aTELMAkGA1UEBhMCVVMxFzAVBgNVBAoTDkRpZ2lDZXJ0LCBJbmMuMUEwPwYDVQQD
 # EzhEaWdpQ2VydCBUcnVzdGVkIEc0IFRpbWVTdGFtcGluZyBSU0E0MDk2IFNIQTI1
 # NiAyMDI1IENBMQIQCoDvGEuN8QWC0cR2p5V0aDANBglghkgBZQMEAgEFAKBpMBgG
-# CSqGSIb3DQEJAzELBgkqhkiG9w0BBwEwHAYJKoZIhvcNAQkFMQ8XDTI1MDkyNDIy
-# MzkwNFowLwYJKoZIhvcNAQkEMSIEIDE7mpuYtdiKqwOwt1r2Z8SDDUzUm8dpoNg7
-# 1uV8+dCAMA0GCSqGSIb3DQEBAQUABIICAMId+1WzwUtdJJ/wUlla2LsJA1P2+LdI
-# vxlDfIC8+DiNQe7y7Yb7fIqCdhkBKEF6VrTaNwn0slh7Q+XuGyEF/U19bkl+w4H9
-# R2v7SjJhEK+nJrgKfQhTaNLBV4MFPx4XiGmDko4fSWrasw+Rat2JUdl9HAEL45b8
-# jK5EwwghasqJSY0BJ5MfVuKUsXkWUBjNlA8O0Q6XSEhPj5MZGsE2sT4im2LTNxDy
-# HTLwz1NrlepEsySpUHMlS5gnOSOP8Ye3flzGu4BNS5bz38IHGreFIklK0UJyR5Xu
-# /DWdtT+28YNFe/WGcuLwlPjbNqruBL2eRoO5GzT9Gu19aKa/MN8AuYAma65FwzC2
-# o8+QlaJKWLCinPCh3zH0er3o5qMr8Eho1Q7dFJjsArd/OwxO7wsByIx6NmMmgrWl
-# 9rjz9E20J2pE70m2SjIN7RmOCbMMG5JbRjDj8Bm4DV5fMpVcF8xYxgkuBgpncx+0
-# MJ4+uvOVt11/26may1AgckmR73A8GaKWEpnL6lcp5oUHRZO8++iIgLocl/4j6nNh
-# p+uDx4OLNhmS9KK3bBan/i4s2vSg1sqik9FCKXKE1zCYjycE9hMJFPlFiy/oUJVj
-# iJqqX+CuCi8So0hqQf9f8MxsL0Dj55ovqLavP5/EOJgaj1YKI0ZF1RM8D1jmMdaw
-# vDSJC6xo0St9
+# CSqGSIb3DQEJAzELBgkqhkiG9w0BBwEwHAYJKoZIhvcNAQkFMQ8XDTI1MDkyNDIz
+# MTE0NlowLwYJKoZIhvcNAQkEMSIEINt3TB4LCNAn8mdVu6SwoAg/+YYQhgAVnezk
+# rN5/lvEkMA0GCSqGSIb3DQEBAQUABIICAHebKH9k/QurBXAdk/ejqc+u+/A7gysf
+# 3stxi3+9RiJsHqSWXp2nonMFzRlIp5YNhHGCrG1yP34EnUp0lRZ7E4RAPLr9UXrS
+# XOlwaENBMbIHisNvQivQopZ8+m+PCgoUEgYy4eqwBvQyB69vyf68QhWzvz8C9V5f
+# ncbbwv9nouj92OXMm2q2AfpxhOX2MkFueYp1zL1SNb7RvrHUHh9ovibQrmSiTYGX
+# t6hgiUPljWWCTGcTYWJ/Z6Q05boVhbY8cIAz44j3WP47bXyEBOY92jSiQWjo+Jbp
+# b584vDnZTvCZLzfvY6EUpNQq1KTbcdlNRZPG0CBgeJsikmDHMdGHmoyC9Vc15zs1
+# yAqF5Mna3wyEgVe7wAuh7iHWyQO+m1EctLUplweYhMGat9Iq4WVsfskwufqeJF76
+# Fq/KCulnA67crVtgfBLRsi0hvJsFnkOhOijmDBKAKeD3ZBbEaxz9WD1CmI3XUU6B
+# 2FoVoWj9sX+wCGSO6UaRtIEmkjIUf8Vo2lgaFtsQYgf/acAuIxQH/ak33j93A8kU
+# fhSZLQ0gWqNFDymyenKAtOvg3GmxDtemaiQ0E/ipQTBYPtqxsvKxV24yK7tqBTQW
+# 4ds8nf39DBhWK/92PgnOpJK80nv/A3XU9mtafCesqxZgaqtoUQnFaTRtAy3+nMj6
+# lSYWkqjj/4Ri
 # SIG # End signature block

@@ -207,7 +207,7 @@ Function RenameComputer
 		$xmlfile.Load($xml[0].fullname)
 		$xpath="/RDConfig/Instances/Instance"
 		$vmname=(Select-Xml -Path $xml.fullname -XPath $xpath | Select-Object -ExpandProperty Node).id
-		$vmname=$vmname.Substring(1)
+		$Global:vmname=$vmname.Substring(1)
 
 		if ($vmname -eq $env:computerName) {LogWrite ("Computer is already named " + $VMName + ".")}
 		else {if ((gwmi win32_computersystem).partofdomain -eq 0) {
@@ -355,7 +355,7 @@ logwrite ('Disconnected from Azure')
 
 
 # Finished
-LogWrite ($VMName + " deployment complete. Schedule a restart and exit.")
+LogWrite ($VMName + " Deployment complete. Schedule a restart and exit.")
 	Start-Process -FilePath "shutdown.exe" -ArgumentList "/r /t 5 /d p:0:0 /c 'AVDTurbo'"
 	exit 0
 

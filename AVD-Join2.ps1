@@ -190,6 +190,9 @@ Function CheckToken
 }
 
 
+#Get the ComputerName
+$VMName=[System.Net.Dns]::GetHostByName($env:computerName).HostName
+
 # Check for a Turbo deployment
 %{
 	try{
@@ -224,7 +227,7 @@ LoadModules
 
 
 # check if the RDAgent is already installed - normal deployment
-if ($Turbo -ne "AVDTurbo")
+if ($Turbo -eq "False")
 	{
 	DownloadAgents
 	}
@@ -263,6 +266,7 @@ logwrite ('Disconnected from Azure')
 			Get-Service -Name RDAgentBootLoader | Set-Service -StartupType Automatic
 			Get-Service -Name RDAgentBootLoader | start-service
 			LogWrite ("Turbo Deployment Complete")
+			$WVDToken="Null"
 			}
 		}
 	}
@@ -272,7 +276,7 @@ logwrite ('Disconnected from Azure')
 # Start a normal deployment with the RDAgent and RDBootloader
 %{
     try {
-		if ($Turbo -ne "AVDTurbo"){
+		if ($Turbo -eq "False"){
 			if ($WVDToken) {
 
     		### Install RDAgent
@@ -285,6 +289,7 @@ logwrite ('Disconnected from Azure')
 		    if (get-item -path C:\Source\RDBoot.msi){Start-Process msiexec.exe -Wait -ArgumentList "/I C:\Source\RDBoot.msi /qb  /L*V RDBoot.log"}
 			else{Logwrite("902: RDBoot.msi is not available. Exit");exit 904}
 		    LogWrite "Install RDS Agents completed."
+			$WVDToken="Null"
 			}
 			Else {logwrite ('Could not retrieve a WVD Host Token for HostPool:' + $HostPool + '. Skip join WVD Hostpool')}
 		}
@@ -315,8 +320,8 @@ LogWrite ($VMName + " deployment complete.")
 # SIG # Begin signature block
 # MIInlAYJKoZIhvcNAQcCoIInhTCCJ4ECAQExDzANBglghkgBZQMEAgEFADB5Bgor
 # BgEEAYI3AgEEoGswaTA0BgorBgEEAYI3AgEeMCYCAwEAAAQQH8w7YFlLCE63JNLG
-# KX7zUQIBAAIBAAIBAAIBAAIBADAxMA0GCWCGSAFlAwQCAQUABCDV6HWNg3/m3JGH
-# 0x93OQAIEZH7hWEgP95d/AP7pB5Yp6CCIkEwggMwMIICtqADAgECAhA3dENPnrQO
+# KX7zUQIBAAIBAAIBAAIBAAIBADAxMA0GCWCGSAFlAwQCAQUABCDbubg5ycBpfx1u
+# YNFkPRPCfAp3Vop0Rhip8LAFS6nMe6CCIkEwggMwMIICtqADAgECAhA3dENPnrQO
 # Ih+SNsofLycXMAoGCCqGSM49BAMDMFYxCzAJBgNVBAYTAkdCMRgwFgYDVQQKEw9T
 # ZWN0aWdvIExpbWl0ZWQxLTArBgNVBAMTJFNlY3RpZ28gUHVibGljIENvZGUgU2ln
 # bmluZyBSb290IEU0NjAeFw0yMTAzMjIwMDAwMDBaFw0zNjAzMjEyMzU5NTlaMFcx
@@ -504,25 +509,25 @@ LogWrite ($VMName + " deployment complete.")
 # U2lnbmluZyBDQSBFViBFMzYCEDxolvyQov0GPgzdcbswAjcwDQYJYIZIAWUDBAIB
 # BQCggYQwGAYKKwYBBAGCNwIBDDEKMAigAoAAoQKAADAZBgkqhkiG9w0BCQMxDAYK
 # KwYBBAGCNwIBBDAcBgorBgEEAYI3AgELMQ4wDAYKKwYBBAGCNwIBFTAvBgkqhkiG
-# 9w0BCQQxIgQg8d8bWUKwcluRSfx88J3CkmI8qJzWeMbfUDqYfgfCPtwwCwYHKoZI
-# zj0CAQUABGYwZAIwY+G993l98lGt4L69R7aCwj791mnDZmRTKKZs2250/t0bKm+6
-# PYPV9PQ3S1eVRY4XAjAnOGv6sU2vdKZR888KNTx99Rv8F9ymJsGJOCyTjGa+A4eQ
-# Ao0S+0F/AMobc2GXSIShggMmMIIDIgYJKoZIhvcNAQkGMYIDEzCCAw8CAQEwfTBp
+# 9w0BCQQxIgQgy9Mhb6AHJJcxEyWMmGa7PdwNtbIZ23v5NkcTNhZLH6UwCwYHKoZI
+# zj0CAQUABGYwZAIwCiUk1Bn9cwAizLNjL6LqWGxbBqpumJXflGosrsHtkTi+N+cY
+# yQZtayI2bE/TEk6wAjAxtMbL4xLHrJylq6P5jK7pLQ/fWfPemBgQ+LVJCN+rCHmZ
+# kH2JJacWTf4BegqW7qahggMmMIIDIgYJKoZIhvcNAQkGMYIDEzCCAw8CAQEwfTBp
 # MQswCQYDVQQGEwJVUzEXMBUGA1UEChMORGlnaUNlcnQsIEluYy4xQTA/BgNVBAMT
 # OERpZ2lDZXJ0IFRydXN0ZWQgRzQgVGltZVN0YW1waW5nIFJTQTQwOTYgU0hBMjU2
 # IDIwMjUgQ0ExAhAKgO8YS43xBYLRxHanlXRoMA0GCWCGSAFlAwQCAQUAoGkwGAYJ
-# KoZIhvcNAQkDMQsGCSqGSIb3DQEHATAcBgkqhkiG9w0BCQUxDxcNMjUwOTI0MjIz
-# OTA0WjAvBgkqhkiG9w0BCQQxIgQgoG6EbZMqbcvmRUVaJujNK/4RkSZh8umyutJC
-# R7MAtBEwDQYJKoZIhvcNAQEBBQAEggIAVaofvOkwOZ3QCxk8ZTr+SaWs1IpXnJXW
-# Jc9MhPYRFdsxUZE6HFgKCPpL3bqk5Ik/zhb16xLaajNGp9P+kxsm7gW5fm8+hkWJ
-# B04ujQpF2bdzwSzfROywYL7TKP5p0ZslIdz8ecap5dhYEmGjDAI4GHoibtNx+CvW
-# G9eApc8Mr7Xt6aKjDOWRX0UTf1hbnQ1Zc8scIRqyqTfLn6tyBc5OELLofapUZNDm
-# QoWnNNM2sI2c/TbEcwrh0MTNGf1IeOXyfGv2Aw9nawZ28uJCN6oEC4lKbE6wYbVo
-# sSTO4jKZNxLlYNdwQs2H//p0meHS7VYm4tuovMWfeSt8uwRaVc9AH8kOdaNwsdYc
-# yyg+M8onXNilowkLIORpUkFMLHwhPKSmYdbDyUjqdlYR0StvWLpOeK7vGFOMySGf
-# 7XblhsJWVgQMKDGWVQwdEIYMfsfGdzSO/pFnhKaye8VdjVH1knOjq+4pBDtFKeAH
-# tlljLUDkv6591ZkCe1TgPTi51NwyQqdHI7245EIHg3ApKumvRAIa22YP9fEw/L1j
-# zLpHI4cjgfQH9HEQmzs5Q/Sohl6ajfhbKjir6DKMoRaEMJpYu5l0kVhZ3lJxz4WL
-# IcnCQqyjPDjU5CsutCfWpxnQnS0aQF56dSehS2veYSxB8DRimrejjlGk6l2MrPbG
-# PU0lZjNPOVs=
+# KoZIhvcNAQkDMQsGCSqGSIb3DQEHATAcBgkqhkiG9w0BCQUxDxcNMjUwOTI1MDAy
+# MTMzWjAvBgkqhkiG9w0BCQQxIgQgblkwjZBEtnKepDLrvLBMgV31jAyg2ubMumfr
+# 2YziF40wDQYJKoZIhvcNAQEBBQAEggIAnGYJzfpUfqOe3zk9C76Kd9XtGwwpgxGE
+# aTR8Kwz8ngXn2zaBoegLb02Ab0aGRKM/7dRmfpGIWSeCyy552E/IFXOnmPLK/KOH
+# Ef9Rp6pLY3B1zjVgOqtOxcTCsxyD/re29uZrvZFFwG9G/ZiQAJEig+ZJ6Ad68Y2Y
+# cNgxQJ3KsnLph5zRv6YzcGeIM/Up/9O98hVPSqKy6RgzJ1V+2wex8OrhV+SBgjjk
+# vYg6BLqBfbYC/OAUdF1IFwB9PmF8yuAyHIel1TqapcrIfUPUHvrcaliyNdcJI1Rp
+# 4xeNobfRPirl76gsJQBi76baR3mlswxCYWFW2gLA6FK7Ao95iHyD61KSYs5vFP4n
+# 9viGlA1EQ5SUZuISvoeigmCOF1pVuXcLRfLH8iiYKKCjG1yez8d4yJfNaT4EpE9O
+# AcbVzqRJ3Qb9Rw2mIpSpCfcXQ3KhJwFV054z0busS3zIqxSscR93us6KGUoPgJXE
+# L+5Qgx8RGDbCx4ktzM/B3dLsWMD8KUyjGrAXAPVAPyv70bisT6WGPxbyR8Xdc4V2
+# z32M5WnPj6KmIiIQMRaAsVzkvg7d89V5llDNnxQxTpbxNrpjv9l/Jr/ZMtcDeEkh
+# H3rT9Qk2qW08MJxJQ6kUJOf6lzjQD7A/zImYJ5fAHr+Sv2Er2alDFNPRtrrRIqQz
+# fOcApSCG2CA=
 # SIG # End signature block

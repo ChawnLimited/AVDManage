@@ -103,7 +103,7 @@ Function CheckDomain
 		if ((gwmi win32_computersystem).partofdomain -eq $false) {logwrite('401: Device is not AD Domain joined. Exit.')
 		exit 401}
 		else {logwrite('Device is AD Domain joined.')}
-		If (-not $HostPool) {LogWrite ($VMName + " deployment complete. Schedule a restart and exit.")
+		If (-not $HostPool) {LogWrite ($AZVMName + " deployment complete. Schedule a restart and exit.")
 			Start-Process -FilePath "shutdown.exe" -ArgumentList "/soft /r /t 5 /d p:0:0 /c 'AVDTurbo'"
 			exit 0}
 	}
@@ -242,7 +242,7 @@ Function JoinDomain
 				LogWrite ("Ignore the Computername above. Add-Computer always reports the original name, not the new name.")
 			}
 		}
-		else {LogWrite ($VMName + " deployment complete. Schedule a restart and exit.")
+		else {LogWrite ($AZVMName + " deployment complete. Schedule a restart and exit.")
 		Start-Process -FilePath "shutdown.exe" -ArgumentList "/r /t 5 /d p:0:0 /c 'AVDTurbo'"
 		exit 0}
 	}
@@ -290,7 +290,7 @@ LoadModules
 
 
 # check if the RDAgent is already installed - normal deployment
-if ($Turbo -ne "AVDTurbo")
+if ($Turbo -eq "False")
 	{
 	DownloadAgents
 	}
@@ -329,6 +329,7 @@ logwrite ('Disconnected from Azure')
 			Get-Service -Name RDAgentBootLoader | Set-Service -StartupType Automatic
 			Get-Service -Name RDAgentBootLoader | start-service
 			LogWrite ("Turbo Deployment Complete")
+			$WVDToken="Null"
 			}
 		}
 	}
@@ -338,7 +339,7 @@ logwrite ('Disconnected from Azure')
 # Start a normal deployment with the RDAgent and RDBootloader
 %{
     try {
-		if ($Turbo -ne "AVDTurbo"){
+		if ($Turbo -eq "False"){
 			if ($WVDToken) {
   		    
     		### Install RDAgent
@@ -351,6 +352,7 @@ logwrite ('Disconnected from Azure')
 		    if (get-item -path C:\Source\RDBoot.msi){Start-Process msiexec.exe -Wait -ArgumentList "/I C:\Source\RDBoot.msi /qb  /L*V RDBoot.log"}
 			else{Logwrite("902: RDBoot.msi is not available. Exit");exit 904}
 		    LogWrite "Install RDS Agents completed."
+			$WVDToken="Null"
 			}
 			Else {logwrite ('Could not retrieve a WVD Host Token for HostPool:' + $HostPool + '. Skip join WVD Hostpool')}
 		}
@@ -374,15 +376,15 @@ logwrite ('Disconnected from Azure')
 
 
 # Finished
-LogWrite ($VMName + " Deployment complete. Schedule a restart and exit.")
+LogWrite ($AZVMName + " Deployment complete. Schedule a restart and exit.")
 	Start-Process -FilePath "shutdown.exe" -ArgumentList "/r /t 5 /d p:0:0 /c 'AVDTurbo'"
 	exit 0
 
 # SIG # Begin signature block
-# MIInlAYJKoZIhvcNAQcCoIInhTCCJ4ECAQExDzANBglghkgBZQMEAgEFADB5Bgor
+# MIInlQYJKoZIhvcNAQcCoIInhjCCJ4ICAQExDzANBglghkgBZQMEAgEFADB5Bgor
 # BgEEAYI3AgEEoGswaTA0BgorBgEEAYI3AgEeMCYCAwEAAAQQH8w7YFlLCE63JNLG
-# KX7zUQIBAAIBAAIBAAIBAAIBADAxMA0GCWCGSAFlAwQCAQUABCAzmlbL7QtHR7Nt
-# +uvSHUxqhvstvDTPko0fLWJa3Q3Yp6CCIkEwggMwMIICtqADAgECAhA3dENPnrQO
+# KX7zUQIBAAIBAAIBAAIBAAIBADAxMA0GCWCGSAFlAwQCAQUABCCXYA25Tib+i3Cf
+# sN5kzqSBMxxiOoicZCMpP2RU4pq246CCIkEwggMwMIICtqADAgECAhA3dENPnrQO
 # Ih+SNsofLycXMAoGCCqGSM49BAMDMFYxCzAJBgNVBAYTAkdCMRgwFgYDVQQKEw9T
 # ZWN0aWdvIExpbWl0ZWQxLTArBgNVBAMTJFNlY3RpZ28gUHVibGljIENvZGUgU2ln
 # bmluZyBSb290IEU0NjAeFw0yMTAzMjIwMDAwMDBaFw0zNjAzMjEyMzU5NTlaMFcx
@@ -565,30 +567,30 @@ LogWrite ($VMName + " Deployment complete. Schedule a restart and exit.")
 # IwXMZUXBhtCyIaehr0XkBoDIGMUG1dUtwq1qmcwbdUfcSYCn+OwncVUXf53VJUNO
 # aMWMts0VlRYxe5nK+At+DI96HAlXHAL5SlfYxJ7La54i71McVWRP66bW+yERNpbJ
 # CjyCYG2j+bdpxo/1Cy4uPcU3AWVPGrbn5PhDBf3Froguzzhk++ami+r3Qrx5bIbY
-# 3TVzgiFI7Gq3zWcxggSpMIIEpQIBATBrMFcxCzAJBgNVBAYTAkdCMRgwFgYDVQQK
+# 3TVzgiFI7Gq3zWcxggSqMIIEpgIBATBrMFcxCzAJBgNVBAYTAkdCMRgwFgYDVQQK
 # Ew9TZWN0aWdvIExpbWl0ZWQxLjAsBgNVBAMTJVNlY3RpZ28gUHVibGljIENvZGUg
 # U2lnbmluZyBDQSBFViBFMzYCEDxolvyQov0GPgzdcbswAjcwDQYJYIZIAWUDBAIB
 # BQCggYQwGAYKKwYBBAGCNwIBDDEKMAigAoAAoQKAADAZBgkqhkiG9w0BCQMxDAYK
 # KwYBBAGCNwIBBDAcBgorBgEEAYI3AgELMQ4wDAYKKwYBBAGCNwIBFTAvBgkqhkiG
-# 9w0BCQQxIgQgBzrNWm+miJZTExrgmyf9UwVaTOJwNia/HJBzYgRjlGQwCwYHKoZI
-# zj0CAQUABGYwZAIwAJTsDKaImU0is01x1jP1qdKYKs85+P6gspxGGXxMz2g5uc50
-# pI3x5gDNnum4+WgKAjBKBQNNhzWxTNSS+aV97DLlrojA/kYq1bZ9jwQmGSqnlsVV
-# 3FPR3hyaLIh8Fcivb9ahggMmMIIDIgYJKoZIhvcNAQkGMYIDEzCCAw8CAQEwfTBp
-# MQswCQYDVQQGEwJVUzEXMBUGA1UEChMORGlnaUNlcnQsIEluYy4xQTA/BgNVBAMT
-# OERpZ2lDZXJ0IFRydXN0ZWQgRzQgVGltZVN0YW1waW5nIFJTQTQwOTYgU0hBMjU2
-# IDIwMjUgQ0ExAhAKgO8YS43xBYLRxHanlXRoMA0GCWCGSAFlAwQCAQUAoGkwGAYJ
-# KoZIhvcNAQkDMQsGCSqGSIb3DQEHATAcBgkqhkiG9w0BCQUxDxcNMjUwOTI0MjMx
-# NTU0WjAvBgkqhkiG9w0BCQQxIgQgsRVNijzii2awMPCHjZ5shGazgUot1Xdru2cq
-# oUD2t9EwDQYJKoZIhvcNAQEBBQAEggIApRmrgzt1xJWQDiUtx4n9B5tHsJeZap1C
-# 4h0D92pe+Qlg4W9i2OvrGP4rn+KxhKs3LLR/RYuEx+rleMWFgF0y+VpM+MXc4lvo
-# +TMN/A1o/jIUdmlPuyRq3jIHnG+vs+pxD0VwFssKcrKO6Har1mj/LjPC+GLA2nRE
-# tkA1pMB9i+u5+XaXLxkNMcleLuRmRn3DPTFfyjlbrkPza/kgMnlLCbLEj0byobl4
-# JF48MEBlxSBh0tRnQIlQfXLWaBZWZoqFBfhF02+4iFg1EQUZTON8E85QFDyKJtMT
-# LTD5bpvuM0fi0744HX3jDqmfb7M4UxIU8i1bU9Le2iSrOvopB1rx86T5qzbAiVvn
-# IaKQE0zeI7RY9mrG/MzHgsZGTPCKCCyGtbbfIIjnRlJrN6qaWGnOycjrnSrSY9Nd
-# uFZCIpyiIPJUK/r544MsUFiXlljRotYudycc9RI9gz0R2JbMDUG9FXnP7w741qhr
-# 6spURKDo0jFf0vdDS4nEWsfbAzVxK3HydbsrLDi9FVDQtBspID2ypC6xD/bGZJK3
-# 1vRzXES5AB4maYEzVsQlj04CVlnF/oEVi7sowDJcoPuQmcS9IEr/9aNAr6rjXZvI
-# wuMasgwmUG1hTs1bzFGQhhWqcPtdZ3a4/5ZexaDfSLel05tBA84FwJ9hdzQz+C7U
-# sY1et2NjoKo=
+# 9w0BCQQxIgQgsF5LQ5dkmqKF+I+1IRuee7Ue2VgkRJmhNx50VTVrLQcwCwYHKoZI
+# zj0CAQUABGcwZQIxAPQbS+I/l9+fPShkz0BXm7KlSfkuYEcjdbacjXwqnMTgNwJP
+# xqqCfb4DI7/HqEGMbAIwNeueRKiuTHhJR+ueXIWIxBN8BDy8Af8dPT02lsIoBzYj
+# /j2svlb9DmYxjLkprrfvoYIDJjCCAyIGCSqGSIb3DQEJBjGCAxMwggMPAgEBMH0w
+# aTELMAkGA1UEBhMCVVMxFzAVBgNVBAoTDkRpZ2lDZXJ0LCBJbmMuMUEwPwYDVQQD
+# EzhEaWdpQ2VydCBUcnVzdGVkIEc0IFRpbWVTdGFtcGluZyBSU0E0MDk2IFNIQTI1
+# NiAyMDI1IENBMQIQCoDvGEuN8QWC0cR2p5V0aDANBglghkgBZQMEAgEFAKBpMBgG
+# CSqGSIb3DQEJAzELBgkqhkiG9w0BBwEwHAYJKoZIhvcNAQkFMQ8XDTI1MDkyNTAw
+# MjEzM1owLwYJKoZIhvcNAQkEMSIEIAa9rLywczoMEFgwgWm0ZSgii/tGtKzJi/v8
+# hI18WquoMA0GCSqGSIb3DQEBAQUABIICAIcOfk4y1Sx2d2rUn6b08Mk7y36ztqG2
+# fJ18E/kQB0g84pwYJQj40dhzIVO4TBxo1R5Jl2zrJXzulu1C/D2N5AxVCc0g3N5Q
+# kIntvXJ8nQlfTsaM1EDtwqzfbImFByz4/65r1IMUjf1TV0LOrzFWLn7HNvcL+YtN
+# 2V6o2n82n2ZgtWUOe/ryrQaCsUl7QMbMm/MdlMHvm5yhYQG+iJ4uDK9oUvGLVtTn
+# tdeaX5yPouYbJtrNsuV2KuOCnuSjt3Z0mxAg3EJU2byzcaMbj5HwT7VP5mteUtKo
+# nhorQn1VVlDAywW6Yp7sl6/JIqJkW9R/9R0MA6p5jwhdc8xfYtUs2lkIfUhIo0lz
+# vUVXDrHZVMrK9rFVU7tMgh9LSfthf1j5sQnb0KbDVv+4yFUFS/rNTIuXdQz+zy8H
+# KopocgegSFcDRfSOeDnYWIU/iR5XRCeUUZXsIo+UZuLeXX8jhKLSAJwviDYKxF6R
+# 5fm5xzv9CyqIL9p3mrg14MY5m4pjHXL5Ull72s6Eue9L91gEHzOcVmNhKgPJFqTS
+# Wu/U6o2VWNaT/H6YffaHwUuFDU+g5dW6rSa9HXlz8rSBv9uv/JiOaP4bCUL/TSpi
+# JZzPj4KMFpFt2kY9Z0dXggJ70bPUHES7O/yqwEgCzUOx0u8rDqiP3TiizmLtvzjF
+# VTACBLW3AO8v
 # SIG # End signature block

@@ -69,6 +69,20 @@ Function UpdateNuget
 }
 
 
+Function CheckModules
+{
+logwrite('Check Modules')
+	try {
+		if (Get-Module -name Az.Accounts -ListAvailable) {Logwrite('Az.Accounts is available.')}
+		else {logwrite('Az.Accounts is not available. Will try and install.'); UpdateNuget; UpdateModule Az.Accounts;}
+
+		if (Get-Module -name Az.DesktopVirtualization -ListAvailable) {Logwrite('Az.DesktopVirtualization is available.')}
+		else {logwrite('Az.DesktopVirtualization is not available. Will try and install.'); UpdateModule Az.DesktopVirtualization;}
+			}
+		catch {logwrite('200: Error importing Az Modules' +  $_.Exception.Message); exit 200}
+logwrite('Check Complete')
+}
+
 Function UpdateModule
 {
    Param ([string]$module)
@@ -85,11 +99,12 @@ Function LoadModules
 logwrite('Load Modules')
 
 		try{
-			if (Get-Module -name Az.Accounts -ListAvailable) {Logwrite('Az.Accounts is available.');
-			import-module -Name Az.Accounts -cmdlet connect-azaccount,disconnect-azaccount -noclobber;}
+			import-module -Name Az.Accounts -noclobber;
+			if (Get-Module -name Az.Accounts) {Logwrite('Az.Accounts is available.');}
 			else{Logwrite ('Az.Accounts is not available. Exit.');exit 203}
-			if (Get-Module -name Az.DesktopVirtualization -ListAvailable) {Logwrite('Az.DesktopVirtualization is available.');
-			import-module -name Az.DesktopVirtualization -cmdlet Get-AzWvdSessionHost,Remove-AzWvdSessionHost,Get-AzWvdRegistrationInfo,New-AzWvdRegistrationInfo -noclobber;}
+
+			import-module -name Az.DesktopVirtualization -noclobber;
+			if (Get-Module -name Az.DesktopVirtualization) {Logwrite('Az.DesktopVirtualization is available.');}
 			else{Logwrite ('Az.DesktopVirtualization is not available. Exit.');exit 202}
 		}
 		catch{logwrite('201: Error importing Az Modules' +  $_.Exception.Message); exit 201}
@@ -272,16 +287,10 @@ JoinDomain
 CheckDomain
 
 
-# Check AZ Modules are present
-	%{
-		try {
-				if (Get-Module -name Az.Accounts -ListAvailable) {Logwrite('Az.Accounts is available.')}
-				else {logwrite('Az.Accounts is not available. Will try and install.'); UpdateNuget; UpdateModule Az.Accounts;}
-
-				if (Get-Module -name Az.DesktopVirtualization -ListAvailable) {Logwrite('Az.DesktopVirtualization is available.')}
-				else {logwrite('Az.DesktopVirtualization is not available. Will try and install.'); UpdateModule Az.DesktopVirtualization;}
-			}
-		catch {logwrite('200: Error importing Az Modules' +  $_.Exception.Message); exit 200}
+# Check if PS Modules are available - normal deployment
+if ($Turbo -eq "False")
+	{
+	CheckModules
 	}
 
 
@@ -381,10 +390,10 @@ LogWrite ($AZVMName + " deployment complete. Schedule a restart and exit.")
 	exit 0
 
 # SIG # Begin signature block
-# MIInlgYJKoZIhvcNAQcCoIInhzCCJ4MCAQExDzANBglghkgBZQMEAgEFADB5Bgor
+# MIInlAYJKoZIhvcNAQcCoIInhTCCJ4ECAQExDzANBglghkgBZQMEAgEFADB5Bgor
 # BgEEAYI3AgEEoGswaTA0BgorBgEEAYI3AgEeMCYCAwEAAAQQH8w7YFlLCE63JNLG
-# KX7zUQIBAAIBAAIBAAIBAAIBADAxMA0GCWCGSAFlAwQCAQUABCDGWY2UyaAfCzSl
-# zqAS084V5OuJ3guHc7qPjsGzh5+ND6CCIkEwggMwMIICtqADAgECAhA3dENPnrQO
+# KX7zUQIBAAIBAAIBAAIBAAIBADAxMA0GCWCGSAFlAwQCAQUABCAMngzMeVgosd0i
+# 513VoJeZe4IDHoESKQzd5mO1uFIkUKCCIkEwggMwMIICtqADAgECAhA3dENPnrQO
 # Ih+SNsofLycXMAoGCCqGSM49BAMDMFYxCzAJBgNVBAYTAkdCMRgwFgYDVQQKEw9T
 # ZWN0aWdvIExpbWl0ZWQxLTArBgNVBAMTJFNlY3RpZ28gUHVibGljIENvZGUgU2ln
 # bmluZyBSb290IEU0NjAeFw0yMTAzMjIwMDAwMDBaFw0zNjAzMjEyMzU5NTlaMFcx
@@ -567,30 +576,30 @@ LogWrite ($AZVMName + " deployment complete. Schedule a restart and exit.")
 # IwXMZUXBhtCyIaehr0XkBoDIGMUG1dUtwq1qmcwbdUfcSYCn+OwncVUXf53VJUNO
 # aMWMts0VlRYxe5nK+At+DI96HAlXHAL5SlfYxJ7La54i71McVWRP66bW+yERNpbJ
 # CjyCYG2j+bdpxo/1Cy4uPcU3AWVPGrbn5PhDBf3Froguzzhk++ami+r3Qrx5bIbY
-# 3TVzgiFI7Gq3zWcxggSrMIIEpwIBATBrMFcxCzAJBgNVBAYTAkdCMRgwFgYDVQQK
+# 3TVzgiFI7Gq3zWcxggSpMIIEpQIBATBrMFcxCzAJBgNVBAYTAkdCMRgwFgYDVQQK
 # Ew9TZWN0aWdvIExpbWl0ZWQxLjAsBgNVBAMTJVNlY3RpZ28gUHVibGljIENvZGUg
 # U2lnbmluZyBDQSBFViBFMzYCEDxolvyQov0GPgzdcbswAjcwDQYJYIZIAWUDBAIB
 # BQCggYQwGAYKKwYBBAGCNwIBDDEKMAigAoAAoQKAADAZBgkqhkiG9w0BCQMxDAYK
 # KwYBBAGCNwIBBDAcBgorBgEEAYI3AgELMQ4wDAYKKwYBBAGCNwIBFTAvBgkqhkiG
-# 9w0BCQQxIgQgnF/cTT7xDswqBM2vlx1g4A3mE+G38ocDsALECNXb6X4wCwYHKoZI
-# zj0CAQUABGgwZgIxAOcMNrOgsT8la0+k6Uu5c1KonzbtBnbgL52GV8KwUaxzk7jR
-# lvoso3uZHRcAwhGLXwIxALxItDtcdUh6P/fHBJoLVYXIazAxjzPAGWFs6Dl6ETLF
-# /CS0sFimr5vzZeAA8e5PG6GCAyYwggMiBgkqhkiG9w0BCQYxggMTMIIDDwIBATB9
-# MGkxCzAJBgNVBAYTAlVTMRcwFQYDVQQKEw5EaWdpQ2VydCwgSW5jLjFBMD8GA1UE
-# AxM4RGlnaUNlcnQgVHJ1c3RlZCBHNCBUaW1lU3RhbXBpbmcgUlNBNDA5NiBTSEEy
-# NTYgMjAyNSBDQTECEAqA7xhLjfEFgtHEdqeVdGgwDQYJYIZIAWUDBAIBBQCgaTAY
-# BgkqhkiG9w0BCQMxCwYJKoZIhvcNAQcBMBwGCSqGSIb3DQEJBTEPFw0yNTA5MjUw
-# NTIwMDdaMC8GCSqGSIb3DQEJBDEiBCCWMdIbu1TPsgSJ+eTTWxq1a6JKKs6Dacvx
-# m4zVD657ozANBgkqhkiG9w0BAQEFAASCAgCuYKcJ0KD/wmqU0Jk76ufPAJml3eLa
-# cu1LAkuvzKjp7p2rO73DnUXzF4ntz4E16wGlS25z6NbMnkndL9BcbSltIZvvE5f4
-# /nITbLgM4toud/5akJ1LeH/Eme7mUFZsN4gXRgoTleR6iQiYS0MZj7L3cuEYo1GC
-# DibRw+Kev6zYqKp+amj5HaKT3hVZORmrGHna++VDrD2ngDYke9Q8ebJ9cSJfvRPW
-# a0oZOiNd1dD8IC1XNNC/bWZ7fa62g1f2ep3hN/paebgyjWr7WFY5VaXzmmcSpfnp
-# KGO/mB0lzRRwp1FlFrUEa/q3IWXGpzhl3hDIrxTUSqt6UUueR46POLvzBL5omc5Y
-# dl8W7ArkDAovHJdZ5fCb/C/egV0l97iCBYoFfBWzFGEizfO7guSlG0ls3v3vA72d
-# VyknLz7yEWu2//g0r+FHtf4UBRdX3l/BIWOpmTyzQ6oncRREC90B94cGgmmqP2p/
-# 9JEpyYA1F6tRgMmcH4YO+wvzwc3zYr2wArG2mIM/UyEUbJJbZaJqa87tsG83/qug
-# awn8IGK+DbviiqJTdlZKipqqfBG+5AzGVaqMjs9R+ybqJWREQyhnfcQyM04jXN8r
-# 2SK7ITAF6+Aujdnv/jW4Jf/vPF8I1YpSW5egdSUpWv6mlFiTpz2JPofvn94P7g/U
-# nyYrBS2tE+IRnA==
+# 9w0BCQQxIgQgBa7HUetwIcq3xxjI2it/o6HHBYRxFS4dodBM8Kz26t0wCwYHKoZI
+# zj0CAQUABGYwZAIwdx7el+QwODyUJD+4eqL8uYB/7tZlP2ws+iZOohhUJI034hnL
+# V+7EpBIPc+eq0iOSAjBNE62nuZ0vpF+2o+dii4foC+xcUQtpb0pjkKYr7zNp7CeP
+# bma83sa+n+ZiI07IstChggMmMIIDIgYJKoZIhvcNAQkGMYIDEzCCAw8CAQEwfTBp
+# MQswCQYDVQQGEwJVUzEXMBUGA1UEChMORGlnaUNlcnQsIEluYy4xQTA/BgNVBAMT
+# OERpZ2lDZXJ0IFRydXN0ZWQgRzQgVGltZVN0YW1waW5nIFJTQTQwOTYgU0hBMjU2
+# IDIwMjUgQ0ExAhAKgO8YS43xBYLRxHanlXRoMA0GCWCGSAFlAwQCAQUAoGkwGAYJ
+# KoZIhvcNAQkDMQsGCSqGSIb3DQEHATAcBgkqhkiG9w0BCQUxDxcNMjUwOTI1MTY1
+# NzQ2WjAvBgkqhkiG9w0BCQQxIgQgL/FWQXINnW8bN/ZHnJnvtVk8ZIygyzRZfIgI
+# vGamlXEwDQYJKoZIhvcNAQEBBQAEggIAOrL8FB2PCxusdORxaQf1Q8Odiks6B/b+
+# ppDEUi9I3GMqXjTa8oWdwYn1JFZh5c60UGrXG6b8JC3CsPvGFxSEAS2gB377i6DP
+# RGwRvz4jKTyA1HGN102T9B/wZWQAeME1Mw5yMz00lLqOjzjrUdL6SYr6V1azwSNG
+# bAQC+DAJZHvPMYOWwulYRx/+OSu1bV1dL/bvwhnVLi2c2SU76uwaWbCCzE+GqHxZ
+# yxE2mAPWNGPUQgQ834lVA6qsteXEgSdUA098g623krVojWNGl4CyzWt87cCsJHY6
+# 1IH53lIVhbHdXGUpToLZbhZeT1ScXbS+eYV0FU+OQGeIA8U8VkWo7MVEGALDUsa9
+# vVE/u2DwvumxCIl9XQCa1cIhZVMClLXLZVcy7Fw/4O8KR8nf+vS+QWr7i472RXJ4
+# VlcCRHb1bRYlvuYctADOlQnmrxgBuBnAD41VsfJCpXURe9zBn4pN08l0hQ8alhYx
+# SQk2Si91nbNg+NmYEBG6rVkRnSHOsgiShHZ+U8pOhzxBuAGv8r7csfE6ovGyap5q
+# Z6ZE1mW0cX0AakhRQjTOE+iv6Koq70x3ipQronLExdcYqSHBdsGeVHvGR9qjhAi2
+# nSORccseYEL1Oiz/oxTH34e6FP9S+LvJMYkqmp2ab62l7oCWoQWDCMAM6eBCM8t+
+# 1jvWKhxZve4=
 # SIG # End signature block

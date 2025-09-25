@@ -79,12 +79,12 @@ Function LoadModules
 logwrite('Load Modules')
 
 		try{
-			import-module -Name Az.Accounts -cmdlet connect-azaccount,disconnect-azaccount -noclobber;
+			import-module -Name Az.Accounts -noclobber;
 			if (Get-Module -name Az.Accounts) {Logwrite('Az.Accounts is available.');}
 			else{Logwrite ('Az.Accounts is not available. Exit.');exit 203}
 
-			import-module -name Az.DesktopVirtualization -cmdlet Get-AzWvdSessionHost,Remove-AzWvdSessionHost,Get-AzWvdRegistrationInfo,New-AzWvdRegistrationInfo -noclobber;
-			if (Get-Module -name Az.DesktopVirtualization -ListAvailable) {Logwrite('Az.DesktopVirtualization is available.');}
+			import-module -name Az.DesktopVirtualization -noclobber;
+			if (Get-Module -name Az.DesktopVirtualization) {Logwrite('Az.DesktopVirtualization is available.');}
 			else{Logwrite ('Az.DesktopVirtualization is not available. Exit.');exit 202}
 		}
 		catch{logwrite('201: Error importing Az Modules' +  $_.Exception.Message); exit 201}

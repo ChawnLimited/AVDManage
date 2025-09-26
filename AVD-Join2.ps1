@@ -94,11 +94,12 @@ Function LoadModules
 logwrite('Load Modules')
 
 		try{
-			import-module -Name Az.Accounts -noclobber;
+			logwrite('Import Az.Accounts')
+			import-module -Name Az.Accounts;
 			if (Get-Module -name Az.Accounts) {Logwrite('Az.Accounts is available.');}
 			else{Logwrite ('Az.Accounts is not available. Exit.');exit 203}
-
-			import-module -name Az.DesktopVirtualization -noclobber;
+			logwrite('Import Az.DesktopVirtualization')
+			import-module -name Az.DesktopVirtualization;
 			if (Get-Module -name Az.DesktopVirtualization) {Logwrite('Az.DesktopVirtualization is available.');}
 			else{Logwrite ('Az.DesktopVirtualization is not available. Exit.');exit 202}
 		}
@@ -329,8 +330,8 @@ LogWrite ($VMName + " deployment complete.")
 # SIG # Begin signature block
 # MIInlQYJKoZIhvcNAQcCoIInhjCCJ4ICAQExDzANBglghkgBZQMEAgEFADB5Bgor
 # BgEEAYI3AgEEoGswaTA0BgorBgEEAYI3AgEeMCYCAwEAAAQQH8w7YFlLCE63JNLG
-# KX7zUQIBAAIBAAIBAAIBAAIBADAxMA0GCWCGSAFlAwQCAQUABCDWTMTD6xWwnGZ9
-# TUullZs0fct0f11wHPb5npqIoQnBJ6CCIkEwggMwMIICtqADAgECAhA3dENPnrQO
+# KX7zUQIBAAIBAAIBAAIBAAIBADAxMA0GCWCGSAFlAwQCAQUABCDFw58IDH7h+Ufa
+# cAOJjpTwBwjKTpdVONv7A2uc8WsmfqCCIkEwggMwMIICtqADAgECAhA3dENPnrQO
 # Ih+SNsofLycXMAoGCCqGSM49BAMDMFYxCzAJBgNVBAYTAkdCMRgwFgYDVQQKEw9T
 # ZWN0aWdvIExpbWl0ZWQxLTArBgNVBAMTJFNlY3RpZ28gUHVibGljIENvZGUgU2ln
 # bmluZyBSb290IEU0NjAeFw0yMTAzMjIwMDAwMDBaFw0zNjAzMjEyMzU5NTlaMFcx
@@ -518,25 +519,25 @@ LogWrite ($VMName + " deployment complete.")
 # U2lnbmluZyBDQSBFViBFMzYCEDxolvyQov0GPgzdcbswAjcwDQYJYIZIAWUDBAIB
 # BQCggYQwGAYKKwYBBAGCNwIBDDEKMAigAoAAoQKAADAZBgkqhkiG9w0BCQMxDAYK
 # KwYBBAGCNwIBBDAcBgorBgEEAYI3AgELMQ4wDAYKKwYBBAGCNwIBFTAvBgkqhkiG
-# 9w0BCQQxIgQgpXo0uJFwGVaoYeYBdh7L+cMghvYIobJby+JmoSCsqB8wCwYHKoZI
-# zj0CAQUABGcwZQIwRBA77Af/e5SVvILTYdjId5oNRMQgL/Ar6vHieTymRCE1mdsx
-# Ri2SLsnYKEhpPVJEAjEA8Yxbj8eU+GAn+aQu0PJOXYgUfUn9vgwwB7eet988rqJT
-# L4jjAS6cl4X6sIs7y9EhoYIDJjCCAyIGCSqGSIb3DQEJBjGCAxMwggMPAgEBMH0w
+# 9w0BCQQxIgQgBmOyXa6G5Io+0AjU8EsnTTbwRk5uKjI6wgJfi4Wx2r4wCwYHKoZI
+# zj0CAQUABGcwZQIwM5EzYGvtUtnC0Hlwx2NYhyWCUQyrh+UkBvuzWOHUpxYfvAZ8
+# vG6G+59wHOlU9B86AjEAidY24G3jFcpf4PPKPeDe2soLdXh+MO0mn+j2gY10JeaA
+# EwbJfp1dXeQAuQgmTDpqoYIDJjCCAyIGCSqGSIb3DQEJBjGCAxMwggMPAgEBMH0w
 # aTELMAkGA1UEBhMCVVMxFzAVBgNVBAoTDkRpZ2lDZXJ0LCBJbmMuMUEwPwYDVQQD
 # EzhEaWdpQ2VydCBUcnVzdGVkIEc0IFRpbWVTdGFtcGluZyBSU0E0MDk2IFNIQTI1
 # NiAyMDI1IENBMQIQCoDvGEuN8QWC0cR2p5V0aDANBglghkgBZQMEAgEFAKBpMBgG
-# CSqGSIb3DQEJAzELBgkqhkiG9w0BBwEwHAYJKoZIhvcNAQkFMQ8XDTI1MDkyNTE2
-# NTc0NlowLwYJKoZIhvcNAQkEMSIEIBHWQT3Iceuu8TNsgh2iZK0FtYXnDT8+GwD8
-# Jf9E4WD3MA0GCSqGSIb3DQEBAQUABIICAFZQl3S7UPOdEtw0fDmInui18P7lr0C/
-# pt9mio+kD4OSQvU9EsIKXoK578Gtr4bSzfrpARrpyKng1eA/yBxM+pDf0mi/EdSn
-# d3PrcUPbXskYTFwGJRA/ZLEaU7701ULzn+cxS1+YTgBEn+Oqvol4FSm14iokWpSX
-# fhC3hl9l4LRg1HocQgyg8IXCY+7j6oxizKOsYbe6yEhI3YKhqYrLC6mwRoODmEiQ
-# Gg+aQJkU6bXhNkuZDO1lYLsETNCFG3SZB7XUcVl8K4Od7aK3ChIS/M5t+snYv6nz
-# jT0K1wQH1lYuOAG4hhJozdPfRHDhc0BkRTixC/CLzLnRZElgDotc3wQ4gKlkATjp
-# 8JFo4y0ZE0SdJ7L1ZWJIWCuYzzcWBzMdr5n2VwNZK0BMUBHoiMX+AhGhL1Q2VVPs
-# aoEJ5Tr6dwb2lLckGKJQb1JkLrOo7yPsS8l2b+93NN6caCm57AkKkDU6gNdOGJUj
-# iDfPGV+JIgF8qEX7tu9uKLyv1o/b1IFEsU8WxIvtpIaOlZ2+cpWTpawPxokbehnw
-# feGzdwdbE1/IPSLoVXrLP2taK8I7dddbGPvT+jt829S63e5qCG5vI21gBZtSmuCb
-# mZpn0UpR79jcet3hsRhMg/S9WBFIWdz4i59DoDw+XoKo7/GfL0k5JNYstEGQ4d8+
-# cIjPTmJdg4YJ
+# CSqGSIb3DQEJAzELBgkqhkiG9w0BBwEwHAYJKoZIhvcNAQkFMQ8XDTI1MDkyNjIy
+# MTUyM1owLwYJKoZIhvcNAQkEMSIEIGhKwcElpXAlVNRgC4RWtDai4HWpPaaqT7mE
+# SdfVhrQAMA0GCSqGSIb3DQEBAQUABIICAAVftLV2PAi2gYya43+v7tMpShc8fh+M
+# EN4KDTFN3XTgDW5BwSt6eC0XEmjGVoz+hwAB+Ea/m4JuzXsnZ7HNezRtQ0ezybuB
+# wyecTR4qOW3vfxKxKKwP1265bIIYK7PquRHrL95ksCwjIRw6kjFEdHLZoBYooIGx
+# QxZSjKHADoZCYxwiYTfNYu/duJUjEl62yqlAZcQoRxe5+ZRfAHmVWSeuFlicK9pt
+# /WLpzBHLzL2B7VB2GSu67b25Fb5QcLD7kZMhNI4fkkZwXGJNa5DhSp7vhAySYAIJ
+# T6eHQwPSTJlOI4fPKl6OJdWVi5HmI7gQPLEVW4wEINaTJeBv92fwUxQObbr72XLI
+# KiHxSFXIcj0lxY2pwHIxDWZFhaKzfTkRhmpNkmBQwE+EpLj3W5mwR9T2vJNPt0yl
+# bS6U7iOvmZc4aRQaESDrF19QZp79tA+xV/oECzSNUSHWtbUEJ9lGzF+5ku0dxoo8
+# JQkD2SuGCqI5H0iMCucMe8YtdiY0SU1ZJ2TzDvdBwBG5+vDPzt08WAqGnCY/YNaU
+# 3VS552jcUFEPIPGnhCzXueSzGR1YoUHBp8fYaopNJ5N39XayeFuDNVC3apOTqmGh
+# k5LZan+KivMyp6n+4J/7XQ/A6vUuT+4qASZzVWJR1iGdxhj1cYyY6TkLi7evI5EK
+# Pg6+hphwcReI
 # SIG # End signature block

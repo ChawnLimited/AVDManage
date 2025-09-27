@@ -95,12 +95,12 @@ logwrite('Load Modules')
 
 		try{
 			logwrite('Import Az.Accounts')
-			import-module -Name Az.Accounts -verbose > az.acc.txt
-			if (Get-Module -name Az.Accounts) {Logwrite('Az.Accounts is available.');}
+			import-module -Name Az.Accounts;
+			if (Get-Module -name Az.Accounts;) {Logwrite('Az.Accounts is available.');}
 			else{Logwrite ('Az.Accounts is not available. Exit.');exit 203}
 			logwrite('Import Az.DesktopVirtualization')
-			import-module -name Az.DesktopVirtualization -verbose > az.desk.txt
-			if (Get-Module -name Az.DesktopVirtualization) {Logwrite('Az.DesktopVirtualization is available.');}
+			import-module -name Az.DesktopVirtualization;
+			if (Get-Module -name Az.DesktopVirtualization;) {Logwrite('Az.DesktopVirtualization is available.');}
 			else{Logwrite ('Az.DesktopVirtualization is not available. Exit.');exit 202}
 		}
 		catch{logwrite('201: Error importing Az Modules' +  $_.Exception.Message); exit 201}

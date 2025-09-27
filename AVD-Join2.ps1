@@ -93,17 +93,17 @@ Function LoadModules
 {
 logwrite('Load Modules')
 
-		try{
+		try {
 			logwrite('Import Az.Accounts')
-			import-module -Name Az.Accounts;
-			if (Get-Module -name Az.Accounts) {Logwrite('Az.Accounts is available.');}
-			else{Logwrite ('Az.Accounts is not available. Exit.');exit 203}
+			import-module -Name Az.Accounts
+			if (Get-Module -name Az.Accounts) {Logwrite('Az.Accounts is available.')}
+			else {Logwrite ('Az.Accounts is not available. Exit.');exit 203}
 			logwrite('Import Az.DesktopVirtualization')
-			import-module -name Az.DesktopVirtualization;
-			if (Get-Module -name Az.DesktopVirtualization) {Logwrite('Az.DesktopVirtualization is available.');}
-			else{Logwrite ('Az.DesktopVirtualization is not available. Exit.');exit 202}
+			import-module -name Az.DesktopVirtualization
+			if (Get-Module -name Az.DesktopVirtualization) {Logwrite('Az.DesktopVirtualization is available.')}
+			else {Logwrite ('Az.DesktopVirtualization is not available. Exit.');exit 202}
 		}
-		catch{logwrite('201: Error importing Az Modules' +  $_.Exception.Message); exit 201}
+		catch {logwrite('201: Error importing Az Modules' +  $_.Exception.Message);exit 201}
 		logwrite('Modules Loaded')
 }
 
@@ -118,13 +118,13 @@ Function CheckDomain
 			Start-Process -FilePath "shutdown.exe" -ArgumentList "/soft /r /t 5 /d p:0:0 /c 'AVDTurbo'"
 			exit 0}
 	}
-	catch{LogWrite ("402: " + $_.Exception.Message);exit 402}	
+	catch {LogWrite ("402: " + $_.Exception.Message);exit 402}	
 }
 
 
 Function DownloadAgents
 {
-	try{
+	try {
 			if (get-item -path "C:\Program Files\Microsoft RDInfra" -ErrorAction SilentlyContinue)
 			{logwrite('Remote Desktop Agents are already installed. Exit.');exit 500}
 	}
@@ -176,14 +176,14 @@ Function AzureLogon
 			else {logwrite('801: Not connected to Azure. Exit.')
 			exit 801}
 			}
-		catch{logwrite('800: Error connecting to Azure' +  $_.Exception.Message)
+		catch {logwrite('800: Error connecting to Azure' +  $_.Exception.Message)
 		exit 800}
 }
 
 
 Function CheckHostPool
 {
-	try{
+	try {
 		if (Get-AzWvdSessionHost -HostPoolName $hostpool -ResourceGroupName $RG -Name $hostname -ErrorAction SilentlyContinue) 
 			{Remove-AzWvdSessionHost -ResourceGroupName $RG -HostPoolName $HostPool -Name $hostname
 			logwrite ($hostname + ' exists in the ' + $hostpool + ' host pool. Will remove so the VM may join again.')}
@@ -203,7 +203,7 @@ Function CheckToken
 		Else {logwrite ('WVDToken exists for Hostpool: ' + $HostPool)
 		$global:WVDToken=($WVDToken.Token)}
     }
-    catch{Logwrite("901: " + $_.Exception.Message); exit 901}
+    catch {Logwrite("901: " + $_.Exception.Message); exit 901}
 }
 
 
@@ -212,12 +212,12 @@ $VMName=[System.Net.Dns]::GetHostByName($env:computerName).HostName
 
 # Check for a Turbo deployment
 %{
-	try{
+	try {
 		if ($TURBO=((Get-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\RDInfraAgent" -Name "RegistrationToken" -ErrorAction SilentlyContinue).RegistrationToken))
 		{LogWrite ("Turbo Deployment started. " + $Turbo)}
 		else {$TURBO='False';LogWrite ("Normal Deployment started. AVDTurbo: " + $TURBO)}
 	}
-	catch{LogWrite ("400: " + $_.Exception.Message);exit 400}
+	catch {LogWrite ("400: " + $_.Exception.Message);exit 400}
 }
 
 
@@ -268,7 +268,7 @@ logwrite ('Disconnected from Azure')
 
 # Start an AVDTurbo deployment
 %{
-	try{
+	try {
 		if ($Turbo -eq "AVDTurbo") {
 			if ($WVDToken) {
 			LogWrite ("Starting Turbo Deployment")
@@ -286,18 +286,18 @@ logwrite ('Disconnected from Azure')
 # Start a normal deployment with the RDAgent and RDBootloader
 %{
     try {
-		if ($Turbo -eq "False"){
+		if ($Turbo -eq "False") {
 			if ($WVDToken) {
 
     		### Install RDAgent
 	    	logwrite('Install Remote Desktop Services Infrastructure Agent')
-		    if (get-item -path C:\Source\RDagent.msi){Start-Process msiexec.exe -Wait -ArgumentList "/I C:\Source\RDAgent.msi REGISTRATIONTOKEN=$WVDToken /qb /L*V RDAgent.log"}
-			else{Logwrite("901: RDagent.msi is not available. Exit");exit 903}
+		    if (get-item -path C:\Source\RDagent.msi) {Start-Process msiexec.exe -Wait -ArgumentList "/I C:\Source\RDAgent.msi REGISTRATIONTOKEN=$WVDToken /qb /L*V RDAgent.log"}
+			else {Logwrite("901: RDagent.msi is not available. Exit");exit 903}
 		
     		### Install RDBoot
 	    	logwrite ('Install Remote Desktop Agent Boot Loader')
-		    if (get-item -path C:\Source\RDBoot.msi){Start-Process msiexec.exe -Wait -ArgumentList "/I C:\Source\RDBoot.msi /qb  /L*V RDBoot.log"}
-			else{Logwrite("902: RDBoot.msi is not available. Exit");exit 904}
+		    if (get-item -path C:\Source\RDBoot.msi) {Start-Process msiexec.exe -Wait -ArgumentList "/I C:\Source\RDBoot.msi /qb  /L*V RDBoot.log"}
+			else {Logwrite("902: RDBoot.msi is not available. Exit");exit 904}
 		    LogWrite "Install RDS Agents completed."
 			$WVDToken="Null"
 			}
@@ -310,7 +310,7 @@ logwrite ('Disconnected from Azure')
 
 # Wait for the SXS Network Agent and Geneva Agent to install
 %{
-	try{		    
+	try {		    
 		    LogWrite "Wait for the SXS Network Agent and Geneva Agent to install"
 			$i=0
 			do {start-sleep -Seconds 2;$i++;} until((($SXS=(get-package -name "*SXS*Network*" -ErrorAction SilentlyContinue).Status -eq 'Installed')) -and (($Geneva=(get-package -name "*Geneva*" -ErrorAction SilentlyContinue).Status -eq 'Installed')) -or $i -eq 50)
@@ -328,10 +328,10 @@ LogWrite ($VMName + " deployment complete.")
 
 
 # SIG # Begin signature block
-# MIInlQYJKoZIhvcNAQcCoIInhjCCJ4ICAQExDzANBglghkgBZQMEAgEFADB5Bgor
+# MIInlAYJKoZIhvcNAQcCoIInhTCCJ4ECAQExDzANBglghkgBZQMEAgEFADB5Bgor
 # BgEEAYI3AgEEoGswaTA0BgorBgEEAYI3AgEeMCYCAwEAAAQQH8w7YFlLCE63JNLG
-# KX7zUQIBAAIBAAIBAAIBAAIBADAxMA0GCWCGSAFlAwQCAQUABCDFw58IDH7h+Ufa
-# cAOJjpTwBwjKTpdVONv7A2uc8WsmfqCCIkEwggMwMIICtqADAgECAhA3dENPnrQO
+# KX7zUQIBAAIBAAIBAAIBAAIBADAxMA0GCWCGSAFlAwQCAQUABCCPntTJzKQKF6va
+# 3qksZCozux2Jv52sd7GAHxGOkuWh5qCCIkEwggMwMIICtqADAgECAhA3dENPnrQO
 # Ih+SNsofLycXMAoGCCqGSM49BAMDMFYxCzAJBgNVBAYTAkdCMRgwFgYDVQQKEw9T
 # ZWN0aWdvIExpbWl0ZWQxLTArBgNVBAMTJFNlY3RpZ28gUHVibGljIENvZGUgU2ln
 # bmluZyBSb290IEU0NjAeFw0yMTAzMjIwMDAwMDBaFw0zNjAzMjEyMzU5NTlaMFcx
@@ -514,30 +514,30 @@ LogWrite ($VMName + " deployment complete.")
 # IwXMZUXBhtCyIaehr0XkBoDIGMUG1dUtwq1qmcwbdUfcSYCn+OwncVUXf53VJUNO
 # aMWMts0VlRYxe5nK+At+DI96HAlXHAL5SlfYxJ7La54i71McVWRP66bW+yERNpbJ
 # CjyCYG2j+bdpxo/1Cy4uPcU3AWVPGrbn5PhDBf3Froguzzhk++ami+r3Qrx5bIbY
-# 3TVzgiFI7Gq3zWcxggSqMIIEpgIBATBrMFcxCzAJBgNVBAYTAkdCMRgwFgYDVQQK
+# 3TVzgiFI7Gq3zWcxggSpMIIEpQIBATBrMFcxCzAJBgNVBAYTAkdCMRgwFgYDVQQK
 # Ew9TZWN0aWdvIExpbWl0ZWQxLjAsBgNVBAMTJVNlY3RpZ28gUHVibGljIENvZGUg
 # U2lnbmluZyBDQSBFViBFMzYCEDxolvyQov0GPgzdcbswAjcwDQYJYIZIAWUDBAIB
 # BQCggYQwGAYKKwYBBAGCNwIBDDEKMAigAoAAoQKAADAZBgkqhkiG9w0BCQMxDAYK
 # KwYBBAGCNwIBBDAcBgorBgEEAYI3AgELMQ4wDAYKKwYBBAGCNwIBFTAvBgkqhkiG
-# 9w0BCQQxIgQgBmOyXa6G5Io+0AjU8EsnTTbwRk5uKjI6wgJfi4Wx2r4wCwYHKoZI
-# zj0CAQUABGcwZQIwM5EzYGvtUtnC0Hlwx2NYhyWCUQyrh+UkBvuzWOHUpxYfvAZ8
-# vG6G+59wHOlU9B86AjEAidY24G3jFcpf4PPKPeDe2soLdXh+MO0mn+j2gY10JeaA
-# EwbJfp1dXeQAuQgmTDpqoYIDJjCCAyIGCSqGSIb3DQEJBjGCAxMwggMPAgEBMH0w
-# aTELMAkGA1UEBhMCVVMxFzAVBgNVBAoTDkRpZ2lDZXJ0LCBJbmMuMUEwPwYDVQQD
-# EzhEaWdpQ2VydCBUcnVzdGVkIEc0IFRpbWVTdGFtcGluZyBSU0E0MDk2IFNIQTI1
-# NiAyMDI1IENBMQIQCoDvGEuN8QWC0cR2p5V0aDANBglghkgBZQMEAgEFAKBpMBgG
-# CSqGSIb3DQEJAzELBgkqhkiG9w0BBwEwHAYJKoZIhvcNAQkFMQ8XDTI1MDkyNjIy
-# MTUyM1owLwYJKoZIhvcNAQkEMSIEIGhKwcElpXAlVNRgC4RWtDai4HWpPaaqT7mE
-# SdfVhrQAMA0GCSqGSIb3DQEBAQUABIICAAVftLV2PAi2gYya43+v7tMpShc8fh+M
-# EN4KDTFN3XTgDW5BwSt6eC0XEmjGVoz+hwAB+Ea/m4JuzXsnZ7HNezRtQ0ezybuB
-# wyecTR4qOW3vfxKxKKwP1265bIIYK7PquRHrL95ksCwjIRw6kjFEdHLZoBYooIGx
-# QxZSjKHADoZCYxwiYTfNYu/duJUjEl62yqlAZcQoRxe5+ZRfAHmVWSeuFlicK9pt
-# /WLpzBHLzL2B7VB2GSu67b25Fb5QcLD7kZMhNI4fkkZwXGJNa5DhSp7vhAySYAIJ
-# T6eHQwPSTJlOI4fPKl6OJdWVi5HmI7gQPLEVW4wEINaTJeBv92fwUxQObbr72XLI
-# KiHxSFXIcj0lxY2pwHIxDWZFhaKzfTkRhmpNkmBQwE+EpLj3W5mwR9T2vJNPt0yl
-# bS6U7iOvmZc4aRQaESDrF19QZp79tA+xV/oECzSNUSHWtbUEJ9lGzF+5ku0dxoo8
-# JQkD2SuGCqI5H0iMCucMe8YtdiY0SU1ZJ2TzDvdBwBG5+vDPzt08WAqGnCY/YNaU
-# 3VS552jcUFEPIPGnhCzXueSzGR1YoUHBp8fYaopNJ5N39XayeFuDNVC3apOTqmGh
-# k5LZan+KivMyp6n+4J/7XQ/A6vUuT+4qASZzVWJR1iGdxhj1cYyY6TkLi7evI5EK
-# Pg6+hphwcReI
+# 9w0BCQQxIgQgeRdLusx4rgywOdi26CzkxAnxmuzhZhZnlSnh17k1dCMwCwYHKoZI
+# zj0CAQUABGYwZAIwF1V8bpgfQ3JptPsPl52LTD4ugQIR5EyqBw6aqSMxJ9ZpZtK3
+# hWUhiyqhIy/PPU3YAjBrwGaO3s5Dpa1g+HDRNcVzLDt/uY22ahaK8i6L1oO4hhfJ
+# UNoFh/hdXhIyw0Q1HCahggMmMIIDIgYJKoZIhvcNAQkGMYIDEzCCAw8CAQEwfTBp
+# MQswCQYDVQQGEwJVUzEXMBUGA1UEChMORGlnaUNlcnQsIEluYy4xQTA/BgNVBAMT
+# OERpZ2lDZXJ0IFRydXN0ZWQgRzQgVGltZVN0YW1waW5nIFJTQTQwOTYgU0hBMjU2
+# IDIwMjUgQ0ExAhAKgO8YS43xBYLRxHanlXRoMA0GCWCGSAFlAwQCAQUAoGkwGAYJ
+# KoZIhvcNAQkDMQsGCSqGSIb3DQEHATAcBgkqhkiG9w0BCQUxDxcNMjUwOTI3MDE0
+# MjA0WjAvBgkqhkiG9w0BCQQxIgQgZQLBqykAoQl2+nB+bj1HfrnkUj9OIA0f0eOM
+# 0KfmGL0wDQYJKoZIhvcNAQEBBQAEggIAgJaUVcJgndxaF7+P1ZY2YP6VmB9xVOBT
+# NaI3g85iCnAur06Kad8Ret/ft00tgTB9KBg7wPnSskHERD8UeqGQRZgX9NY7h5bq
+# 4sQFi/YAOeVGMuULE7KJJkzvNaeCjm5GNgnedGb3runojyb6F83/iDZp0llzSzBo
+# 46pQTgi2ZFVc17QMcB3x9kPXccT9TL4munnxDeZkXfDgrK4iEWVheO3qDjcM/BpO
+# a0OQ2LSFyd7pZ9BSneqkiueEX8Kw818OyVJx7vo9+NiR0KdUTiFZsJkCmkq9zIqL
+# xe6C4CELtkOi7nPzEGSBjXKWFo9idW+dyvRRZkcyjInBnqy6GHCVMuXRPAqdUWI4
+# cP5ZmSGzgjucuwxwmOJP78P8wAlhoCl+grscwmJpdPknYTKswvqJ8qQ9iU9+SDkm
+# v3vR0THMFU0sOhAxmP/cFmeeb2r8y08fUDrNc1DikR1t5+lurqR486mWV4i0U9tz
+# 3hUQDfPth3n/ABj1tviPVN1z9er76wjr4HfjFugRCP/xWRibu4Dn3s4OCg9gr/Kh
+# SuYpXCKTyw9Dwer66fRNDyoouIOhH24HT6b77VQN21J4S4HBihJTjzr6mAe0ens9
+# WlHsoyO4U4YznXhL2+rdfZGebqFCOXQGbScKgWlirz8K3zOjHHubSaKrZBd3oGWx
+# qma5SfP8a+U=
 # SIG # End signature block

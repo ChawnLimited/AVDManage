@@ -1,4 +1,4 @@
-# Chawn Limited 2025
+﻿# Chawn Limited 2025
 # AVD-Turbo2.ps1
 # Version 2.2
 # Rename the VM (created from a specialized image), optionally Join VM to Active Directory, and optionally install AVD Agents - For Specialized Images
@@ -98,17 +98,17 @@ Function LoadModules
 {
 logwrite('Load Modules')
 
-		try{
+		try {
 			logwrite('Import Az.Accounts')
-			import-module -Name Az.Accounts;
-			if (Get-Module -name Az.Accounts) {Logwrite('Az.Accounts is available.');}
-			else{Logwrite ('Az.Accounts is not available. Exit.');exit 203}
+			import-module -Name Az.Accounts
+			if (Get-Module -name Az.Accounts) {Logwrite('Az.Accounts is available.')}
+			else {Logwrite ('Az.Accounts is not available. Exit.');exit 203}
 			logwrite('Import Az.DesktopVirtualization')
-			import-module -name Az.DesktopVirtualization;
-			if (Get-Module -name Az.DesktopVirtualization) {Logwrite('Az.DesktopVirtualization is available.');}
-			else{Logwrite ('Az.DesktopVirtualization is not available. Exit.');exit 202}
+			import-module -name Az.DesktopVirtualization
+			if (Get-Module -name Az.DesktopVirtualization) {Logwrite('Az.DesktopVirtualization is available.')}
+			else {Logwrite ('Az.DesktopVirtualization is not available. Exit.');exit 202}
 		}
-		catch{logwrite('201: Error importing Az Modules' +  $_.Exception.Message); exit 201}
+		catch {logwrite('201: Error importing Az Modules' +  $_.Exception.Message);exit 201}
 		logwrite('Modules Loaded')
 }
 
@@ -123,13 +123,13 @@ Function CheckDomain
 			Start-Process -FilePath "shutdown.exe" -ArgumentList "/soft /r /t 5 /d p:0:0 /c 'AVDTurbo'"
 			exit 0}
 	}
-	catch{LogWrite ("402: " + $_.Exception.Message);exit 402}	
+	catch {LogWrite ("402: " + $_.Exception.Message);exit 402}	
 }
 
 
 Function DownloadAgents
 {
-	try{
+	try {
 			if (get-item -path "C:\Program Files\Microsoft RDInfra" -ErrorAction SilentlyContinue)
 			{logwrite('Remote Desktop Agents are already installed. Exit.');exit 500}
 	}
@@ -182,14 +182,14 @@ Function AzureLogon
 			else {logwrite('801: Not connected to Azure. Exit.')
 			exit 801}
 			}
-		catch{logwrite('800: Error connecting to Azure' +  $_.Exception.Message)
+		catch {logwrite('800: Error connecting to Azure' +  $_.Exception.Message)
 		exit 800}
 }
 
 
 Function CheckHostPool
 {
-	try{
+	try {
 		if (Get-AzWvdSessionHost -HostPoolName $hostpool -ResourceGroupName $RG -Name $hostname -ErrorAction SilentlyContinue) 
 			{Remove-AzWvdSessionHost -ResourceGroupName $RG -HostPoolName $HostPool -Name $hostname
 			logwrite ($hostname + ' exists in the ' + $hostpool + ' host pool. Will remove so the VM may join again.')}
@@ -209,7 +209,7 @@ Function CheckToken
 		Else {logwrite ('WVDToken exists for Hostpool: ' + $HostPool)
 		$global:WVDToken=($WVDToken.Token)}
     }
-    catch{Logwrite("901: " + $_.Exception.Message); exit 901}
+    catch {Logwrite("901: " + $_.Exception.Message); exit 901}
 }
 
 
@@ -262,7 +262,7 @@ Function JoinDomain
 		Start-Process -FilePath "shutdown.exe" -ArgumentList "/r /t 5 /d p:0:0 /c 'AVDTurbo'"
 		exit 0}
 	}
-	catch{LogWrite ("301: " + $_.Exception.Message);exit 301}
+	catch {LogWrite ("301: " + $_.Exception.Message);exit 301}
 }
 
 
@@ -276,12 +276,12 @@ JoinDomain
 
 # Check for a Turbo deployment
 %{
-	try{
+	try {
 		if ($TURBO=((Get-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\RDInfraAgent" -Name "RegistrationToken" -ErrorAction SilentlyContinue).RegistrationToken))
 		{LogWrite ("Turbo Deployment started. " + $Turbo)}
 		else {$TURBO='False';LogWrite ("Normal Deployment started. AVDTurbo: " + $TURBO)}
 	}
-	catch{LogWrite ("400: " + $_.Exception.Message);exit 400}
+	catch {LogWrite ("400: " + $_.Exception.Message);exit 400}
 }
 
 # check the device is domain joined
@@ -331,7 +331,7 @@ logwrite ('Disconnected from Azure')
 
 # Start an AVDTurbo deployment
 %{
-	try{
+	try {
 		if ($Turbo -eq "AVDTurbo") {
 			if ($WVDToken) {
 			LogWrite ("Starting Turbo Deployment")
@@ -349,18 +349,18 @@ logwrite ('Disconnected from Azure')
 # Start a normal deployment with the RDAgent and RDBootloader
 %{
     try {
-		if ($Turbo -eq "False"){
+		if ($Turbo -eq "False") {
 			if ($WVDToken) {
   		    
     		### Install RDAgent
 	    	logwrite('Install Remote Desktop Services Infrastructure Agent')
-		    if (get-item -path C:\Source\RDagent.msi){Start-Process msiexec.exe -Wait -ArgumentList "/I C:\Source\RDAgent.msi REGISTRATIONTOKEN=$WVDToken /qb /L*V RDAgent.log"}
-			else{Logwrite("901: RDagent.msi is not available. Exit");exit 903}
+		    if (get-item -path C:\Source\RDagent.msi) {Start-Process msiexec.exe -Wait -ArgumentList "/I C:\Source\RDAgent.msi REGISTRATIONTOKEN=$WVDToken /qb /L*V RDAgent.log"}
+			else {Logwrite("901: RDagent.msi is not available. Exit");exit 903}
 		
     		### Install RDBoot
 	    	logwrite ('Install Remote Desktop Agent Boot Loader')
-		    if (get-item -path C:\Source\RDBoot.msi){Start-Process msiexec.exe -Wait -ArgumentList "/I C:\Source\RDBoot.msi /qb  /L*V RDBoot.log"}
-			else{Logwrite("902: RDBoot.msi is not available. Exit");exit 904}
+		    if (get-item -path C:\Source\RDBoot.msi) {Start-Process msiexec.exe -Wait -ArgumentList "/I C:\Source\RDBoot.msi /qb  /L*V RDBoot.log"}
+			else {Logwrite("902: RDBoot.msi is not available. Exit");exit 904}
 		    LogWrite "Install RDS Agents completed."
 			$WVDToken="Null"
 			}
@@ -373,15 +373,15 @@ logwrite ('Disconnected from Azure')
 
 # Wait for the SXS Network Agent and Geneva Agent to install
 %{
-	try{		    
-		    LogWrite "Wait for the SXS Network Agent and Geneva Agent to install"
-			$i=0
-			do {start-sleep -Seconds 2;$i++;} until((($SXS=(get-package -name "*SXS*Network*" -ErrorAction SilentlyContinue).Status -eq 'Installed')) -and (($Geneva=(get-package -name "*Geneva*" -ErrorAction SilentlyContinue).Status -eq 'Installed')) -or $i -eq 50)
-				if (($SXS -eq 'Installed' ) -and ($Geneva -eq 'Installed'))
-				{LogWrite ("SXS Network Agent and Geneva Agent are installed")}
-				Else {LogWrite ("1000: SXS Network Agent installed: " + $SXS + ". Geneva Agent installed: " + $Geneva + ". Check " + $env:ProgramFiles + "\Microsoft RDInfra. The MSI files don't download sometimes.");exit 1000}
+	try {		    
+		LogWrite "Wait for the SXS Network Agent and Geneva Agent to install"
+		$i=0
+		do {start-sleep -Seconds 2;$i++;} until((($SXS=(get-package -name "*SXS*Network*" -ErrorAction SilentlyContinue).Status -eq 'Installed')) -and (($Geneva=(get-package -name "*Geneva*" -ErrorAction SilentlyContinue).Status -eq 'Installed')) -or $i -eq 50)
+			if (($SXS -eq 'Installed' ) -and ($Geneva -eq 'Installed'))
+			{LogWrite ("SXS Network Agent and Geneva Agent are installed")}
+			Else {LogWrite ("1000: SXS Network Agent installed: " + $SXS + ". Geneva Agent installed: " + $Geneva + ". Check " + $env:ProgramFiles + "\Microsoft RDInfra. The MSI files don't download sometimes.");exit 1000}
 		}
-    	catch {logwrite('1000: Error installing Remote Desktop Agents. ' + $_.Exception.Message); exit 1000}
+    catch {logwrite('1000: Error installing Remote Desktop Agents. ' + $_.Exception.Message); exit 1000}
 }
 
 
@@ -393,8 +393,8 @@ LogWrite ($AZVMName + " deployment complete. Schedule a restart and exit.")
 # SIG # Begin signature block
 # MIInlAYJKoZIhvcNAQcCoIInhTCCJ4ECAQExDzANBglghkgBZQMEAgEFADB5Bgor
 # BgEEAYI3AgEEoGswaTA0BgorBgEEAYI3AgEeMCYCAwEAAAQQH8w7YFlLCE63JNLG
-# KX7zUQIBAAIBAAIBAAIBAAIBADAxMA0GCWCGSAFlAwQCAQUABCAw/wENEwGwKq0I
-# Km6KI8n4K8vRybU6c1fvddNoSki1eKCCIkEwggMwMIICtqADAgECAhA3dENPnrQO
+# KX7zUQIBAAIBAAIBAAIBAAIBADAxMA0GCWCGSAFlAwQCAQUABCCKfWdl9A2Iv3bj
+# 9yKmuoXH/6Yp1ZU1sjCSMKKdKHOlz6CCIkEwggMwMIICtqADAgECAhA3dENPnrQO
 # Ih+SNsofLycXMAoGCCqGSM49BAMDMFYxCzAJBgNVBAYTAkdCMRgwFgYDVQQKEw9T
 # ZWN0aWdvIExpbWl0ZWQxLTArBgNVBAMTJFNlY3RpZ28gUHVibGljIENvZGUgU2ln
 # bmluZyBSb290IEU0NjAeFw0yMTAzMjIwMDAwMDBaFw0zNjAzMjEyMzU5NTlaMFcx
@@ -582,25 +582,25 @@ LogWrite ($AZVMName + " deployment complete. Schedule a restart and exit.")
 # U2lnbmluZyBDQSBFViBFMzYCEDxolvyQov0GPgzdcbswAjcwDQYJYIZIAWUDBAIB
 # BQCggYQwGAYKKwYBBAGCNwIBDDEKMAigAoAAoQKAADAZBgkqhkiG9w0BCQMxDAYK
 # KwYBBAGCNwIBBDAcBgorBgEEAYI3AgELMQ4wDAYKKwYBBAGCNwIBFTAvBgkqhkiG
-# 9w0BCQQxIgQg66/ojNldNKWs3EdHpe8SQlN6Ba+63gVJjbgMp/QFZdswCwYHKoZI
-# zj0CAQUABGYwZAIwTReNHFzLkjbi3qDwHkwBfwjPZWZ7Q1gxCRINy8AKHGMmMvw6
-# 5YzYBDsKRZg6L3FAAjAixtkePXTso4l5zAT1OrPjw4ec03fE2WolaLfWup3LCSaS
-# I2SLYAPugwuR1EijfPWhggMmMIIDIgYJKoZIhvcNAQkGMYIDEzCCAw8CAQEwfTBp
+# 9w0BCQQxIgQgLkl2kdGDx6Ji8hXJ1MBXxo79hQyb3UaSueEIu0ybZKIwCwYHKoZI
+# zj0CAQUABGYwZAIwQNupI79GR/3xSw+mhj4u1U3nIeLsaI8n0CuXL6DlZMJ76mzj
+# 1wNaYZbWlKSzOT/bAjBcZUocPw6MxJEScc3FRnpozZX1deL6VXuWaRYyGVMT0/b/
+# CiZ2xvcYOV5MEP1nqd6hggMmMIIDIgYJKoZIhvcNAQkGMYIDEzCCAw8CAQEwfTBp
 # MQswCQYDVQQGEwJVUzEXMBUGA1UEChMORGlnaUNlcnQsIEluYy4xQTA/BgNVBAMT
 # OERpZ2lDZXJ0IFRydXN0ZWQgRzQgVGltZVN0YW1waW5nIFJTQTQwOTYgU0hBMjU2
 # IDIwMjUgQ0ExAhAKgO8YS43xBYLRxHanlXRoMA0GCWCGSAFlAwQCAQUAoGkwGAYJ
-# KoZIhvcNAQkDMQsGCSqGSIb3DQEHATAcBgkqhkiG9w0BCQUxDxcNMjUwOTI2MjIx
-# NTIzWjAvBgkqhkiG9w0BCQQxIgQg4nHv6sGD+AszWCZKFUGtJyCDWvwvhmmhNehk
-# JGPNVVEwDQYJKoZIhvcNAQEBBQAEggIAj46dAhERkoQai1G6ZJeOXjovOxAqiVry
-# pFAwBBqXfFyy5c6/n1g/QBLqfjg3ywDhyrk9TwuzAMw7OHtSAY9HKvs5mF8ZgQJ8
-# +oGfG9BTOVusu7ckif+IMVCJYUPkBbvwV7dHEWtP2HmMvHohIgNAYLwBahg7Ndf3
-# yKLlEVY4knl4L6M/VVTUywdgZALZwbcZ42t+LQgQ5eFewkIhy660+lR1AsiLK2i2
-# vaiSFt/zh2wfR83MC9ZfX9WupRS7HIaJnY3D7heWoM5FbE41+6fBgLPRVCAFxOMu
-# l4SMYiR0QiPpcDr0RRmXI6WTSwl8xfdWCelt2cgJUjZfp8svETCJ1gKLai6TnqRS
-# WCzRN7a/EaThU8fwhGpt19S3mAAUFy9khc2sS0PTTTe9oxzPC/2KrKH0nPMx4yQL
-# KQkz8K/xcypqNoDIPq0o7rbJFS7bonYO4+70Lrc4klQorSAbvPlwwz/x2+1GxVPB
-# Xy6VBd41ke/VEeg/1DtoeNpPxY2CfZozci632S4gCePmBYF8Iq3r8655M7jdDQ3l
-# cGK/hy9vwN8UiyQ05OQLLGg/RaH0cCn57elVFOKQwwOPvf/B5lNYah6Mlo36Wxcr
-# 2Rn3VWmYciJ+EBFLYzSmocF0IOvQVsT8TJkDuYdvqaCgzzDq0y/MshR4f/9aYpKo
-# WGASlGMvOtw=
+# KoZIhvcNAQkDMQsGCSqGSIb3DQEHATAcBgkqhkiG9w0BCQUxDxcNMjUwOTI3MDE0
+# MjA0WjAvBgkqhkiG9w0BCQQxIgQg5vEHLWFMqpd0FFP56Ue5pOwrGAvKG8B6WGTL
+# mLOOUcwwDQYJKoZIhvcNAQEBBQAEggIAck7qL5ZfmA3ffT6FBgtdiiMGq+OCGPJt
+# GcwDy2OwXuiP7iLIzu/2zv3UK1p+ri0Iwwhiff9oshG7ApgK4X1L6uEdLhormseE
+# x9X911VuGPuivwJSFbW6m66oQPQexMPfvcWGjx/TDHq7oh5i9bD9nv8aauE4uBUz
+# vGLxWDZ15lb9ZepCSf9fps7Kpg2xIwbT/WkWQs0hyTrbKl21FpEjtLMQb09xPX35
+# wLKAzZnOozg8PgP75ljMj5zWmrA4cL91nTgq/A8T4jPHLRp9NaWpF3Y42wUks/kr
+# Sd0Kb/S6BLKYwn1HvWkbsc336xex2tibKHsHEYjURxp0bMbuhtTCXDzACq8iUfjb
+# wvlfJclBTtsiczCKKoRginKQozTMyJHhHtFN/EDFRLoHX4rMgwJKXBAUW5IU0oHe
+# A4jkbQEAV7RK6dvhKIQxnBpOfUq7VFk7Rbv/6DvGC37/N2J0RC2ABgpK+mQ3eQPE
+# mHWdiVIMmBQHbQbdO47jXdq9Nl6hwZ02juABRGmJpQS7x5C3HHwllxp01k7SJhbA
+# 5John644EKtdKV05Iu8li2H9dY6l59/02d0fhE+s+XixTros3tNDXnmHDRg6ygfR
+# 54MIhOQPsBfuC3y3mnk02JMaTaGP2tnAjPyxHx6I1FWrlwW4RjjHYJNxIBKCQWy6
+# RIf4R5Ur6/Y=
 # SIG # End signature block

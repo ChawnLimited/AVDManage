@@ -236,7 +236,7 @@ CheckDomain
 #}
 
 # Load AZ Modules
-import-module -name Microsoft.PowerShell.Management,Microsoft.PowerShell.Security,Microsoft.PowerShell.Utility,Microsoft.WSMan.Management
+$PSSessionOption.SkipRevocationCheck=$true
 %{
 LoadModules
 }

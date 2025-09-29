@@ -82,9 +82,9 @@ Function UpdateModule
 {
    Param ([string]$module)
 		try {
-			install-module -name $module -scope AllUsers;
+			install-module -name $module -scope AllUsers
 			Logwrite ('Updated ' + $module)
-			import-module -Name $Module;	
+			import-module -Name $Module	
     	}
     catch {Logwrite ('201: Failed to update ' + $module + "" +  $_.Exception.Message);exit 201}
 }
@@ -95,12 +95,12 @@ Function LoadModules
 logwrite('Load Modules')
 
 		try {
-			logwrite('Import Az.Accounts');
-			import-module -Name Az.Accounts -ErrorAction SilentlyContinue;
+			logwrite('Import Az.Accounts')
+			import-module -Name Az.Accounts -ErrorAction Stop
 			if (Get-Module -name Az.Accounts) {Logwrite('Az.Accounts is available.')}
 			else {logwrite('Az.Accounts is not available. Will try and install.'); UpdateNuget; UpdateModule Az.Accounts;}
 			logwrite('Import Az.DesktopVirtualization')
-			import-module -name Az.DesktopVirtualization -ErrorAction SilentlyContinue;
+			import-module -name Az.DesktopVirtualization -ErrorAction Stop
 			if (Get-Module -name Az.DesktopVirtualization) {Logwrite('Az.DesktopVirtualization is available.')}
 			else {logwrite('Az.DesktopVirtualization is not available. Will try and install.'); UpdateModule Az.DesktopVirtualization;}
 		}

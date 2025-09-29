@@ -81,9 +81,10 @@ logwrite('Check Complete')
 Function UpdateModule
 {
    Param ([string]$module)
-	try {
-	install-module -name $module -scope AllUsers
-    	Logwrite ('Updated ' + $module)
+		try {
+			install-module -name $module -scope AllUsers;
+			Logwrite ('Updated ' + $module)
+			import-module -Name $Module;	
     	}
     catch {Logwrite ('201: Failed to update ' + $module + "" +  $_.Exception.Message);exit 201}
 }
@@ -94,14 +95,14 @@ Function LoadModules
 logwrite('Load Modules')
 
 		try {
-			logwrite('Import Az.Accounts')
-			import-module -Name Az.Accounts
-			if (Get-Module -name Az.Accounts) {Logwrite('Az.Accounts is available.')}
-			else {Logwrite ('Az.Accounts is not available. Exit.');exit 203}
+			logwrite('Import Az.Accounts');
+			import-module -Name Az.Accounts -ErrorAction SilentlyContinue;
+			if (Get-Module -name Az.Accounts;) {Logwrite('Az.Accounts is available.')}
+			else {logwrite('Az.Accounts is not available. Will try and install.'); UpdateNuget; UpdateModule Az.Accounts;}
 			logwrite('Import Az.DesktopVirtualization')
-			import-module -name Az.DesktopVirtualization
-			if (Get-Module -name Az.DesktopVirtualization) {Logwrite('Az.DesktopVirtualization is available.')}
-			else {Logwrite ('Az.DesktopVirtualization is not available. Exit.');exit 202}
+			import-module -name Az.DesktopVirtualization -ErrorAction SilentlyContinue;
+			if (Get-Module -name Az.DesktopVirtualization;) {Logwrite('Az.DesktopVirtualization is available.')}
+			else {logwrite('Az.DesktopVirtualization is not available. Will try and install.'); UpdateModule Az.DesktopVirtualization;}
 		}
 		catch {logwrite('201: Error importing Az Modules' +  $_.Exception.Message);exit 201}
 		logwrite('Modules Loaded')
@@ -211,7 +212,7 @@ Function CheckToken
 $VMName=[System.Net.Dns]::GetHostByName($env:computerName).HostName
 
 # Check for a Turbo deployment
-%{
+{
 	try {
 		if ($TURBO=((Get-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\RDInfraAgent" -Name "RegistrationToken" -ErrorAction SilentlyContinue).RegistrationToken))
 		{LogWrite ("Turbo Deployment started. " + $Turbo)}
@@ -222,23 +223,25 @@ $VMName=[System.Net.Dns]::GetHostByName($env:computerName).HostName
 
 
 # check the device is domain joined
+{
 CheckDomain
-
-
-# Check if PS Modules are available - normal deployment
-%{
-	if ($Turbo -eq "False")
-		{
-		CheckModules
-		}
 }
 
-# Load AZ Modules
-LoadModules
+# Check if PS Modules are available - normal deployment
+#{
+#	if ($Turbo -eq "False")
+#		{
+#		CheckModules
+#		}
+#}
 
+# Load AZ Modules
+{
+LoadModules
+}
 
 # check if the RDAgent is already installed - normal deployment
-%{
+{
 	if ($Turbo -eq "False")
 		{
 		DownloadAgents
@@ -246,35 +249,35 @@ LoadModules
 }
 
 # get the DNS hostname of the VM
-%{
+{
 $hostname=[System.Net.Dns]::GetHostByName($env:computerName).HostName
 logwrite('Hostname:' + $hostname)
 logwrite('Hostpool:' + $hostpool)
 }
 
 # Logon to Azure
-%{
+{
 AzureLogon
 }
 
 # check if the VM exists in the hostpool, if so remove it
-%{
+{
 CheckHostPool
 }
 
 # check if a valid Token exists to join the hostpool, if not generate one
-%{
+{
 CheckToken
 }
 
 # Logout of Azure
-%{
+{
 Disconnect-AzAccount
 logwrite ('Disconnected from Azure')
 }
 
 # Start an AVDTurbo deployment
-%{
+{
 	try {
 		if ($Turbo -eq "AVDTurbo") {
 			if ($WVDToken) {
@@ -291,7 +294,7 @@ logwrite ('Disconnected from Azure')
 }
 # or
 # Start a normal deployment with the RDAgent and RDBootloader
-%{
+{
     try {
 		if ($Turbo -eq "False") {
 			if ($WVDToken) {
@@ -316,7 +319,7 @@ logwrite ('Disconnected from Azure')
 
 
 # Wait for the SXS Network Agent and Geneva Agent to install
-%{
+{
 	try {		    
 		    LogWrite "Wait for the SXS Network Agent and Geneva Agent to install"
 			$i=0

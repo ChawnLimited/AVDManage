@@ -237,6 +237,7 @@ CheckDomain
 
 # Load AZ Modules
 $PSSessionOption.SkipRevocationCheck=$true
+$PSModuleAutoLoadingPreference=2
 %{
 LoadModules
 }

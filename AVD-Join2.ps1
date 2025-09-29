@@ -25,15 +25,18 @@ $Logfile = "AVD-Join2.log"
 
 Function LogWrite
 {
+ %{
    Param ([string]$logstring)
 	$d1=get-Date
    Add-content $Logfile -value ($d1.tostring() + " : " + $logstring)
+ }
 }
 
 LogWrite "Starting Up"
 
 Function UpdateNuget
 {
+ %{
 # update Nuget
     try	{
         if (Get-PackageProvider -Name Nuget -ListAvailable) {Logwrite('Nuget is available')}
@@ -60,11 +63,13 @@ Function UpdateNuget
 	    Else {Set-PSRepository -Name "PSGallery" -InstallationPolicy Trusted}
 	    }
     catch {LogWrite ("Failed to add PSGallery as trusted repo. " + $_.Exception.Message); exit 102}
+ }
 }
 
 
 Function CheckModules
 {
+ %{
 logwrite('Check Modules')
 	try {
 		if (Get-Module -name Az.Accounts -ListAvailable) {Logwrite('Az.Accounts is available.')}
@@ -75,22 +80,26 @@ logwrite('Check Modules')
 			}
 		catch {logwrite('200: Error importing Az Modules' +  $_.Exception.Message); exit 200}
 logwrite('Check Complete')
+ }
 }
 
 
 Function UpdateModule
 {
+ %{
    Param ([string]$module)
 	try {
 	install-module -name $module -scope AllUsers
     	Logwrite ('Updated ' + $module)
     	}
     catch {Logwrite ('201: Failed to update ' + $module + "" +  $_.Exception.Message);exit 201}
+ }
 }
 
 
 Function LoadModules
 {
+ %{
 logwrite('Load Modules')
 
 		try {
@@ -105,11 +114,13 @@ logwrite('Load Modules')
 		}
 		catch {logwrite('201: Error importing Az Modules' +  $_.Exception.Message);exit 201}
 		logwrite('Modules Loaded')
+ }
 }
 
 
 Function CheckDomain
 {
+ %{
 	try {
 		if ((gwmi win32_computersystem).partofdomain -eq $false) {logwrite('401: Device is not AD Domain joined. Exit.')
 		exit 401}
@@ -119,11 +130,13 @@ Function CheckDomain
 			exit 0}
 	}
 	catch {LogWrite ("402: " + $_.Exception.Message);exit 402}	
+ }
 }
 
 
 Function DownloadAgents
 {
+ %{
 	try {
 			if (get-item -path "C:\Program Files\Microsoft RDInfra" -ErrorAction SilentlyContinue)
 			{logwrite('Remote Desktop Agents are already installed. Exit.');exit 500}
@@ -147,11 +160,13 @@ Function DownloadAgents
 		}
 	}
 	catch {LogWrite ("600: Failed to download RDAgents. " + $_.Exception.Message);exit 600}
+ }
 }	
 
 
 Function AzureLogon
 {
+ %{
 	try {
 		logwrite('Logon to Azure')
 		$accessToken =(Invoke-RestMethod -Headers @{"Metadata"="true"} -Method GET -NoProxy -Uri "http://169.254.169.254/metadata/identity/oauth2/token?api-version=2025-04-07&resource=$audience").access_token
@@ -178,11 +193,13 @@ Function AzureLogon
 			}
 		catch {logwrite('800: Error connecting to Azure: ' +  $_.Exception.Message)
 		exit 800}
+ }
 }
 
 
 Function CheckHostPool
 {
+ %{
 	try {
 		if (Get-AzWvdSessionHost -HostPoolName $hostpool -ResourceGroupName $RG -Name $hostname -ErrorAction SilentlyContinue) 
 			{Remove-AzWvdSessionHost -ResourceGroupName $RG -HostPoolName $HostPool -Name $hostname
@@ -190,11 +207,13 @@ Function CheckHostPool
 			else {logwrite ($hostname + ' does not exists in the ' + $hostpool + ' host pool.')}
 		}
 		catch {Logwrite("900: " + $_.Exception.Message); exit 900}
+ }
 }
 
 
 Function CheckToken
 {
+ %{
 	$now=(get-date).addhours(2)
     try {
 		if ($now -gt ($WVDToken=Get-AzWvdRegistrationInfo -ResourceGroupName $RG -HostPoolName $HostPool).ExpirationTime)
@@ -204,6 +223,7 @@ Function CheckToken
 		$global:WVDToken=($WVDToken.Token)}
     }
     catch {Logwrite("901: " + $_.Exception.Message); exit 901}
+ }
 }
 
 
@@ -226,22 +246,24 @@ CheckDomain
 
 
 # Check if PS Modules are available - normal deployment
-if ($Turbo -eq "False")
-	{
-	CheckModules
-	}
-
+%{
+	if ($Turbo -eq "False")
+		{
+		CheckModules
+		}
+}
 
 # Load AZ Modules
 LoadModules
 
 
 # check if the RDAgent is already installed - normal deployment
-if ($Turbo -eq "False")
-	{
-	DownloadAgents
-	}
-
+%{
+	if ($Turbo -eq "False")
+		{
+		DownloadAgents
+		}
+}
 
 # get the DNS hostname of the VM
 $hostname=[System.Net.Dns]::GetHostByName($env:computerName).HostName

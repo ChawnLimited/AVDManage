@@ -72,11 +72,12 @@ Function UpdateNuget
 Function UpdateModule
 {
    Param ([string]$module)
-	try {
-		install-module -name $module -scope AllUsers
-    	Logwrite ('Installed ' + $module)
+		try {
+			install-module -name $module -scope AllUsers
+			Logwrite ('Updated ' + $module)
+			import-module -Name $Module	
     	}
-    catch {Logwrite ('201: Failed to update ' + $module + " " + $_.Exception.Message);exit 201}
+    catch {Logwrite ('201: Failed to update ' + $module + "" +  $_.Exception.Message);exit 201}
 }
 
 
@@ -146,7 +147,7 @@ Function AzureLogon
 {
 	try {
 		logwrite('Logon to Azure')
-		$accessToken =(Invoke-RestMethod -Uri "http://169.254.169.254/metadata/identity/oauth2/token?api-version=2019-08-01&resource=$audience" -Headers @{Metadata="true"} -Method GET).access_token
+		$accessToken =(Invoke-RestMethod -Headers @{"Metadata"="true"} -Method GET -Uri "http://169.254.169.254/metadata/identity/oauth2/token?api-version=2025-04-07&resource=$audience").access_token
 			
 		if ($accesstoken) {logwrite('Connected to Azure')}
 		else {logwrite('800: Not connected to Azure. Exit.')
@@ -165,11 +166,11 @@ Function AzureLogon
 	
 		$response = Invoke-RestMethod -Uri $ExchUri -Method POST -Body $body -ContentType "application/x-www-form-urlencoded"
 			if ($response) {logwrite('Connected to AzureX');Connect-AzAccount -accountid $clientid -AccessToken $response.access_token -tenantid $tenantid -subscriptionid $subid;$accessToken="null";$response="null"}
-			else {logwrite('801: Not connected to Azure. Exit.')
+			else {logwrite('801: Not connected to AzureX. Exit.')
 			exit 801}
 			}
-		catch {logwrite('800: Error connecting to Azure' +  $_.Exception.Message)
-		exit 800}
+		catch {logwrite('800: Error connecting to Azure: ' +  $_.Exception.Message)
+		exit 802}
 }
 
 
@@ -374,8 +375,8 @@ LogWrite ($AZVMName + " deployment complete. Schedule a restart and exit.")
 # SIG # Begin signature block
 # MIInlQYJKoZIhvcNAQcCoIInhjCCJ4ICAQExDzANBglghkgBZQMEAgEFADB5Bgor
 # BgEEAYI3AgEEoGswaTA0BgorBgEEAYI3AgEeMCYCAwEAAAQQH8w7YFlLCE63JNLG
-# KX7zUQIBAAIBAAIBAAIBAAIBADAxMA0GCWCGSAFlAwQCAQUABCCwDl1DyRLDcXuV
-# 6TDwv2cscjz/vYU+GSn0oo7EMPeY/6CCIkEwggMwMIICtqADAgECAhA3dENPnrQO
+# KX7zUQIBAAIBAAIBAAIBAAIBADAxMA0GCWCGSAFlAwQCAQUABCCi1I72nBjrTLjL
+# hObuWBPhID7qvg+PowP9pxg8K2HKLKCCIkEwggMwMIICtqADAgECAhA3dENPnrQO
 # Ih+SNsofLycXMAoGCCqGSM49BAMDMFYxCzAJBgNVBAYTAkdCMRgwFgYDVQQKEw9T
 # ZWN0aWdvIExpbWl0ZWQxLTArBgNVBAMTJFNlY3RpZ28gUHVibGljIENvZGUgU2ln
 # bmluZyBSb290IEU0NjAeFw0yMTAzMjIwMDAwMDBaFw0zNjAzMjEyMzU5NTlaMFcx
@@ -563,25 +564,25 @@ LogWrite ($AZVMName + " deployment complete. Schedule a restart and exit.")
 # U2lnbmluZyBDQSBFViBFMzYCEDxolvyQov0GPgzdcbswAjcwDQYJYIZIAWUDBAIB
 # BQCggYQwGAYKKwYBBAGCNwIBDDEKMAigAoAAoQKAADAZBgkqhkiG9w0BCQMxDAYK
 # KwYBBAGCNwIBBDAcBgorBgEEAYI3AgELMQ4wDAYKKwYBBAGCNwIBFTAvBgkqhkiG
-# 9w0BCQQxIgQgUK1KJgRhueMh9aLNmR4TZyzk3aFmfjS3Iot19Smj2JIwCwYHKoZI
-# zj0CAQUABGcwZQIwXAq/BhlCoahXtzC5dibJp1UwPRzTjLkRCqBtwe2lHJxp/I92
-# xaQjml97wflXd7fLAjEA78pTv4cRVEyiT+L2lp/SgiYkzyeUv1SC9z3DrnAhJOK8
-# TF8yQenf8m+CSGo2rUCloYIDJjCCAyIGCSqGSIb3DQEJBjGCAxMwggMPAgEBMH0w
+# 9w0BCQQxIgQg0EV2hfv9Oj5wZEKAYLB39R9bT1JNNQFSM5dQ9dNqvfowCwYHKoZI
+# zj0CAQUABGcwZQIxAOG2TG7YUBhvClEzekNuqX9O3gyvsTQDHT8eyEIy5LtHluVp
+# AXKBPlc7GMjMGpGdXgIwOmxI62ipyuGuIBWu8AffUkGvcErHA7D8kaGtw5Yb0YHq
+# ehZtG/vW/vDtYPVoOv1foYIDJjCCAyIGCSqGSIb3DQEJBjGCAxMwggMPAgEBMH0w
 # aTELMAkGA1UEBhMCVVMxFzAVBgNVBAoTDkRpZ2lDZXJ0LCBJbmMuMUEwPwYDVQQD
 # EzhEaWdpQ2VydCBUcnVzdGVkIEc0IFRpbWVTdGFtcGluZyBSU0E0MDk2IFNIQTI1
 # NiAyMDI1IENBMQIQCoDvGEuN8QWC0cR2p5V0aDANBglghkgBZQMEAgEFAKBpMBgG
-# CSqGSIb3DQEJAzELBgkqhkiG9w0BBwEwHAYJKoZIhvcNAQkFMQ8XDTI1MDkzMDE0
-# MjQzNFowLwYJKoZIhvcNAQkEMSIEIN+hI6CGjzaOVSekdyeW+I+5ylNJaExfSTBh
-# yWNbXmUAMA0GCSqGSIb3DQEBAQUABIICAA0hlGXhyH44sGzD8uD7sLfycpibkDIs
-# 26z+g+CoiRWlP1MXjtY9m5DdGaFhrffc+G+F1WI9FeclyTWkcq3+82Qa+ftuXt86
-# qQ48Qt7zYefxvmugYS+OAF0svlStZBW/AeIWX9Pnh4Z+rDqiz50ysar4ZyWMMnYS
-# fV0TewC0BRw1TwaQ6q4EQwhtaWHHZzxJlKnYUfFYXFW32rJ8CBfmnejN29Cpo/qe
-# a1OZ4TfzcZctCap1TDqadiUiZMue8zrZiCimFxOQCVyGloa6PKV9LFk6YrhQn5kI
-# IePzZboBQIvQ6DlzfA/L6UeRuoKz3bCtZmhdClAKHI2NysPcAa1DZfgle59zs3h2
-# eLnUdtDR7RktM+YzGKL0hh+oU1jDa7KrZdbWbWYGho2Eqkv+MOY44SjM5TY34t4u
-# szzA5A5zaKTe+odankFZm5TAEmt2NRRDa6gv3BJso9kNw0vTDBDLwdkTtmOF6XO/
-# YicLrZBrUQKtxkTzwx5W93Po5sMN+RuLqMlsaoLXJMufqh7yQICfHiQd8rQkeNOk
-# L3wRXfzv+nRH2JlHLkLgy/AsMAZU9HinxUL+A0NDuRcjygZic2OwJi2oRHcesoJ0
-# AD0jsvvS8JJRgJSLMmuJiSMehOUKewV13OQ+KLY2XK7s1dJ8RvKH2HikkE/6f4hw
-# Z4pzWHgfZ87Z
+# CSqGSIb3DQEJAzELBgkqhkiG9w0BBwEwHAYJKoZIhvcNAQkFMQ8XDTI1MDkzMDE1
+# MTQxN1owLwYJKoZIhvcNAQkEMSIEIB09ELP4343MaWz0oRQpuFSCIKmKfxuatAm+
+# W85drygeMA0GCSqGSIb3DQEBAQUABIICACRm0P8FZl9klKsA2bBu+nuW8yGQ7GEk
+# DLgvsg3W+0ii6zQN4l5mxBVYfwqTvMiAM9vhYHqqPtrmUxzkbzsw+4IsOiolNzWx
+# WbNyV+7xFuEox6v2Ce/T8Q+2yKiHjc/QRfQQMN6DrxOBhTk4ilUoRpr79WhrA9qD
+# hZmVffQDl3NqCmSkd53AC/bQIk+tOHJjMr0D+ONyN4vxcNC2mEGhlKP5E0pXdVI6
+# wL+KOOg3fJwb7xmErLIKCFvC746QL07+IWNjQROdtb+TBkgjRDr0mznAoW6Ulm69
+# 63Y7+V9spTclZE1o/90ct51U4NpoMEan65OeaMHixpRvTZHN/U6shmtyrXEqbJ4k
+# lgW0jpShiY2f4iIhArTNyK/KWsATrRaGR8vUawMMBcFHj6PEU6eOP9Yj9qpGWCwk
+# nV04Cm72M42UeVpuRPFCLYHPnFMyTby7+vmwQYuMwoz0dIq/MCoVqxaMWpWSGMql
+# glQ8D49+wN7XsKs+glaVzuWhUQScmjvkNFjkbdmgF5fVXMSo/OpjVbi+rVqo42ya
+# PguUyBMEXLIvVG1dx92rSgBrVxL5N5CW1FMlZDcuT/H7SwLBTVCZVKkLTgPQUL95
+# cdAKnlWUxR7FbBShJB04estdIRp73JkcF3C9mhUKwp6YH4vU5kBzHBFNDhKuSOON
+# X/R0Dx2pJLcj
 # SIG # End signature block

@@ -87,11 +87,11 @@ logwrite('Load Modules')
 
 		try {
 			logwrite('Import Az.Accounts')
-			import-module -Name Az.Accounts -ErrorAction Stop
+			Import-Module -Name Az.Accounts -Cmdlet Connect-AzAccount,Disconnect-AzAccount -ErrorAction SilentlyContinue
 			if (Get-Module -name Az.Accounts) {Logwrite('Az.Accounts is available.')}
 			else {logwrite('Az.Accounts is not available. Will try and install.'); UpdateNuget; UpdateModule Az.Accounts;}
 			logwrite('Import Az.DesktopVirtualization')
-			import-module -name Az.DesktopVirtualization -ErrorAction Stop
+			Import-Module -Name Az.DesktopVirtualization -Cmdlet Get-AzWvdSessionHost,Remove-AzWvdSessionHost,Get-AzWvdRegistrationInfo,New-AzWvdRegistrationInfo -ErrorAction SilentlyContinue
 			if (Get-Module -name Az.DesktopVirtualization) {Logwrite('Az.DesktopVirtualization is available.')}
 			else {logwrite('Az.DesktopVirtualization is not available. Will try and install.'); UpdateModule Az.DesktopVirtualization;}
 		}
@@ -373,10 +373,10 @@ LogWrite ($AZVMName + " deployment complete. Schedule a restart and exit.")
 	exit 0
 
 # SIG # Begin signature block
-# MIInlQYJKoZIhvcNAQcCoIInhjCCJ4ICAQExDzANBglghkgBZQMEAgEFADB5Bgor
+# MIInlAYJKoZIhvcNAQcCoIInhTCCJ4ECAQExDzANBglghkgBZQMEAgEFADB5Bgor
 # BgEEAYI3AgEEoGswaTA0BgorBgEEAYI3AgEeMCYCAwEAAAQQH8w7YFlLCE63JNLG
-# KX7zUQIBAAIBAAIBAAIBAAIBADAxMA0GCWCGSAFlAwQCAQUABCCi1I72nBjrTLjL
-# hObuWBPhID7qvg+PowP9pxg8K2HKLKCCIkEwggMwMIICtqADAgECAhA3dENPnrQO
+# KX7zUQIBAAIBAAIBAAIBAAIBADAxMA0GCWCGSAFlAwQCAQUABCAi6LM/mdwKIPWK
+# rHzR/L5bcvpZLkhC6qg1HkD0pxCwu6CCIkEwggMwMIICtqADAgECAhA3dENPnrQO
 # Ih+SNsofLycXMAoGCCqGSM49BAMDMFYxCzAJBgNVBAYTAkdCMRgwFgYDVQQKEw9T
 # ZWN0aWdvIExpbWl0ZWQxLTArBgNVBAMTJFNlY3RpZ28gUHVibGljIENvZGUgU2ln
 # bmluZyBSb290IEU0NjAeFw0yMTAzMjIwMDAwMDBaFw0zNjAzMjEyMzU5NTlaMFcx
@@ -559,30 +559,30 @@ LogWrite ($AZVMName + " deployment complete. Schedule a restart and exit.")
 # IwXMZUXBhtCyIaehr0XkBoDIGMUG1dUtwq1qmcwbdUfcSYCn+OwncVUXf53VJUNO
 # aMWMts0VlRYxe5nK+At+DI96HAlXHAL5SlfYxJ7La54i71McVWRP66bW+yERNpbJ
 # CjyCYG2j+bdpxo/1Cy4uPcU3AWVPGrbn5PhDBf3Froguzzhk++ami+r3Qrx5bIbY
-# 3TVzgiFI7Gq3zWcxggSqMIIEpgIBATBrMFcxCzAJBgNVBAYTAkdCMRgwFgYDVQQK
+# 3TVzgiFI7Gq3zWcxggSpMIIEpQIBATBrMFcxCzAJBgNVBAYTAkdCMRgwFgYDVQQK
 # Ew9TZWN0aWdvIExpbWl0ZWQxLjAsBgNVBAMTJVNlY3RpZ28gUHVibGljIENvZGUg
 # U2lnbmluZyBDQSBFViBFMzYCEDxolvyQov0GPgzdcbswAjcwDQYJYIZIAWUDBAIB
 # BQCggYQwGAYKKwYBBAGCNwIBDDEKMAigAoAAoQKAADAZBgkqhkiG9w0BCQMxDAYK
 # KwYBBAGCNwIBBDAcBgorBgEEAYI3AgELMQ4wDAYKKwYBBAGCNwIBFTAvBgkqhkiG
-# 9w0BCQQxIgQg0EV2hfv9Oj5wZEKAYLB39R9bT1JNNQFSM5dQ9dNqvfowCwYHKoZI
-# zj0CAQUABGcwZQIxAOG2TG7YUBhvClEzekNuqX9O3gyvsTQDHT8eyEIy5LtHluVp
-# AXKBPlc7GMjMGpGdXgIwOmxI62ipyuGuIBWu8AffUkGvcErHA7D8kaGtw5Yb0YHq
-# ehZtG/vW/vDtYPVoOv1foYIDJjCCAyIGCSqGSIb3DQEJBjGCAxMwggMPAgEBMH0w
-# aTELMAkGA1UEBhMCVVMxFzAVBgNVBAoTDkRpZ2lDZXJ0LCBJbmMuMUEwPwYDVQQD
-# EzhEaWdpQ2VydCBUcnVzdGVkIEc0IFRpbWVTdGFtcGluZyBSU0E0MDk2IFNIQTI1
-# NiAyMDI1IENBMQIQCoDvGEuN8QWC0cR2p5V0aDANBglghkgBZQMEAgEFAKBpMBgG
-# CSqGSIb3DQEJAzELBgkqhkiG9w0BBwEwHAYJKoZIhvcNAQkFMQ8XDTI1MDkzMDE1
-# MTQxN1owLwYJKoZIhvcNAQkEMSIEIB09ELP4343MaWz0oRQpuFSCIKmKfxuatAm+
-# W85drygeMA0GCSqGSIb3DQEBAQUABIICACRm0P8FZl9klKsA2bBu+nuW8yGQ7GEk
-# DLgvsg3W+0ii6zQN4l5mxBVYfwqTvMiAM9vhYHqqPtrmUxzkbzsw+4IsOiolNzWx
-# WbNyV+7xFuEox6v2Ce/T8Q+2yKiHjc/QRfQQMN6DrxOBhTk4ilUoRpr79WhrA9qD
-# hZmVffQDl3NqCmSkd53AC/bQIk+tOHJjMr0D+ONyN4vxcNC2mEGhlKP5E0pXdVI6
-# wL+KOOg3fJwb7xmErLIKCFvC746QL07+IWNjQROdtb+TBkgjRDr0mznAoW6Ulm69
-# 63Y7+V9spTclZE1o/90ct51U4NpoMEan65OeaMHixpRvTZHN/U6shmtyrXEqbJ4k
-# lgW0jpShiY2f4iIhArTNyK/KWsATrRaGR8vUawMMBcFHj6PEU6eOP9Yj9qpGWCwk
-# nV04Cm72M42UeVpuRPFCLYHPnFMyTby7+vmwQYuMwoz0dIq/MCoVqxaMWpWSGMql
-# glQ8D49+wN7XsKs+glaVzuWhUQScmjvkNFjkbdmgF5fVXMSo/OpjVbi+rVqo42ya
-# PguUyBMEXLIvVG1dx92rSgBrVxL5N5CW1FMlZDcuT/H7SwLBTVCZVKkLTgPQUL95
-# cdAKnlWUxR7FbBShJB04estdIRp73JkcF3C9mhUKwp6YH4vU5kBzHBFNDhKuSOON
-# X/R0Dx2pJLcj
+# 9w0BCQQxIgQgdnnLVtsznacxd27CqV6dGR4FaZFeLx0mJ4Madg6xvx8wCwYHKoZI
+# zj0CAQUABGYwZAIwQrnc1V7dkUpt6fuqzSVqp5SgRW12zuu2XzCcdzdD30PrnWX2
+# wm0XEw8ovhdlgFNRAjBjiXftm5Ogigx+xkiGJ4ScPxaaD2LFak/ZXBqopB21rSjR
+# aLKdXyd/jdAIRzQDyiyhggMmMIIDIgYJKoZIhvcNAQkGMYIDEzCCAw8CAQEwfTBp
+# MQswCQYDVQQGEwJVUzEXMBUGA1UEChMORGlnaUNlcnQsIEluYy4xQTA/BgNVBAMT
+# OERpZ2lDZXJ0IFRydXN0ZWQgRzQgVGltZVN0YW1waW5nIFJTQTQwOTYgU0hBMjU2
+# IDIwMjUgQ0ExAhAKgO8YS43xBYLRxHanlXRoMA0GCWCGSAFlAwQCAQUAoGkwGAYJ
+# KoZIhvcNAQkDMQsGCSqGSIb3DQEHATAcBgkqhkiG9w0BCQUxDxcNMjUwOTMwMTc0
+# MDM1WjAvBgkqhkiG9w0BCQQxIgQgz5mcmh5LAXnIsb/lkWkROWpvMPqwVLmsc1lo
+# M14AzwcwDQYJKoZIhvcNAQEBBQAEggIAz9W5HvHayDsiFxmw/mE+Z697+UYi7/0j
+# tF0/206SryKBF+6IW2qm3fvnX5rU6LGhM9pLxjhsP7hXJpd0YIIPlB2yRYIGyT7X
+# QMhT/mxFHXAILDn4G+ITZ+3DLDQSGwNWEMS5bVqTbPcC5t8Q+HXNQfapFqstwYJ+
+# rchqDZs3+XvtX4XWPB4OPyomRjzOKoQmDn52ZVyJ4fwNXmkHCnKa9uJqLRYo1iu2
+# xGIeZh2Pezbf15M+EMvmlTC6sHpimqzKJtq6aO90zN9Md4uS4GtrULx/QeLMhoul
+# GSALOoF9jBjkpKpFBWBDRuYuKcZcNB2FIaQi7Gqp05HxQkfWv4hkoyxslXkNaJ8D
+# G9PJTem5a3dET/1t5yBDxth+IGbHuyZ8NM6vNkgPv6pxSfT6dqkukdCg1GHTvLWS
+# cFNHKP6Ii9eescTZ60TdNz3ZC6wcklGUaWaA1jKeL5Q8MefgTAYOes0ji3bVbbIo
+# DEXmT0TN8nFF69caUFDxEeDl/kUbA3GPq5ZQKqAQP9opr4zgajFqGmPVn8nMFI5a
+# V6l+L360ZvaRCroE3xoEcZPHAep/zuLLGf1ht6hUAhQpUMyYeZhdj54Wz10m3nL4
+# 4NbN6GUH+ov/tnTkmy/MOwDA2fPwRrU2y0FiSqX1punAm85DLt9LwY/4wo5NOx1v
+# UpMfjP7hVn0=
 # SIG # End signature block

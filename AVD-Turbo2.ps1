@@ -69,20 +69,6 @@ Function UpdateNuget
 }
 
 
-Function CheckModules
-{
-logwrite('Check Modules')
-	try {
-		if (Get-Module -name Az.Accounts -ListAvailable) {Logwrite('Az.Accounts is available.')}
-		else {logwrite('Az.Accounts is not available. Will try and install.'); UpdateNuget; UpdateModule Az.Accounts;}
-
-		if (Get-Module -name Az.DesktopVirtualization -ListAvailable) {Logwrite('Az.DesktopVirtualization is available.')}
-		else {logwrite('Az.DesktopVirtualization is not available. Will try and install.'); UpdateModule Az.DesktopVirtualization;}
-			}
-		catch {logwrite('200: Error importing Az Modules' +  $_.Exception.Message); exit 200}
-logwrite('Check Complete')
-}
-
 Function UpdateModule
 {
    Param ([string]$module)
@@ -100,13 +86,13 @@ logwrite('Load Modules')
 
 		try {
 			logwrite('Import Az.Accounts')
-			import-module -Name Az.Accounts
+			import-module -Name Az.Accounts -ErrorAction Stop
 			if (Get-Module -name Az.Accounts) {Logwrite('Az.Accounts is available.')}
-			else {Logwrite ('Az.Accounts is not available. Exit.');exit 203}
+			else {logwrite('Az.Accounts is not available. Will try and install.'); UpdateNuget; UpdateModule Az.Accounts;}
 			logwrite('Import Az.DesktopVirtualization')
-			import-module -name Az.DesktopVirtualization
+			import-module -name Az.DesktopVirtualization -ErrorAction Stop
 			if (Get-Module -name Az.DesktopVirtualization) {Logwrite('Az.DesktopVirtualization is available.')}
-			else {Logwrite ('Az.DesktopVirtualization is not available. Exit.');exit 202}
+			else {logwrite('Az.DesktopVirtualization is not available. Will try and install.'); UpdateModule Az.DesktopVirtualization;}
 		}
 		catch {logwrite('201: Error importing Az Modules' +  $_.Exception.Message);exit 201}
 		logwrite('Modules Loaded')
@@ -288,22 +274,17 @@ JoinDomain
 CheckDomain
 
 
-# Check if PS Modules are available - normal deployment
-if ($Turbo -eq "False")
-	{
-	CheckModules
-	}
-
-
 # Load AZ Modules
 LoadModules
 
 
 # check if the RDAgent is already installed - normal deployment
-if ($Turbo -eq "False")
-	{
-	DownloadAgents
-	}
+%{
+	if ($Turbo -eq "False")
+		{
+		DownloadAgents
+		}
+}
 
 
 # get the DNS hostname of the VM
@@ -391,10 +372,10 @@ LogWrite ($AZVMName + " deployment complete. Schedule a restart and exit.")
 	exit 0
 
 # SIG # Begin signature block
-# MIInlAYJKoZIhvcNAQcCoIInhTCCJ4ECAQExDzANBglghkgBZQMEAgEFADB5Bgor
+# MIInlQYJKoZIhvcNAQcCoIInhjCCJ4ICAQExDzANBglghkgBZQMEAgEFADB5Bgor
 # BgEEAYI3AgEEoGswaTA0BgorBgEEAYI3AgEeMCYCAwEAAAQQH8w7YFlLCE63JNLG
-# KX7zUQIBAAIBAAIBAAIBAAIBADAxMA0GCWCGSAFlAwQCAQUABCCKfWdl9A2Iv3bj
-# 9yKmuoXH/6Yp1ZU1sjCSMKKdKHOlz6CCIkEwggMwMIICtqADAgECAhA3dENPnrQO
+# KX7zUQIBAAIBAAIBAAIBAAIBADAxMA0GCWCGSAFlAwQCAQUABCCwDl1DyRLDcXuV
+# 6TDwv2cscjz/vYU+GSn0oo7EMPeY/6CCIkEwggMwMIICtqADAgECAhA3dENPnrQO
 # Ih+SNsofLycXMAoGCCqGSM49BAMDMFYxCzAJBgNVBAYTAkdCMRgwFgYDVQQKEw9T
 # ZWN0aWdvIExpbWl0ZWQxLTArBgNVBAMTJFNlY3RpZ28gUHVibGljIENvZGUgU2ln
 # bmluZyBSb290IEU0NjAeFw0yMTAzMjIwMDAwMDBaFw0zNjAzMjEyMzU5NTlaMFcx
@@ -577,30 +558,30 @@ LogWrite ($AZVMName + " deployment complete. Schedule a restart and exit.")
 # IwXMZUXBhtCyIaehr0XkBoDIGMUG1dUtwq1qmcwbdUfcSYCn+OwncVUXf53VJUNO
 # aMWMts0VlRYxe5nK+At+DI96HAlXHAL5SlfYxJ7La54i71McVWRP66bW+yERNpbJ
 # CjyCYG2j+bdpxo/1Cy4uPcU3AWVPGrbn5PhDBf3Froguzzhk++ami+r3Qrx5bIbY
-# 3TVzgiFI7Gq3zWcxggSpMIIEpQIBATBrMFcxCzAJBgNVBAYTAkdCMRgwFgYDVQQK
+# 3TVzgiFI7Gq3zWcxggSqMIIEpgIBATBrMFcxCzAJBgNVBAYTAkdCMRgwFgYDVQQK
 # Ew9TZWN0aWdvIExpbWl0ZWQxLjAsBgNVBAMTJVNlY3RpZ28gUHVibGljIENvZGUg
 # U2lnbmluZyBDQSBFViBFMzYCEDxolvyQov0GPgzdcbswAjcwDQYJYIZIAWUDBAIB
 # BQCggYQwGAYKKwYBBAGCNwIBDDEKMAigAoAAoQKAADAZBgkqhkiG9w0BCQMxDAYK
 # KwYBBAGCNwIBBDAcBgorBgEEAYI3AgELMQ4wDAYKKwYBBAGCNwIBFTAvBgkqhkiG
-# 9w0BCQQxIgQgLkl2kdGDx6Ji8hXJ1MBXxo79hQyb3UaSueEIu0ybZKIwCwYHKoZI
-# zj0CAQUABGYwZAIwQNupI79GR/3xSw+mhj4u1U3nIeLsaI8n0CuXL6DlZMJ76mzj
-# 1wNaYZbWlKSzOT/bAjBcZUocPw6MxJEScc3FRnpozZX1deL6VXuWaRYyGVMT0/b/
-# CiZ2xvcYOV5MEP1nqd6hggMmMIIDIgYJKoZIhvcNAQkGMYIDEzCCAw8CAQEwfTBp
-# MQswCQYDVQQGEwJVUzEXMBUGA1UEChMORGlnaUNlcnQsIEluYy4xQTA/BgNVBAMT
-# OERpZ2lDZXJ0IFRydXN0ZWQgRzQgVGltZVN0YW1waW5nIFJTQTQwOTYgU0hBMjU2
-# IDIwMjUgQ0ExAhAKgO8YS43xBYLRxHanlXRoMA0GCWCGSAFlAwQCAQUAoGkwGAYJ
-# KoZIhvcNAQkDMQsGCSqGSIb3DQEHATAcBgkqhkiG9w0BCQUxDxcNMjUwOTI3MDE0
-# MjA0WjAvBgkqhkiG9w0BCQQxIgQg5vEHLWFMqpd0FFP56Ue5pOwrGAvKG8B6WGTL
-# mLOOUcwwDQYJKoZIhvcNAQEBBQAEggIAck7qL5ZfmA3ffT6FBgtdiiMGq+OCGPJt
-# GcwDy2OwXuiP7iLIzu/2zv3UK1p+ri0Iwwhiff9oshG7ApgK4X1L6uEdLhormseE
-# x9X911VuGPuivwJSFbW6m66oQPQexMPfvcWGjx/TDHq7oh5i9bD9nv8aauE4uBUz
-# vGLxWDZ15lb9ZepCSf9fps7Kpg2xIwbT/WkWQs0hyTrbKl21FpEjtLMQb09xPX35
-# wLKAzZnOozg8PgP75ljMj5zWmrA4cL91nTgq/A8T4jPHLRp9NaWpF3Y42wUks/kr
-# Sd0Kb/S6BLKYwn1HvWkbsc336xex2tibKHsHEYjURxp0bMbuhtTCXDzACq8iUfjb
-# wvlfJclBTtsiczCKKoRginKQozTMyJHhHtFN/EDFRLoHX4rMgwJKXBAUW5IU0oHe
-# A4jkbQEAV7RK6dvhKIQxnBpOfUq7VFk7Rbv/6DvGC37/N2J0RC2ABgpK+mQ3eQPE
-# mHWdiVIMmBQHbQbdO47jXdq9Nl6hwZ02juABRGmJpQS7x5C3HHwllxp01k7SJhbA
-# 5John644EKtdKV05Iu8li2H9dY6l59/02d0fhE+s+XixTros3tNDXnmHDRg6ygfR
-# 54MIhOQPsBfuC3y3mnk02JMaTaGP2tnAjPyxHx6I1FWrlwW4RjjHYJNxIBKCQWy6
-# RIf4R5Ur6/Y=
+# 9w0BCQQxIgQgUK1KJgRhueMh9aLNmR4TZyzk3aFmfjS3Iot19Smj2JIwCwYHKoZI
+# zj0CAQUABGcwZQIwXAq/BhlCoahXtzC5dibJp1UwPRzTjLkRCqBtwe2lHJxp/I92
+# xaQjml97wflXd7fLAjEA78pTv4cRVEyiT+L2lp/SgiYkzyeUv1SC9z3DrnAhJOK8
+# TF8yQenf8m+CSGo2rUCloYIDJjCCAyIGCSqGSIb3DQEJBjGCAxMwggMPAgEBMH0w
+# aTELMAkGA1UEBhMCVVMxFzAVBgNVBAoTDkRpZ2lDZXJ0LCBJbmMuMUEwPwYDVQQD
+# EzhEaWdpQ2VydCBUcnVzdGVkIEc0IFRpbWVTdGFtcGluZyBSU0E0MDk2IFNIQTI1
+# NiAyMDI1IENBMQIQCoDvGEuN8QWC0cR2p5V0aDANBglghkgBZQMEAgEFAKBpMBgG
+# CSqGSIb3DQEJAzELBgkqhkiG9w0BBwEwHAYJKoZIhvcNAQkFMQ8XDTI1MDkzMDE0
+# MjQzNFowLwYJKoZIhvcNAQkEMSIEIN+hI6CGjzaOVSekdyeW+I+5ylNJaExfSTBh
+# yWNbXmUAMA0GCSqGSIb3DQEBAQUABIICAA0hlGXhyH44sGzD8uD7sLfycpibkDIs
+# 26z+g+CoiRWlP1MXjtY9m5DdGaFhrffc+G+F1WI9FeclyTWkcq3+82Qa+ftuXt86
+# qQ48Qt7zYefxvmugYS+OAF0svlStZBW/AeIWX9Pnh4Z+rDqiz50ysar4ZyWMMnYS
+# fV0TewC0BRw1TwaQ6q4EQwhtaWHHZzxJlKnYUfFYXFW32rJ8CBfmnejN29Cpo/qe
+# a1OZ4TfzcZctCap1TDqadiUiZMue8zrZiCimFxOQCVyGloa6PKV9LFk6YrhQn5kI
+# IePzZboBQIvQ6DlzfA/L6UeRuoKz3bCtZmhdClAKHI2NysPcAa1DZfgle59zs3h2
+# eLnUdtDR7RktM+YzGKL0hh+oU1jDa7KrZdbWbWYGho2Eqkv+MOY44SjM5TY34t4u
+# szzA5A5zaKTe+odankFZm5TAEmt2NRRDa6gv3BJso9kNw0vTDBDLwdkTtmOF6XO/
+# YicLrZBrUQKtxkTzwx5W93Po5sMN+RuLqMlsaoLXJMufqh7yQICfHiQd8rQkeNOk
+# L3wRXfzv+nRH2JlHLkLgy/AsMAZU9HinxUL+A0NDuRcjygZic2OwJi2oRHcesoJ0
+# AD0jsvvS8JJRgJSLMmuJiSMehOUKewV13OQ+KLY2XK7s1dJ8RvKH2HikkE/6f4hw
+# Z4pzWHgfZ87Z
 # SIG # End signature block

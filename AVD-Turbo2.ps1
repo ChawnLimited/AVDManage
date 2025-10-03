@@ -55,8 +55,6 @@ Function UpdateNuget
             }
     	}
     catch {LogWrite "NuGet Update Failed"; exit 101}
-
-
 # trust PSGalllery
 # access to www.powershellgallery.com
     try	{
@@ -84,7 +82,7 @@ Function LoadModules
 	try {import-module -Name Az.Accounts -ErrorAction Stop;LogWrite ('Az.Accounts is available')}
 	catch {LogWrite ('Az.Accounts is not available. Try and install.');UpdateNuget; UpdateModule Az.Accounts;}
 
-	try {import-module -Name Az.DesktopVirtualization -ErrorAction Stop;LogWrite ('Az.Accounts is available')}
+	try {import-module -Name Az.DesktopVirtualization -ErrorAction Stop;LogWrite ('Az.DesktopVirtualization is available')}
 	catch {LogWrite ('Az.DesktopVirtualization is not available. Try and install.');UpdateNuget; UpdateModule Az.DesktopVirtualization}
 	logwrite('Modules Loaded')
 }
@@ -371,8 +369,8 @@ LogWrite ($AZVMName + " deployment complete. Schedule a restart and exit.")
 # SIG # Begin signature block
 # MIInlAYJKoZIhvcNAQcCoIInhTCCJ4ECAQExDzANBglghkgBZQMEAgEFADB5Bgor
 # BgEEAYI3AgEEoGswaTA0BgorBgEEAYI3AgEeMCYCAwEAAAQQH8w7YFlLCE63JNLG
-# KX7zUQIBAAIBAAIBAAIBAAIBADAxMA0GCWCGSAFlAwQCAQUABCBKd0J6Fn45dPTb
-# DdP7KqQojp7lsYn6W/D4/Z7nOa+7taCCIkEwggMwMIICtqADAgECAhA3dENPnrQO
+# KX7zUQIBAAIBAAIBAAIBAAIBADAxMA0GCWCGSAFlAwQCAQUABCAlbxVU3YqT5gLp
+# 2kliHV4FM444YrMlBfPaQg5e+vV/HqCCIkEwggMwMIICtqADAgECAhA3dENPnrQO
 # Ih+SNsofLycXMAoGCCqGSM49BAMDMFYxCzAJBgNVBAYTAkdCMRgwFgYDVQQKEw9T
 # ZWN0aWdvIExpbWl0ZWQxLTArBgNVBAMTJFNlY3RpZ28gUHVibGljIENvZGUgU2ln
 # bmluZyBSb290IEU0NjAeFw0yMTAzMjIwMDAwMDBaFw0zNjAzMjEyMzU5NTlaMFcx
@@ -560,25 +558,25 @@ LogWrite ($AZVMName + " deployment complete. Schedule a restart and exit.")
 # U2lnbmluZyBDQSBFViBFMzYCEDxolvyQov0GPgzdcbswAjcwDQYJYIZIAWUDBAIB
 # BQCggYQwGAYKKwYBBAGCNwIBDDEKMAigAoAAoQKAADAZBgkqhkiG9w0BCQMxDAYK
 # KwYBBAGCNwIBBDAcBgorBgEEAYI3AgELMQ4wDAYKKwYBBAGCNwIBFTAvBgkqhkiG
-# 9w0BCQQxIgQguRnd0XScEaNDwmtLOmKqfPw+8vYIeZiHyECZwrZpYo4wCwYHKoZI
-# zj0CAQUABGYwZAIwc9ohE7qozQmTO60Zq3jusamM9Yxs39Xt8D4ms7DeMcKx+EJk
-# eOK61qQD9C0gEw9jAjBOxsMU0h1DlKEdU6xCubc8yupTWVPBHCdYUNaKWELl+DrA
-# KfrPnmsELgEN8Y9Ge0OhggMmMIIDIgYJKoZIhvcNAQkGMYIDEzCCAw8CAQEwfTBp
+# 9w0BCQQxIgQgrT2n/iT0Wmmx8VdJOk5lCKjYvQxm5vEe01UlYIdP8zEwCwYHKoZI
+# zj0CAQUABGYwZAIwJPkbVajwpfN8CFk/5FC9h2j6wHSWS77vGfmfqrYO3pWqSTEE
+# HyNwGk0+jRm8hc9vAjB6yWmBdKJoAdgHH7y8UM5GK7NiC+Zsz2uqxEhZfIangP25
+# mL0V/q2OJl7YHiNw5HGhggMmMIIDIgYJKoZIhvcNAQkGMYIDEzCCAw8CAQEwfTBp
 # MQswCQYDVQQGEwJVUzEXMBUGA1UEChMORGlnaUNlcnQsIEluYy4xQTA/BgNVBAMT
 # OERpZ2lDZXJ0IFRydXN0ZWQgRzQgVGltZVN0YW1waW5nIFJTQTQwOTYgU0hBMjU2
 # IDIwMjUgQ0ExAhAKgO8YS43xBYLRxHanlXRoMA0GCWCGSAFlAwQCAQUAoGkwGAYJ
-# KoZIhvcNAQkDMQsGCSqGSIb3DQEHATAcBgkqhkiG9w0BCQUxDxcNMjUxMDAzMTEz
-# MzM3WjAvBgkqhkiG9w0BCQQxIgQgZnHJ0wCZfCtOnoF4mglmT/MlrwJ20mQHexz0
-# sH9W2qcwDQYJKoZIhvcNAQEBBQAEggIAHQwC3W63Lf+EGJW1HsKn7SqWqx1deYTY
-# mkZw0Hj6UP7FkfeKv+zZjAGnTetySCUv5SqJgFuOM3Mx8T8VjkhCh/LW6JRZblBq
-# tOBhhCCNFTlV7DlakrkWwMFmKgmIvCC9BGyALMu7szBbZcBY1ByuJaD8IOW/YNPm
-# PakdWgwxTuw6J8NDyZ8t43ctEEdCCXyhDRzvipnrpg9GHAJw0IZHy/Fnj7s7B1jJ
-# xpj/16xOW9FgliKtPwBGEh8chjSTLvXsasgSZAH3HqfNEW8tB7Eg4O1ArU9+nfX9
-# Z1lOhE2/NomxgPyP+LPwhDV2d6kqFdPZnfzKwPRVxlKfRDUCzC5v1sJcYSF5bhbz
-# YuTulxufxh4M8ZtDY/vr58M9foBVuMvJwbENt+bF9qcPG7GL+r8PP09tAP+VmJpc
-# X/pt6N+lxUh9YU8zHxExwXE5IG9XelrMQ5suF3avq1lOP4Ad89v/GUZn1TSJ1lzp
-# 3tOTCI6liSxQXbx/FXkbPzdpeDYt8kihwSOnzhVdwwuatSP2cj5WcrqowaLIxfgk
-# LfO7wecktUgKydM1M5ooK1tew3HqE/jCXTo0KA0apy54WgPWzxeJVg8qaI/n4IiE
-# ZTOF0nCg0Z67r1MsLmAkD1Ps3TPrUDyIozJjFTI/mfFqdyLHgHomuKdtBEmRlpZD
-# 9A9wR6BbXbY=
+# KoZIhvcNAQkDMQsGCSqGSIb3DQEHATAcBgkqhkiG9w0BCQUxDxcNMjUxMDAzMTE0
+# NzUxWjAvBgkqhkiG9w0BCQQxIgQgHpCx7TSI0S/ceOUIxuYdgGcAyUOqEOVFfb0R
+# n01FYtIwDQYJKoZIhvcNAQEBBQAEggIATpUhh59vW2vJlavOUtTTaBONbOQJFf6i
+# +k5nZjCqoW6cjTmsd33zC+9fHRAFT65VYbhN3StJtQNyb4F2TXFbasN1m4D8cUSO
+# DXou11c+jj1eg4t8ouKxoIEXDVgUklWipOFikXSeKd2IGXRpAfnKqs1sRAhyXCVT
+# fnwOHoCSBKb0i1jEDJyS1IdjEn1MEmiZFaX7lOzGKvWSBtra7DjKjCqd5FOZXDyN
+# oshpxggX+sOlc2q5ypnJFiP2gmwIP+Zs5iGeuWWK/mZMGarFIIs95HgR12Y0Oz2S
+# 80trusPXtkxlrE/KeOGEvkoFStTRwkuQWOkzgitB5eUaRxmMZtou3NxwMa4lG159
+# TC8RxdnW0Bilaby5HTJ4Xdg5P4sxND22LBnHmAK9tx1LvUycKqdrVjOm/xvBq19U
+# 8d1EyFLC9bdKwro0cOtjnr9ehGjhjZ6WatTHv6WMND+xG6p+uhKyJshzQNALy9WB
+# QDbi/xt7U6PHrCuNmbnBembi6ibqQTrNKxukJTdFZoQpDDVvFaee5/m0DF8aLuGH
+# rj4R/fivoD8VE+GAfzUEtzi94ql8S4d0TBPRYBY7ujpiAIaD0WNVetJKxiBJAMzQ
+# FogIl73m1VUORodjcu/bcOrysSYdP8NTDMZK9FxEvM/OyKJDIk1BHxjc3WMynVk7
+# V2VHUwRZxXs=
 # SIG # End signature block

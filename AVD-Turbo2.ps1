@@ -200,7 +200,7 @@ Function RenameComputer
 		$Global:AZVMNAME=$VMNAME
 		
 		if ($vmname -eq $env:computerName) {LogWrite ("Computer is already named " + $VMName + ".")}
-		else {if ((gwmi win32_computersystem).partofdomain -eq $false) {
+		else {if ($NotDomainJoined) {
 		LogWrite ("Renaming Computer to " + $VMName)
 		Rename-Computer -NewName $VMName -Force | Out-File -FilePath $Logfile -Append
              }
@@ -215,7 +215,7 @@ Function JoinDomain
 		try {
 		If ($ADDomain) {
 			LogWrite ("Join Domain " + $ADDomain)
-			if((gwmi win32_computersystem).partofdomain -eq $false) {
+			if($NotDomainJoined) {
 				$ADDomainCred = New-Object pscredential -ArgumentList ([pscustomobject]@{
 				UserName = $ADAdmin
 				Password = (ConvertTo-SecureString -String $ADAdminPW -AsPlainText -Force)[0]})
@@ -231,6 +231,8 @@ Function JoinDomain
 	catch {LogWrite ("301: " + $_.Exception.Message);exit 301}
 }
 
+# Check if domain joined
+$NotDomainJoined=((gwmi win32_computersystem).partofdomain -eq $false)
 
 # Rename Computer
 RenameComputer
@@ -360,5 +362,5 @@ logwrite ('Disconnected from Azure')
 # Finished
 $global:LASTEXITCODE = 0
 LogWrite ($AZVMName + " deployment complete. Schedule a restart and exit.")
-	Start-Process -FilePath "shutdown.exe" -ArgumentList "/r /t 5 /d p:0:0 /c 'AVDTurbo'"
-	exit 0
+	Start-Process -Wait -FilePath "shutdown.exe" -ArgumentList "/soft /r /t 5 /d p:0:0 /c 'AVDTurbo'"
+

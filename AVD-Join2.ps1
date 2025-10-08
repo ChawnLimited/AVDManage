@@ -73,10 +73,10 @@ Function UpdateModule
 Function LoadModules
 {
 	logwrite('Load Modules')
-	try {import-module -Name Az.Accounts -ErrorAction Stop;LogWrite ('Az.Accounts is available')}
+	try {import-module -Name Az.Accounts -Cmdlet Connect-AzAccount,Disconnect-AzAccount -ErrorAction Stop;LogWrite ('Az.Accounts is available')}
 	catch {LogWrite ('Az.Accounts is not available. Try and install.');UpdateNuget; UpdateModule Az.Accounts;}
 
-	try {import-module -Name Az.DesktopVirtualization -ErrorAction Stop;LogWrite ('Az.DesktopVirtualization is available')}
+	try {import-module -Name Az.DesktopVirtualization -Cmdlet Get-AzWvdSessionHost,Remove-AzWvdSessionHost,Get-AzWvdRegistrationInfo,New-AzWvdRegistrationInfo -ErrorAction Stop;LogWrite ('Az.DesktopVirtualization is available')}
 	catch {LogWrite ('Az.DesktopVirtualization is not available. Try and install.');UpdateNuget; UpdateModule Az.DesktopVirtualization}
 	logwrite('Modules Loaded')
 }
@@ -128,9 +128,8 @@ Function AzureLogon
 {
 	try {
 		logwrite('Logon to Azure')
-		$accessToken =(Invoke-RestMethod -Headers @{"Metadata"="true"} -Method GET -Uri "http://169.254.169.254/metadata/identity/oauth2/token?api-version=2025-04-07&resource=$audience").access_token
-			
-		if ($accesstoken) {logwrite('Connected to Azure')}
+					
+		if ($accessToken =(Invoke-RestMethod -Headers @{"Metadata"="true"} -Method GET -Uri "http://169.254.169.254/metadata/identity/oauth2/token?api-version=2025-04-07&resource=$audience").access_token) {logwrite('Connected to Azure')}
 		else {logwrite('800: Not connected to Azure. Exit.')
 		exit 800}
 		
@@ -144,9 +143,8 @@ Function AzureLogon
 		audience=$audience
 		issuer=$ISS
 		}
-	
-		$response = Invoke-RestMethod -Uri $ExchUri -Method POST -Body $body -ContentType "application/x-www-form-urlencoded"
-			if ($response) {logwrite('Connected to AzureX');Connect-AzAccount -accountid $clientid -AccessToken $response.access_token -tenantid $tenantid -subscriptionid $subid;$accessToken="null";$response="null"}
+			
+			if ($response = Invoke-RestMethod -Uri $ExchUri -Method POST -Body $body -ContentType "application/x-www-form-urlencoded") {logwrite('Connected to AzureX');Connect-AzAccount -accountid $clientid -AccessToken $response.access_token -tenantid $tenantid -subscriptionid $subid;$accessToken="null";$response="null"}
 			else {logwrite('801: Not connected to AzureX. Exit.')
 			exit 801}
 			}
@@ -280,14 +278,14 @@ logwrite ('Disconnected from Azure')
 # Wait for the SXS Network Agent and Geneva Agent to install
 %{
 	try {		    
-		    LogWrite "Wait for the SXS Network Agent and Geneva Agent to install"
-			$i=0
-			do {start-sleep -Seconds 2;$i++;} until((($SXS=(get-package -name "*SXS*Network*" -ErrorAction SilentlyContinue).Status -eq 'Installed')) -and (($Geneva=(get-package -name "*Geneva*" -ErrorAction SilentlyContinue).Status -eq 'Installed')) -or $i -eq 50)
-				if (($SXS -eq 'Installed' ) -and ($Geneva -eq 'Installed'))
-				{LogWrite ("SXS Network Agent and Geneva Agent are installed")}
-				Else {LogWrite ("1000: SXS Network Agent installed: " + $SXS + ". Geneva Agent installed: " + $Geneva + ". Check " + $env:ProgramFiles + "\Microsoft RDInfra. The MSI files don't download sometimes.");exit 1000}
+		LogWrite "Wait for the SXS Network Agent and Geneva Agent to install"
+		$i=0
+		do {start-sleep -Seconds 1;$i++;} until((($SXS=(get-package -name "*SXS*Network*" -ErrorAction SilentlyContinue).Status -eq 'Installed')) -and (($Geneva=(get-package -name "*Geneva*" -ErrorAction SilentlyContinue).Status -eq 'Installed')) -or $i -eq 100)
+			if (($SXS -eq 'Installed' ) -and ($Geneva -eq 'Installed'))
+			{LogWrite ("SXS Network Agent and Geneva Agent are installed")}
+			Else {LogWrite ("1000: SXS Network Agent installed: " + $SXS + ". Geneva Agent installed: " + $Geneva + ". Check " + $env:ProgramFiles + "\Microsoft RDInfra. The MSI files don't download sometimes.");exit 1000}
 		}
-    	catch {logwrite('1000: Error installing Remote Desktop Agents. ' + $_.Exception.Message); exit 1000}
+    catch {logwrite('1000: Error installing Remote Desktop Agents. ' + $_.Exception.Message); exit 1000}
 }
 
 
@@ -303,16 +301,17 @@ logwrite ('Disconnected from Azure')
 
 
 # Finished
+$global:LASTEXITCODE = 0
 LogWrite ($VMName + " deployment complete. Schedule a restart and exit.")
-	Start-Process -FilePath "shutdown.exe" -ArgumentList "/r /t 5 /d p:0:0 /c 'AVDJoin'"
-	exit 0
+	Start-Process -Wait -FilePath "shutdown.exe" -ArgumentList "/soft /r /t 5 /d p:0:0 /c 'AVDTurbo'"
+	
 
 
 # SIG # Begin signature block
 # MIInlQYJKoZIhvcNAQcCoIInhjCCJ4ICAQExDzANBglghkgBZQMEAgEFADB5Bgor
 # BgEEAYI3AgEEoGswaTA0BgorBgEEAYI3AgEeMCYCAwEAAAQQH8w7YFlLCE63JNLG
-# KX7zUQIBAAIBAAIBAAIBAAIBADAxMA0GCWCGSAFlAwQCAQUABCCcKGubXuohoH1y
-# pGlVOFSGWOM7h3x4TcgUSNq7gf65t6CCIkEwggMwMIICtqADAgECAhA3dENPnrQO
+# KX7zUQIBAAIBAAIBAAIBAAIBADAxMA0GCWCGSAFlAwQCAQUABCAQVG5xQrpft2sS
+# bigy5CaiSNWD+2UCy81eDgh4twvUL6CCIkEwggMwMIICtqADAgECAhA3dENPnrQO
 # Ih+SNsofLycXMAoGCCqGSM49BAMDMFYxCzAJBgNVBAYTAkdCMRgwFgYDVQQKEw9T
 # ZWN0aWdvIExpbWl0ZWQxLTArBgNVBAMTJFNlY3RpZ28gUHVibGljIENvZGUgU2ln
 # bmluZyBSb290IEU0NjAeFw0yMTAzMjIwMDAwMDBaFw0zNjAzMjEyMzU5NTlaMFcx
@@ -500,25 +499,25 @@ LogWrite ($VMName + " deployment complete. Schedule a restart and exit.")
 # U2lnbmluZyBDQSBFViBFMzYCEDxolvyQov0GPgzdcbswAjcwDQYJYIZIAWUDBAIB
 # BQCggYQwGAYKKwYBBAGCNwIBDDEKMAigAoAAoQKAADAZBgkqhkiG9w0BCQMxDAYK
 # KwYBBAGCNwIBBDAcBgorBgEEAYI3AgELMQ4wDAYKKwYBBAGCNwIBFTAvBgkqhkiG
-# 9w0BCQQxIgQgs+WRVsp24Mr6jAtlAsd7KuEnF7mG9FDhgW/tIz2O78kwCwYHKoZI
-# zj0CAQUABGcwZQIwVEAjMzbzvC6utwr7IPi4oiQoItjhPsQ2JMKVTFB1vyZqvn7i
-# phzGDo2FERwI08rYAjEAumI6sL0SdTb9kMVgyE+7NvOj9ZunLr1W2uSDQFV1Sz99
-# 7e61dNDzHj89dY4r13Y1oYIDJjCCAyIGCSqGSIb3DQEJBjGCAxMwggMPAgEBMH0w
+# 9w0BCQQxIgQgMawaLgoYSjvUMt+nLQEu1P+B6KpYk3FRf7pdEezqDRowCwYHKoZI
+# zj0CAQUABGcwZQIxAO++xzLXUPEASuthfYLM68TYL9dPC3L1FPZzEb5UDhYdaLzd
+# E1jwmQOFFGC+Wf49BQIwQHFCH5VNr5bfu9eNngPOVrwblK/2vXVyf/Bn3K9zHwz7
+# KGJyWF3WSpy4ByXiAdSAoYIDJjCCAyIGCSqGSIb3DQEJBjGCAxMwggMPAgEBMH0w
 # aTELMAkGA1UEBhMCVVMxFzAVBgNVBAoTDkRpZ2lDZXJ0LCBJbmMuMUEwPwYDVQQD
 # EzhEaWdpQ2VydCBUcnVzdGVkIEc0IFRpbWVTdGFtcGluZyBSU0E0MDk2IFNIQTI1
 # NiAyMDI1IENBMQIQCoDvGEuN8QWC0cR2p5V0aDANBglghkgBZQMEAgEFAKBpMBgG
-# CSqGSIb3DQEJAzELBgkqhkiG9w0BBwEwHAYJKoZIhvcNAQkFMQ8XDTI1MTAwMzEx
-# NDc1MVowLwYJKoZIhvcNAQkEMSIEICLNMrgZ247dFeC1aBDFJuLLwjyHEo7GQFLp
-# v/z3vNGHMA0GCSqGSIb3DQEBAQUABIICAIQGiHaNUr+ebJbnEEu2Fw80wyUC4GJZ
-# P7UuL/X/cAbH92mlCg8zO7CQLmq0/15BACJwYuYkbhr03A/o9Z192lnlBMVTAUjt
-# Nt3Vcy8IptWQn9+jyHzf9+TxIBQGKM8Jg6PhvNt4K3ZEOOJIBMQluLYq4nCIgkYy
-# vj3QGEjQr0cSH69He4kcZPwMt6iO63kIwYZ5v34kWYdk9dRoZaGUXfOKN65S8dWc
-# NXn9lMeJfW9cNNf9TBkKpxX4WynqPaeWggZv0n5zUdAV6BaoEQ/lQxjL1xE8XUDG
-# LX4aHdrHPcvST0AY8BeM0HBEWoNsuTaPD+NvTP441bPOpQvdRv7Ixh1b1WZLSfbD
-# GVwjG/XJPqH3PW3F7hoL3EzYX4KgtGP/qEpZQKNATA+NHpQ0FLOY+yIgr6iZBpUS
-# BYK/lUFENxGps1rHpllEucPlWZriqxlcCV6JxL+Wz2WokQGgwNi/+ev1YzwipuaM
-# dwb2Ta5VWyY6tYtnENY8ceyIXFm26W4BgxkW3X0nt7UFGFTS0AKDxxBZkh3ykp3Z
-# pVLjzh97v+KWqmiX0JEsDOAkp2JpwYlxH+D+bDGcjFhrS2If+1NXgilt4fUMV82f
-# BQlO8S85N4x0AEhDjidU6/mZFcCXGgwLx9W92ZDIzwjhvOHZzpbkvQ3eqq0anWH+
-# CHKq83Kce4fx
+# CSqGSIb3DQEJAzELBgkqhkiG9w0BBwEwHAYJKoZIhvcNAQkFMQ8XDTI1MTAwODA0
+# MzcyMlowLwYJKoZIhvcNAQkEMSIEIMJ1frjlQAyu+lN5Ll3I9UWrtchUTSO4pL91
+# UZI7HZSdMA0GCSqGSIb3DQEBAQUABIICAI4R9jvbhcfTumgp4zsTl1+tF3LQ8/yi
+# +w8nS++wMQvPeFSxcpmutI2HaNS3poN4PK/RKntR5G6hUp/pkEA9vGh61Rfoonb0
+# FPd4fbb3Cw3UVhczd+ieIuwreo2Z5c7Jl3Oqvt+KappPpzm14MkJA5m2IE7GyNt4
+# z4QLdqE2fHWG+rlEAowJcJfNydObdjUytiD9UI/C+DvfZfxCa+Q5CmeCDGG7IAZb
+# gfT0W8UFPbBroTqLHE3kAPu8RtTa6zj/kOh0xBpy5mfbRQgp5r2bV5nFu/y6wucT
+# 4n/BG+VGfW2ZxoZCRbipaoOcbDpE832X7m7oK4Ebo1QqDu9CQFcdjPM1tA2rK/kR
+# wvmOZ7oOYYwu1T389GWQlXOddQzgs76cehzYnBMnKmuMB/mGE3SA2pw7tVHcezx/
+# yTcbAI6H0gh8mOmZWhKMQObz4+a7NV6iJ+X071/HEM8mbEYGoatUTzFGuQRtdefq
+# 0iQq+TL0g7tSUvHTuYxmZDbXZLDtuTEFsIK3+7jjq+8rp9BQPJomyqL1+0hF9UEZ
+# JtceRHtdqOBr6ZTH/x8rEec/l2g2zsx1MFU1v3yIKJI63xkBm5eyBDb6GPh+LaDe
+# 2I7lbzIGJnjuLrihzxhLMuLFWEoreGCpnlhxFm+uTSoN2YmYjJJFUUFgeERPSNqL
+# KdbH9dnuQHYo
 # SIG # End signature block

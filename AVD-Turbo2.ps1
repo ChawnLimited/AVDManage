@@ -196,8 +196,6 @@ Function RenameComputer
 		start-sleep -seconds 1
 		} until ($xml=(Get-ChildItem -Path C:\WindowsAzure\config -Filter *.xml | sort-object -Property LastAccessTime | select -Last 1))
 		
-		$xmlfile = New-Object xml
-		$xmlfile.Load($xml[0].fullname)
 		$xpath="/RDConfig/Instances/Instance"
 		$vmname=(Select-Xml -Path $xml.fullname -XPath $xpath | Select-Object -ExpandProperty Node).id
 		$vmname=$vmname.Substring(1)

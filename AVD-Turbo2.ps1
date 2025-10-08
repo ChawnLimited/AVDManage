@@ -79,10 +79,10 @@ Function UpdateModule
 Function LoadModules
 {
 	logwrite('Load Modules')
-	try {import-module -Name Az.Accounts -ErrorAction Stop;LogWrite ('Az.Accounts is available')}
+	try {import-module -Name Az.Accounts -Cmdlet Connect-AzAccount,Disconnect-AzAccount -ErrorAction Stop;LogWrite ('Az.Accounts is available')}
 	catch {LogWrite ('Az.Accounts is not available. Try and install.');UpdateNuget; UpdateModule Az.Accounts;}
 
-	try {import-module -Name Az.DesktopVirtualization -ErrorAction Stop;LogWrite ('Az.DesktopVirtualization is available')}
+	try {import-module -Name Az.DesktopVirtualization -Cmdlet Get-AzWvdSessionHost,Remove-AzWvdSessionHost,Get-AzWvdRegistrationInfo,New-AzWvdRegistrationInfo -ErrorAction Stop;LogWrite ('Az.DesktopVirtualization is available')}
 	catch {LogWrite ('Az.DesktopVirtualization is not available. Try and install.');UpdateNuget; UpdateModule Az.DesktopVirtualization}
 	logwrite('Modules Loaded')
 }
@@ -339,7 +339,7 @@ logwrite ('Disconnected from Azure')
 	try {		    
 		LogWrite "Wait for the SXS Network Agent and Geneva Agent to install"
 		$i=0
-		do {start-sleep -Seconds 2;$i++;} until((($SXS=(get-package -name "*SXS*Network*" -ErrorAction SilentlyContinue).Status -eq 'Installed')) -and (($Geneva=(get-package -name "*Geneva*" -ErrorAction SilentlyContinue).Status -eq 'Installed')) -or $i -eq 50)
+		do {start-sleep -Seconds 1;$i++;} until((($SXS=(get-package -name "*SXS*Network*" -ErrorAction SilentlyContinue).Status -eq 'Installed')) -and (($Geneva=(get-package -name "*Geneva*" -ErrorAction SilentlyContinue).Status -eq 'Installed')) -or $i -eq 100)
 			if (($SXS -eq 'Installed' ) -and ($Geneva -eq 'Installed'))
 			{LogWrite ("SXS Network Agent and Geneva Agent are installed")}
 			Else {LogWrite ("1000: SXS Network Agent installed: " + $SXS + ". Geneva Agent installed: " + $Geneva + ". Check " + $env:ProgramFiles + "\Microsoft RDInfra. The MSI files don't download sometimes.");exit 1000}

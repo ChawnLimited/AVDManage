@@ -200,7 +200,7 @@ Function RenameComputer
 		$Global:AZVMNAME=$VMNAME
 		
 		if ($vmname -eq $env:computerName) {LogWrite ("Computer is already named " + $VMName + ".")}
-		else {if ((gwmi win32_computersystem).partofdomain -eq 0) {
+		else {if ((gwmi win32_computersystem).partofdomain -eq $false) {
 		LogWrite ("Renaming Computer to " + $VMName)
 		Rename-Computer -NewName $VMName -Force | Out-File -FilePath $Logfile -Append
              }
@@ -358,6 +358,7 @@ logwrite ('Disconnected from Azure')
 
 
 # Finished
+$global:LASTEXITCODE = 0
 LogWrite ($AZVMName + " deployment complete. Schedule a restart and exit.")
-	Start-Process -FilePath "shutdown.exe" -ArgumentList "/soft /r /t 10 /d p:0:0 /c 'AVDTurbo'"
+	Start-Process -FilePath "shutdown.exe" -ArgumentList "/r /t 5 /d p:0:0 /c 'AVDTurbo'"
 	exit 0

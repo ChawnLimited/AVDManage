@@ -135,9 +135,8 @@ Function AzureLogon
 {
 	try {
 		logwrite('Logon to Azure')
-		$accessToken =(Invoke-RestMethod -Headers @{"Metadata"="true"} -Method GET -Uri "http://169.254.169.254/metadata/identity/oauth2/token?api-version=2025-04-07&resource=$audience").access_token
-			
-		if ($accesstoken) {logwrite('Connected to Azure')}
+					
+		if ($accessToken =(Invoke-RestMethod -Headers @{"Metadata"="true"} -Method GET -Uri "http://169.254.169.254/metadata/identity/oauth2/token?api-version=2025-04-07&resource=$audience").access_token) {logwrite('Connected to Azure')}
 		else {logwrite('800: Not connected to Azure. Exit.')
 		exit 800}
 		
@@ -151,9 +150,8 @@ Function AzureLogon
 		audience=$audience
 		issuer=$ISS
 		}
-	
-		$response = Invoke-RestMethod -Uri $ExchUri -Method POST -Body $body -ContentType "application/x-www-form-urlencoded"
-			if ($response) {logwrite('Connected to AzureX');Connect-AzAccount -accountid $clientid -AccessToken $response.access_token -tenantid $tenantid -subscriptionid $subid;$accessToken="null";$response="null"}
+			
+			if ($response = Invoke-RestMethod -Uri $ExchUri -Method POST -Body $body -ContentType "application/x-www-form-urlencoded") {logwrite('Connected to AzureX');Connect-AzAccount -accountid $clientid -AccessToken $response.access_token -tenantid $tenantid -subscriptionid $subid;$accessToken="null";$response="null"}
 			else {logwrite('801: Not connected to AzureX. Exit.')
 			exit 801}
 			}
@@ -216,12 +214,12 @@ Function JoinDomain
 {
 		try {
 		If ($ADDomain) {
-			if((gwmi win32_computersystem).partofdomain -eq 0) {
+			LogWrite ("Join Domain " + $ADDomain)
+			if((gwmi win32_computersystem).partofdomain -eq $false) {
 				$ADDomainCred = New-Object pscredential -ArgumentList ([pscustomobject]@{
 				UserName = $ADAdmin
 				Password = (ConvertTo-SecureString -String $ADAdminPW -AsPlainText -Force)[0]})
 
-				LogWrite ("Join Domain " + $ADDomain)
 				Add-Computer -DomainName $ADDomain -OUPath $ou -Credential $ADDomainCred -Options JoinWithNewName,AccountCreate -Force -PassThru -Verbose | Out-File -FilePath $Logfile -Append
 				LogWrite ("Ignore the Computername above. Add-Computer always reports the original name, not the new name.")
 			}
@@ -361,5 +359,5 @@ logwrite ('Disconnected from Azure')
 
 # Finished
 LogWrite ($AZVMName + " deployment complete. Schedule a restart and exit.")
-	Start-Process -FilePath "shutdown.exe" -ArgumentList "-r -soft -t 5"
+	Start-Process -FilePath "shutdown.exe" -ArgumentList "/r /t 5 /d p:0:0 /c 'AVDTurbo'"
 	exit 0

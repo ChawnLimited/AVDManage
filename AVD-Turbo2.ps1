@@ -359,5 +359,5 @@ logwrite ('Disconnected from Azure')
 
 # Finished
 LogWrite ($AZVMName + " deployment complete. Schedule a restart and exit.")
-	Start-Process -FilePath "shutdown.exe" -ArgumentList "/r /t 5 /d p:0:0 /c 'AVDTurbo'"
+	Start-Process -FilePath "shutdown.exe" -ArgumentList "/soft /r /t 10 /d p:0:0 /c 'AVDTurbo'"
 	exit 0

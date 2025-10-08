@@ -3,7 +3,7 @@
 # Version 2.0
 # Disables Update Services and Update Tasks
 # Edge, Chrome, OneDrive, Office, WSUS
-# Disables IPv6, Nic TaskOffload, Machine Password changes
+# Disables IPv6
 # Resets MSMQ if installed
 # Removes ghost hardware
 # Empty Recycle Bin
@@ -13,7 +13,7 @@
 # Removes WSUS folders
 # Configures event logs
 # Neutralise the WindowsAzure Agent
-# Run Sysprep
+# Shutdown
 
 Write-Host "Disabling Updaters"
 try	{
@@ -62,13 +62,8 @@ catch{}
 	REG ADD "HKEY_LOCAL_MACHINE\SOFTWARE\Policies\Microsoft\Windows\WindowsUpdate\AU" /v AUOptions /t REG_DWORD /d 1 /f
 
 # disable ipv6
-	reg add "HKLM\SYSTEM\CurrentControlSet\Services\tcpip6\Parameters" /v DisabledComponents /t REG_DWORD /d 0xff /f
+# reg add "HKLM\SYSTEM\CurrentControlSet\Services\tcpip6\Parameters" /v DisabledComponents /t REG_DWORD /d 0xff /f
 
-# disable task offload
-	REG ADD "HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Services\Tcpip\Parameters" /v DisableTaskOffload /t REG_DWORD /d 1 /f
-
-# disable machine password changes
-	REG ADD "HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Services\Netlogon\Parameters" /v DisablePasswordChange /t REG_DWORD /d 1 /f
 
 # Microsoft Message Queuing
 # https://learn.microsoft.com/en-us/openspecs/windows_protocols/ms-mqqb/94a38814-a56e-4641-bd11-c020c2114e27
@@ -98,7 +93,7 @@ Clear-BCCache -Force -ErrorAction SilentlyContinue
 Write-Host "Reset Windows Search"
 # Reset Windows Search
 	Get-Service -ServiceName wsearch | Set-Service -StartupType Disabled
-	Stop-Service -ServiceName wsearch -ErrorAction Ignore
+	Stop-Service -ServiceName wsearch -force -ErrorAction Ignore
 	REG ADD "HKLM\SOFTWARE\Microsoft\Windows Search" /v SetupCompletedSuccessfully /t REG_DWORD /d 0 /f
 	Remove-Item -Path "$env:ProgramData\Microsoft\Search\Data\" -Recurse -Force -ErrorAction Ignore
 	Get-Service -ServiceName wsearch | Set-Service -StartupType Automatic
@@ -111,20 +106,15 @@ Write-Host "Remove temporary files"
 
 # empty folders
 	Stop-Service -ServiceName wuauserv,bits,msiserver
-	Remove-Item -Path C:\Windows\SoftwareDistribution -Recurse -Force -ErrorAction Ignore
 	Remove-Item -Path C:\Windows\Panther -Recurse -Force -ErrorAction Ignore
 	Remove-Item -Path C:\temp\AVD-Update -Recurse -Force -ErrorAction Ignore
-
-Write-Host "Configure Event Logs"
-# configure and clear event logs
-	wevtutil sl Application /rt:false /ms:67108864
-	wevtutil sl System /rt:false /ms:67108864
-	wevtutil sl Security /rt:false /ms:67108864
-	wevtutil sl Microsoft-FSLogix-Apps/Operational /rt:false /ms:67108864
-	wevtutil cl Application
-	wevtutil cl System
-	wevtutil cl Security
-	wevtutil cl Microsoft-FSLogix-Apps/Operational
+	Remove-Item -Path C:\Windows\SoftwareDistribution -Recurse -Force -ErrorAction Ignore
+	Remove-Item -Path C:\Windows\Logs -Recurse -Force -ErrorAction Ignore
+	Remove-item -Path C:\Windows\System32\config\systemprofile\AppData\Local -Filter *.tmp -Recurse -Force -ErrorAction Ignore
+#	Get-ChildItem -Path c:\ -Include *.tmp, *.dmp, *.etl, *.evtx, thumbcache*.db, *.log -File -Recurse -Force -ErrorAction SilentlyContinue | Remove-Item -ErrorAction SilentlyContinue
+	Remove-Item -Path $env:ProgramData\Microsoft\Windows\WER\Temp\* -Recurse -Force -ErrorAction SilentlyContinue
+	Remove-Item -Path $env:ProgramData\Microsoft\Windows\WER\ReportArchive\* -Recurse -Force -ErrorAction SilentlyContinue
+	Remove-Item -Path $env:ProgramData\Microsoft\Windows\WER\ReportQueue\* -Recurse -Force -ErrorAction SilentlyContinue
 
 Write-Host "Add Local Administrators to FS Logix Exclude Groups"
 # Add Local Administrators to FS Logix Exclude Groups
@@ -139,11 +129,34 @@ if (Get-LocalGroup -Name "FSLogix Profile Exclude List" -ErrorAction SilentlyCon
 
 Write-Host "Neutralise the WindowsAzure Agent"
 # Neutralise the WindowsAzure Agent
+Get-Service -Name RDAgent | stop-service
 Get-Service -Name WindowsAzureGuestAgent | stop-service
-Get-ChildItem -Path C:\WindowsAzure\config -Filter *.*  | Remove-Item -Force
+Get-ChildItem -Path C:\WindowsAzure\config -Filter *.*  | Remove-Item -Force -Recurse
+Get-ChildItem -Path C:\WindowsAzure\logs -Filter *.*  | Remove-Item -Force -Recurse
+$certs=Get-ChildItem Cert:\LocalMachine\My | Where-Object { $_.Subject -match 'DC=Windows Azure CRP Certificate Generator' };foreach ($c in $certs) {Remove-Item $c.PSPath -Force}
+$certs=Get-ChildItem "Cert:\LocalMachine\Windows Azure Environment";foreach ($c in $certs) {Remove-Item $c.PSPath -Force}
+$certs=Get-ChildItem "Cert:\LocalMachine\Remote Desktop";foreach ($c in $certs) {Remove-Item $c.PSPath -Force}
+$store=Get-Item "Cert:\LocalMachine\Runtime_Transport_Store_*" | select name
+$store='Cert:\LocalMachine\'+ $store.Name
+$certs=Get-ChildItem $store;foreach ($c in $certs) {Remove-Item $c.PSPath -Force}
+Remove-Item -Path "HKLM:\SOFTWARE\Microsoft\GuestAgent" -Recurse -Force
+
+
+Write-Host "Configure Event Logs"
+# configure and clear event logs
+	wevtutil sl Application /rt:false /ms:67108864
+	wevtutil sl System /rt:false /ms:67108864
+	wevtutil sl Security /rt:false /ms:67108864
+	wevtutil sl Microsoft-FSLogix-Apps/Operational /rt:false /ms:67108864
+	wevtutil cl Application
+	wevtutil cl System
+	wevtutil cl Security
+	wevtutil cl Microsoft-FSLogix-Apps/Operational
 
 # We're not running Sysprep
 Write-Host "Shutdown the VM and create a specialized Compute Gallery Image"
+ipconfig /flushdns
+ipconfig /release
 Start-Process -FilePath "shutdown.exe" -ArgumentList "-s -t 5"
 
 exit 0

@@ -8,7 +8,7 @@
 # Microsoft recommended policy settings are implemented
 # Windows updates are set to manual
 # Remove Ghost Hardware
-# IPv6, Task Offloading and MachinePasswords are disabled
+# IPv6
 
 
 Function DisService {
@@ -48,11 +48,26 @@ Function MPExclude {
 Param ([string]$file)
 try	{
 		Add-MpPreference -ExclusionPath $file
-		Add-MpPreference -ExclusionProcess $file
+		if ($file.EndsWith('.exe')) {Add-MpPreference -ExclusionProcess $file}
 	}
 catch{}
 }
 
+Function StopEtwTrace{
+Param ([string]$trace)
+try{
+	Stop-EtwTraceSession -Name $trace -ErrorAction SilentlyContinue
+	}
+catch{}	
+}
+
+Function StopTrace{
+Param ([string]$trace)
+try{
+	reg add HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\WMI\Autologger\$trace /v "Start" /t REG_DWORD /d "0" /f
+	}
+catch{}	
+}
 
 $ProgressPreference ="SilentlyContinue"
 Set-ExecutionPolicy -ExecutionPolicy Unrestricted -Force
@@ -65,6 +80,7 @@ Set-SmbClientConfiguration -EnableBandwidthThrottling 0 -FileInfoCacheEntriesMax
 # Disable Services
 # https://learn.microsoft.com/en-us/windows-server/security/windows-services/security-guidelines-for-disabling-system-services-in-windows-server
 # https://learn.microsoft.com/en-us/windows/application-management/per-user-services-in-windows
+# https://learn.microsoft.com/en-us/windows-server/remote/remote-desktop-services/remote-desktop-services-vdi-optimize-configuration
 write-host "Disabling Services"
 DisService .Net*;					#.NET Framework NGEN
 DisService AJRouter;					#AllJoyn Router Service
@@ -72,8 +88,12 @@ DisService tzautoupdate;				#Auto Time Zone Updater
 DisService bthserv;					#Bluetooth Support Service
 DisService BluetoothUserService;			#Bluetooth User Support Service
 DisService PeerDistSvc;					#BranchCache
-# CDPUserSvc;						#CDPUserSvc leave enabled due to profile load issues	
+# CDPUserSvc;						#CDPUserSvc leave enabled due to profile load issues
+DisService DiagSvc					#Diagnostic Execution Service
 DisService DiagTrack;					#Connected User Experiences and Telemetry
+DisService DPS							#Diagnostic Policy Service
+DisService DUSMSvc					#Data Usage service
+DisService InstallService			#Microsoft Store Install Service
 DisService ConsentUxUserSvc;				#Consent UX User Service
 DisService PimIndexMaintenanceSvc;			#Contact Data
 DisService DoSvc;					#Delivery Opimization
@@ -102,6 +122,7 @@ DisService WalletService;				#WalletService
 DisService FrameServer;					#Windows Camera Frame Server
 DisService wisvc;					#Windows Insider Service
 DisService icssvc;					#Windows Mobile Hotspot Service
+DisService WerSvc					#Windows Error Reporting
 DisService WpnService;					#Windows Push Notifications System Service
 DisService WpnUserService;				#Windows Push Notifications User Service
 DisService XblAuthManager;				#Xbox Live Auth Manager
@@ -263,7 +284,10 @@ REG ADD "HKEY_LOCAL_MACHINE\Software\Policies\Microsoft\Windows NT\SystemRestore
 REG ADD "HKEY_LOCAL_MACHINE\Software\Policies\Microsoft\WindowsStore" /v DisableOSUpgrade /t REG_DWORD /d 1 /f
 
 REG ADD "HKEY_LOCAL_MACHINE\System\CurrentControlSet\Policies" /v NtfsDisable8dot3NameCreation /t REG_DWORD /d 3 /f
-
+REG ADD "HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Authentication\LogonUI\BootAnimation" /v DisableStartupSound /t REG_DWORD /d 1 /f
+REG ADD "HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\EditionOverrides" /v UserSetting_DisableStartupSound /t REG_DWORD /d 1 /f
+REG ADD "HKEY_LOCAL_MACHINE\Software\Policies\Microsoft\Windows\System" /v EnableLogonScriptDelay /t REG_DWORD /d 0 /f
+REG ADD "HKEY_LOCAL_MACHINE\Software\Policies\Microsoft\Windows\System" /v CompatibleRUPSecurity /t REG_DWORD /d 1 /f
 
 # disable hibernation
 # https://learn.microsoft.com/en-us/windows-hardware/design/device-experiences/powercfg-command-line-options
@@ -288,15 +312,8 @@ REG ADD "HKEY_USERS\.DEFAULT\Control Panel\Desktop" /v AutoEndTasks /t REG_SZ /d
 
 # disable ipv6
 # https://learn.microsoft.com/en-us/troubleshoot/windows-server/networking/configure-ipv6-in-windows
-reg add "HKLM\SYSTEM\CurrentControlSet\Services\tcpip6\Parameters" /v DisabledComponents /t REG_DWORD /d 0xff /f
+# reg add "HKLM\SYSTEM\CurrentControlSet\Services\tcpip6\Parameters" /v DisabledComponents /t REG_DWORD /d 0xff /f
 
-# disable task offload
-# https://learn.microsoft.com/en-us/windows-hardware/drivers/network/using-registry-values-to-enable-and-disable-task-offloading
-REG ADD "HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Services\Tcpip\Parameters" /v DisableTaskOffload /t REG_DWORD /d 1 /f
-
-# disable machine password changes
-# https://learn.microsoft.com/en-us/troubleshoot/windows-server/windows-security/disable-machine-account-password
-REG ADD "HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Services\Netlogon\Parameters" /v DisablePasswordChange /t REG_DWORD /d 1 /f
 
 # windows firewall - remote management
 write-host "Enabling core firewall rules"
@@ -319,67 +336,104 @@ write-host "Disabling Updaters and Maintenance Tasks"
 # Disable Edge Updaters
 	Get-Service -name edgeupdate,edgeupdatem,MicrosoftEdgeElevationService | Set-Service -StartupType Disabled | stop-service -force
 	$tasks=Get-ScheduledTask -TaskName MicrosoftEdgeUp* -ErrorAction SilentlyContinue
-		foreach ($task in $tasks) {Unregister-ScheduledTask -TaskName $task.TaskName -Confirm:$false -ErrorAction SilentlyContinue}
+		foreach ($task in $tasks) {Unregister-ScheduledTask -TaskName $task.TaskName -Confirm:$false  -ErrorAction SilentlyContinue}
 
 # Disable Chrome Updaters
 	Get-Service -Name GoogleUpdate*,GoogleChrome* | Set-Service -StartupType Disabled | Stop-Service -Force
 	$tasks=Get-ScheduledTask -TaskName GoogleUpdate* -ErrorAction SilentlyContinue
-		foreach ($task in $tasks) {Unregister-ScheduledTask -TaskName $task.TaskName -Confirm:$false -ErrorAction SilentlyContinue}
+		foreach ($task in $tasks) {Unregister-ScheduledTask -TaskName $task.TaskName -Confirm:$false  -ErrorAction SilentlyContinue}
 
 # Disable OneDrive Updater
 	$tasks=Get-ScheduledTask -TaskName OneDrive* -ErrorAction SilentlyContinue
-	foreach ($task in $tasks) {Unregister-ScheduledTask -TaskName $task.TaskName -Confirm:$false -ErrorAction SilentlyContinue}
+	foreach ($task in $tasks) {Unregister-ScheduledTask -TaskName $task.TaskName -Confirm:$false  -ErrorAction SilentlyContinue}
 	Get-Service -Name "OneDrive Updater Service" | Set-service -startuptype Disabled
 
 # Disable Office Updaters
 	$tasks=Get-ScheduledTask -TaskPath \Microsoft\Office\ -ErrorAction SilentlyContinue
-	foreach ($task in $tasks) {Unregister-ScheduledTask -TaskName $task.TaskName -Confirm:$false -ErrorAction SilentlyContinue}
+	foreach ($task in $tasks) {Unregister-ScheduledTask -TaskName $task.TaskName -Confirm:$false  -ErrorAction SilentlyContinue}
 
 # Disable Windows Update tasks
 	$tasks=Get-ScheduledTask -TaskPath \Microsoft\Windows\UpdateOrchestrator\ -ErrorAction SilentlyContinue
-	foreach ($task in $tasks) {Unregister-ScheduledTask -TaskName $task.TaskName -Confirm:$false -ErrorAction SilentlyContinue}
+	foreach ($task in $tasks) {Unregister-ScheduledTask -TaskName $task.TaskName -Confirm:$false  -ErrorAction SilentlyContinue}
 
 	$tasks=Get-ScheduledTask -TaskPath \Microsoft\Windows\WindowsUpdate\ -ErrorAction SilentlyContinue
-	foreach ($task in $tasks) {Unregister-ScheduledTask -TaskName $task.TaskName -Confirm:$false -ErrorAction SilentlyContinue}
+	foreach ($task in $tasks) {Unregister-ScheduledTask -TaskName $task.TaskName -Confirm:$false  -ErrorAction SilentlyContinue}
+	
+	$tasks=Get-ScheduledTask -TaskPath \Microsoft\Windows\HotPatch\ -ErrorAction SilentlyContinue
+	foreach ($task in $tasks) {Unregister-ScheduledTask -TaskName $task.TaskName -Confirm:$false  -ErrorAction SilentlyContinue}
+
+	$tasks=Get-ScheduledTask -TaskPath \Microsoft\Windows\InstallService\ -ErrorAction SilentlyContinue	
+	foreach ($task in $tasks) {Unregister-ScheduledTask -TaskName $task.TaskName -Confirm:$false  -ErrorAction SilentlyContinue}
 
 # Disable Windows Medic
 	$tasks=Get-ScheduledTask -TaskPath \Microsoft\Windows\WaaSMedic\ -ErrorAction SilentlyContinue
-	foreach ($task in $tasks) {Unregister-ScheduledTask -TaskName $task.TaskName -Confirm:$false -ErrorAction SilentlyContinue}
+	foreach ($task in $tasks) {Unregister-ScheduledTask -TaskName $task.TaskName -Confirm:$false  -ErrorAction SilentlyContinue}
 
 # Disable Windows Maintenance
 	$tasks=Get-ScheduledTask -TaskPath \Microsoft\Windows\TaskScheduler\ -ErrorAction SilentlyContinue
-	foreach ($task in $tasks) {Unregister-ScheduledTask -TaskName $task.TaskName -Confirm:$false -ErrorAction SilentlyContinue}
+	foreach ($task in $tasks) {Unregister-ScheduledTask -TaskName $task.TaskName -Confirm:$false  -ErrorAction SilentlyContinue}
 
 $tasks=Get-ScheduledTask -TaskPath \Microsoft\Windows\Servicing\ -ErrorAction SilentlyContinue
-	foreach ($task in $tasks) {Unregister-ScheduledTask -TaskName $task.TaskName -Confirm:$false -ErrorAction SilentlyContinue}
+	foreach ($task in $tasks) {Unregister-ScheduledTask -TaskName $task.TaskName -Confirm:$false  -ErrorAction SilentlyContinue}
 	set-ItemProperty -Path 'HKLM:SOFTWARE\Microsoft\Windows NT\CurrentVersion\Schedule\Maintenance'-Name 'MaintenanceDisabled' -Value 1 -Force -ErrorAction SilentlyContinue
 
 $tasks=Get-ScheduledTask -TaskPath "\Microsoft\Windows\.Net Framework\" -ErrorAction SilentlyContinue
-	foreach ($task in $tasks) {Unregister-ScheduledTask -TaskName $task.TaskName -Confirm:$false -ErrorAction SilentlyContinue}
+	foreach ($task in $tasks) {Unregister-ScheduledTask -TaskName $task.TaskName -Confirm:$false  -ErrorAction SilentlyContinue}
 
 # Bitlocker
 $tasks=Get-ScheduledTask -TaskPath "\Microsoft\Windows\BitLocker\" -ErrorAction SilentlyContinue
-	foreach ($task in $tasks) {Unregister-ScheduledTask -TaskName $task.TaskName -Confirm:$false -ErrorAction SilentlyContinue}
+	foreach ($task in $tasks) {Unregister-ScheduledTask -TaskName $task.TaskName -Confirm:$false  -ErrorAction SilentlyContinue}
 
 # Bluetooth
 $tasks=Get-ScheduledTask -TaskPath "\Microsoft\Windows\Bluetooth\" -ErrorAction SilentlyContinue
-	foreach ($task in $tasks) {Unregister-ScheduledTask -TaskName $task.TaskName -Confirm:$false -ErrorAction SilentlyContinue}
+	foreach ($task in $tasks) {Unregister-ScheduledTask -TaskName $task.TaskName -Confirm:$false  -ErrorAction SilentlyContinue}
 
 # checkdisk
 $tasks=Get-ScheduledTask -TaskPath "\Microsoft\Windows\Chkdsk\" -ErrorAction SilentlyContinue
-	foreach ($task in $tasks) {Unregister-ScheduledTask -TaskName $task.TaskName -Confirm:$false -ErrorAction SilentlyContinue}
+	foreach ($task in $tasks) {Unregister-ScheduledTask -TaskName $task.TaskName -Confirm:$false  -ErrorAction SilentlyContinue}
 
 # CEIP
 $tasks=Get-ScheduledTask -TaskPath "\Microsoft\Windows\Customer Experience Improvement Program\" -ErrorAction SilentlyContinue
-	foreach ($task in $tasks) {Unregister-ScheduledTask -TaskName $task.TaskName -Confirm:$false -ErrorAction SilentlyContinue}
+	foreach ($task in $tasks) {Unregister-ScheduledTask -TaskName $task.TaskName -Confirm:$false  -ErrorAction SilentlyContinue}
 
 # Data Integrity
 $tasks=Get-ScheduledTask -TaskPath "\Microsoft\Windows\Data Integrity Scan\" -ErrorAction SilentlyContinue
-	foreach ($task in $tasks) {Unregister-ScheduledTask -TaskName $task.TaskName -Confirm:$false -ErrorAction SilentlyContinue}
+	foreach ($task in $tasks) {Unregister-ScheduledTask -TaskName $task.TaskName -Confirm:$false  -ErrorAction SilentlyContinue}
+
+# WLAN
+$tasks=Get-ScheduledTask -TaskPath "\Microsoft\Windows\WLANSvc\" -ErrorAction SilentlyContinue
+	foreach ($task in $tasks) {Unregister-ScheduledTask -TaskName $task.TaskName -Confirm:$false  -ErrorAction SilentlyContinue}
+	$tasks=Get-ScheduledTask -TaskPath "\Microsoft\Windows\NLASvc\" -ErrorAction SilentlyContinue
+	foreach ($task in $tasks) {Unregister-ScheduledTask -TaskName $task.TaskName -Confirm:$false  -ErrorAction SilentlyContinue}
+	$tasks=Get-ScheduledTask -TaskPath "\Microsoft\Windows\WCM\" -ErrorAction SilentlyContinue
+	foreach ($task in $tasks) {Unregister-ScheduledTask -TaskName $task.TaskName -Confirm:$false  -ErrorAction SilentlyContinue}
+
+# Memory Diagnostics
+	$tasks=Get-ScheduledTask -TaskPath \Microsoft\Windows\MemoryDiagnostic\ -ErrorAction SilentlyContinue	
+	foreach ($task in $tasks) {Unregister-ScheduledTask -TaskName $task.TaskName -Confirm:$false  -ErrorAction SilentlyContinue}
+
+# Application Experience
+	$tasks=Get-ScheduledTask -TaskPath \Microsoft\Windows\Application Experience\ -ErrorAction SilentlyContinue	
+	foreach ($task in $tasks) {Unregister-ScheduledTask -TaskName $task.TaskName -Confirm:$false  -ErrorAction SilentlyContinue}
+
+# Feedback
+	$tasks=Get-ScheduledTask -TaskPath \Microsoft\Windows\Feedback\Siuf\ -ErrorAction SilentlyContinue	
+	foreach ($task in $tasks) {Unregister-ScheduledTask -TaskName $task.TaskName -Confirm:$false  -ErrorAction SilentlyContinue}
+
+# Ras
+	$tasks=Get-ScheduledTask -TaskPath \Microsoft\Windows\Ras\ -ErrorAction SilentlyContinue	
+	foreach ($task in $tasks) {Unregister-ScheduledTask -TaskName $task.TaskName -Confirm:$false  -ErrorAction SilentlyContinue}
+
+# Recovery
+	$tasks=Get-ScheduledTask -TaskPath \Microsoft\Windows\RecoveryEnvironment\ -ErrorAction SilentlyContinue	
+	foreach ($task in $tasks) {Unregister-ScheduledTask -TaskName $task.TaskName -Confirm:$false  -ErrorAction SilentlyContinue}
+
+
+
 
 # TPM
-$tasks=Get-ScheduledTask -TaskPath "\Microsoft\Windows\TPM\" -ErrorAction SilentlyContinue
-	foreach ($task in $tasks) {Unregister-ScheduledTask -TaskName $task.TaskName -Confirm:$false -ErrorAction SilentlyContinue}
+#$tasks=Get-ScheduledTask -TaskPath "\Microsoft\Windows\TPM\" -ErrorAction SilentlyContinue
+#		foreach ($task in $tasks) {Unregister-ScheduledTask -TaskName $task.TaskName -Confirm:$false  -ErrorAction SilentlyContinue}
 
 # Disable Bitlocker
 Function noBDE {
@@ -393,7 +447,7 @@ Function noBDE {
 # noBDE
 
 # Restore Classic Context Menus
-# UnComment to enable
+# UnComment to enable - you need to take ownership of the registry key and assign FC to Administrators manually
 #	reg delete "HKEY_LOCAL_MACHINE\SOFTWARE\Classes\CLSID\{86ca1aa0-34aa-4e8b-a509-50c905bae2a2}" /f
 
 # improve Startup / restart time - this is set to 30 by DEFAULT
@@ -406,24 +460,42 @@ $devs=Get-PnpDevice -class Diskdrive,Display,Monitor,Mouse,Net,Ports,Processor,P
 				}
 
 # Disable Network Bindings - Disables IPv6, LLDP Protocols
-try{
-$nics=Get-NetAdapter -Name *Ethernet*
-foreach ($nic in $nics) { Disable-NetAdapterBinding -Name $nic.name -ComponentID ms_lltdio,ms_tcpip6,ms_lldp,ms_rspndr -ErrorAction SilentlyContinue}
-}
-Catch{}
+#try{
+#$nics=Get-NetAdapter -Name *Ethernet*
+#foreach ($nic in $nics) { Disable-NetAdapterBinding -Name $nic.name -ComponentID ms_lltdio,ms_tcpip6,ms_lldp,ms_rspndr -ErrorAction SilentlyContinue}
+#}
+#Catch{}
 
+# Stop Event Traces
+StopTrace Cellcore
+StopTrace CloudExperienceHostOOBE
+StopTrace DiagLog
+StopTrace RadioMgr
+StopTrace ReadyBoot
+StopTrace WDIContextLog
+StopTrace WiFiDriverIHVSession
+StopTrace WiFiSession
+StopTrace WinPhoneCritical
+StopEtwTrace DiagLog
+StopEtwTrace RadioMgr
+StopEtwTrace ReadyBoot
+StopEtwTrace WiFiSession
 
 
 # Add Defender Exclusions
 Copy-Item -Path C:\Windows\system32\robocopy.exe -Destination "C:\Program Files\FSLogix\Apps\frxrobocopy.exe" -Force
 New-Item -Path "C:\Program Files\FSLogix\Apps\en-US" -type directory -force
 Copy-Item -Path C:\Windows\system32\en-US\robocopy.exe.mui -Destination "C:\Program Files\FSLogix\Apps\en-US\frxrobocopy.exe.mui" -Force
-mpexclude C:\Windows\Azure\Packages\CollectGuestLogs.exe
-mpexclude C:\Windows\Azure\Packages\CollectVMHealth.exe
-mpexclude C:\Windows\Azure\Packages\WaAppAgent.exe
-mpexclude C:\Windows\Azure\Packages\WaSecAgentProv.exe
-mpexclude C:\Windows\Azure\Packages\WindowsAzureGuestAgent.exe
+mpexclude C:\WindowsAzure\GuestAgent_*\CollectGuestLogs.exe
+mpexclude C:\WindowsAzure\GuestAgent_*\CollectVMHealth.exe
+mpexclude C:\WindowsAzure\GuestAgent_*\WaAppAgent.exe
+mpexclude C:\WindowsAzure\GuestAgent_*\WaSecAgentProv.exe
+mpexclude C:\WindowsAzure\GuestAgent_*\WindowsAzureGuestAgent.exe
 mpexclude C:\Windows\System32\spoolsv.exe
+mpexclude C:\Windows\System32\Winevt\Logs
+mpexclude C:\Windows\System32\Winevt\EventLogs
+mpexclude C:\Windows\SoftwareDistribution
+mpexclude C:\Packages
 mpexclude "C:\Program Files\FSLogix\Apps\frxsvc.exe"
 mpexclude "C:\Program Files\FSLogix\Apps\frxccds.exe"
 mpexclude "C:\Program Files\FSLogix\Apps\FRXRobocopy.exe"
@@ -432,6 +504,13 @@ mpexclude "C:\Program Files\Microsoft RDInfra\*\BootloaderUpdater.exe"
 mpexclude "C:\Program Files\Microsoft RDInfra\*\RDAgentBootLoader.exe"
 mpexclude "C:\Program Files\Microsoft RDInfra\*\WvdLauncher\RDMonitoringAgentLauncher.exe"
 mpexclude "C:\Source\*.msi"
+mpexclude "C:\Program Files\Microsoft RDInfra\*.msi"
+mpexclude "C:\Program Files\Microsoft RDInfra\RDMonitoringAgent_*\WvdLauncher\RDMonitoringAgentLauncher.exe"
+mpexclude "C:\Program Files\Microsoft RDInfra\RDMonitoringAgent_*\Agent\MonAgentClient.exe"
+mpexclude "C:\Program Files\Microsoft RDInfra\RDMonitoringAgent_*\Agent\MonAgentCore.exe"
+mpexclude "C:\Program Files\Microsoft RDInfra\RDMonitoringAgent_*\Agent\MonAgentHost.exe"
+mpexclude "C:\Program Files\Microsoft RDInfra\RDMonitoringAgent_*\Agent\MonAgentLauncher.exe"
+mpexclude "C:\Program Files\Microsoft RDInfra\RDMonitoringAgent_*\Agent\MonAgentManager.exe"
 
 
 # Set page File to Memory Size on D:\
@@ -474,8 +553,36 @@ write-host "Remove Azure logs and extensions"
 	Stop-Service -ServiceName wuauserv,bits,msiserver
 	Remove-Item -Path C:\Windows\SoftwareDistribution -Recurse -Force -ErrorAction Ignore
 	Remove-Item -Path C:\Windows\Panther -Recurse -Force -ErrorAction Ignore
+	Remove-Item -Path $env:ProgramData\Microsoft\Windows\WER\Temp\* -Recurse -Force -ErrorAction SilentlyContinue
+	Remove-Item -Path $env:ProgramData\Microsoft\Windows\WER\ReportArchive\* -Recurse -Force -ErrorAction SilentlyContinue
+	Remove-Item -Path $env:ProgramData\Microsoft\Windows\WER\ReportQueue\* -Recurse -Force -ErrorAction SilentlyContinue
 
-# configure and clear event logs
+# Run Cleanmgr
+REG ADD "HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\VolumeCaches\Active Setup Temp Folders" /v StateFlags0001 /t REG_DWORD /d 2 /f
+REG ADD "HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\VolumeCaches\BranchCache" /v StateFlags0001 /t REG_DWORD /d 2 /f
+REG ADD "HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\VolumeCaches\D3D Shader Cache" /v StateFlags0001 /t REG_DWORD /d 2 /f
+REG ADD "HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\VolumeCaches\Delivery Optimization Files" /v StateFlags0001 /t REG_DWORD /d 2 /f
+REG ADD "HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\VolumeCaches\Diagnostic Data Viewer database files" /v StateFlags0001 /t REG_DWORD /d 2 /f
+REG ADD "HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\VolumeCaches\Downloaded Program Files" /v StateFlags0001 /t REG_DWORD /d 2 /f
+REG ADD "HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\VolumeCaches\Feedback Hub Archive log files" /v StateFlags0001 /t REG_DWORD /d 2 /f
+REG ADD "HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\VolumeCaches\Internet Cache Files" /v StateFlags0001 /t REG_DWORD /d 2 /f
+REG ADD "HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\VolumeCaches\Language Pack" /v StateFlags0001 /t REG_DWORD /d 2 /f
+REG ADD "HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\VolumeCaches\Old ChkDsk Files" /v StateFlags0001 /t REG_DWORD /d 2 /f
+REG ADD "HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\VolumeCaches\Recycle Bin" /v StateFlags0001 /t REG_DWORD /d 2 /f
+REG ADD "HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\VolumeCaches\RetailDemo Offline Content" /v StateFlags0001 /t REG_DWORD /d 2 /f
+REG ADD "HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\VolumeCaches\Setup Log Files" /v StateFlags0001 /t REG_DWORD /d 2 /f
+REG ADD "HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\VolumeCaches\System error memory dump files" /v StateFlags0001 /t REG_DWORD /d 2 /f
+REG ADD "HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\VolumeCaches\System error minidump files" /v StateFlags0001 /t REG_DWORD /d 2 /f
+REG ADD "HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\VolumeCaches\Temporary Files" /v StateFlags0001 /t REG_DWORD /d 2 /f
+REG ADD "HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\VolumeCaches\Thumbnail Cache" /v StateFlags0001 /t REG_DWORD /d 2 /f
+REG ADD "HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\VolumeCaches\Update Cleanup" /v StateFlags0001 /t REG_DWORD /d 2 /f
+REG ADD "HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\VolumeCaches\User file versions" /v StateFlags0001 /t REG_DWORD /d 2 /f
+REG ADD "HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\VolumeCaches\Windows Defender" /v StateFlags0001 /t REG_DWORD /d 2 /f
+REG ADD "HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\VolumeCaches\Windows Error Reporting Files" /v StateFlags0001 /t REG_DWORD /d 2 /f
+#CleanMgr can take 10+ minutes
+#Start-Process -Wait -FilePath "cleanmgr.exe" -ArgumentList "/sagerun:1"
+
+
 # configure and clear event logs
 	wevtutil sl Application /rt:false /ms:67108864
 	wevtutil sl System /rt:false /ms:67108864
@@ -488,5 +595,6 @@ write-host "Remove Azure logs and extensions"
 
 
 
+Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope LocalMachine -force
 Write-Host "AVD-Optimise Finished"
 

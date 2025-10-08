@@ -175,26 +175,6 @@ if (get-item -path "$env:ProgramFiles\Microsoft Office") {Get-Service -Name Clic
 Catch {LogIt "Failed to update Office"}
 
 
-
-
-# update defender
-write-host "Updating Windows Defender"
-try{
-if ((Get-MpComputerStatus).RealTimeProtectionEnabled) {$DefVer=(Get-MpComputerStatus).AMProductVersion
-							$DefSig=(Get-MpComputerStatus).AntivirusSignatureVersion
-							Logit "Defender Product Version: $DefVer"
-							Logit "Defender AV Signature Version: $DefSig"
-							Logit "Update Windows Defender"
-							Update-MpSignature -UpdateSource MicrosoftUpdateServer
-							$DefVer=(Get-MpComputerStatus).AMProductVersion
-							$DefSig=(Get-MpComputerStatus).AntivirusSignatureVersion
-							Logit "Defender Product Version: $DefVer"
-							Logit "Defender AV Signature Version: $DefSig"}
-}
-Catch {Logit "Failed to update Defender"}
-
-
-
 # Update OneDrive
 write-host "Updating OneDrive"
 try{
@@ -287,6 +267,7 @@ Catch	{}
 
 # Install pre-reqs for Windows Update
 write-host "Starting Windows Update"
+Get-Service -name UsoSVC,wuauserv,Bits | Set-Service -StartupType Manual
 # access to go.microsoft.com
 # update Nuget
 try	{
@@ -301,12 +282,11 @@ catch	{Logit "NuGet Update Failed"}
 # trust PSGalllery
 # access to www.powershellgallery.com
 try	{
-	if (-not(Get-PSRepository -Name "PSGallery"))
-		{Register-PSRepository -Default -InstallationPolicy Trusted
-		Register-PSRepository -Name PSGallery -InstallationPolicy Trusted -SourceLocation "https://www.powershellgallery.com/api/v2"
-		Logit "Added PSGallery as trusted repo"}
-	Else {Set-PSRepository -Name "PSGallery" -InstallationPolicy Trusted}
-	}
+	    if (-not(Get-PSRepository -Name "PSGallery"))
+	    	{Register-PSRepository -Default -InstallationPolicy Trusted
+	    	LogWrite "Added PSGallery as trusted repo"}
+	    Else {Set-PSRepository -Name "PSGallery" -InstallationPolicy Trusted}
+	    }
 catch	{Logit "Failed to add PSGallery as trusted repo"}
 
 # install PSWindowsUPdate
@@ -321,8 +301,8 @@ catch	{
 
 # Update Az.Accounts and Az.DesktopVirtualization
 try	 {
-if (-not(Get-Module AZ.Accounts -ListAvailable -ErrorAction SilentlyContinue)) {Install-Module AZ.Accounts -ErrorAction SilentlyContinue}
-if (-not(Get-Module Az.DesktopVirtualization -ListAvailable -ErrorAction SilentlyContinue)) {Install-Module Az.DesktopVirtualization -ErrorAction SilentlyContinue}
+if (-not(Get-Module AZ.Accounts -ListAvailable -ErrorAction SilentlyContinue)) {Install-Module -name AZ.Accounts -scope AllUsers -ErrorAction SilentlyContinue}
+if (-not(Get-Module Az.DesktopVirtualization -ListAvailable -ErrorAction SilentlyContinue)) {Install-Module -name Az.DesktopVirtualization -scope AllUsers -ErrorAction SilentlyContinue}
 	}
 catch {}
 
@@ -333,7 +313,7 @@ catch {}
 	Get-Service -Name Wuauserv | Set-Service -StartupType Manual
 	Get-Service -Name Bits | Set-Service -StartupType Manual
 	Set-WUSettings -AUOptions Disabled -IncludeRecommendedUpdates -Confirm:$False
-# install Windows Updates
+# install Windows Updates but not the MRT KB890830
 	Get-WindowsUpdate -MicrosoftUpdate -Install -AcceptAll -IgnoreReboot -UpdateType Software -NotKBArticleID KB890830 | Out-File "c:\temp\AVD-Update\$(get-date -f yyyy-MM-dd)-WindowsUpdate.log" -force
 	Logit "Windows Updates Installed"
 # remove Windows Update Tasks
@@ -353,6 +333,27 @@ Unregister-ScheduledTask -TaskName "Microsoft\Windows\TaskScheduler\Manual Maint
 Unregister-ScheduledTask -TaskName "Microsoft\Windows\TaskScheduler\Maintenance Configurator" -confirm:$false -ErrorAction SilentlyContinue
 Unregister-ScheduledTask -TaskName "Microsoft\Windows\Servicing\StartComponentCleanup" -confirm:$false -ErrorAction SilentlyContinue
 set-ItemProperty -Path 'HKLM:SOFTWARE\Microsoft\Windows NT\CurrentVersion\Schedule\Maintenance'-Name 'MaintenanceDisabled' -Value 1 -Force -ErrorAction SilentlyContinue
+
+# update defender
+write-host "Updating Windows Defender"
+try{
+if ((Get-MpComputerStatus).RealTimeProtectionEnabled) {$DefVer=(Get-MpComputerStatus).AMProductVersion
+							$DefSig=(Get-MpComputerStatus).AntivirusSignatureVersion
+							Logit "Defender Product Version: $DefVer"
+							Logit "Defender AV Signature Version: $DefSig"
+							Logit "Update Windows Defender"
+							Update-MpSignature -UpdateSource MicrosoftUpdateServer
+							$DefVer=(Get-MpComputerStatus).AMProductVersion
+							$DefSig=(Get-MpComputerStatus).AntivirusSignatureVersion
+							Logit "Defender Product Version: $DefVer"
+							Logit "Defender AV Signature Version: $DefSig"}
+}
+Catch {Logit "Failed to update Defender"}
+
+
+
+
+
 
 # Reboot
 Logit " -------------------------------- Reboot --------------------------------"

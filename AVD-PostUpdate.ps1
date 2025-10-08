@@ -67,14 +67,12 @@ try	{
 Catch{Logit ".Net optimisation failed"}
 
 
-# disable machine password changes
-REG ADD "HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Services\Netlogon\Parameters" /v DisablePasswordChange /t REG_DWORD /d 1 /f
 
 # reset Windows Search
 Write-Host "Reset Windows Search"
 try 	{
 	Get-Service -ServiceName wsearch | Set-Service -StartupType Disabled
-	Stop-Service -ServiceName wsearch
+	Stop-Service -ServiceName wsearch -force
 	REG ADD "HKLM\SOFTWARE\Microsoft\Windows Search" /v SetupCompletedSuccessfully /t REG_DWORD /d 0 /f
 	Remove-Item -Path "$env:ProgramData\Microsoft\Search\Data\" -Recurse -Force
 	Get-Service -ServiceName wsearch | Set-Service -StartupType Automatic
@@ -93,7 +91,7 @@ Catch {Logit "Could not clear Azure logs and extensions"}
 
 # clean WSUS Software Distribution
 try	{
-	Get-Service -ServiceName wuauserv,bits,msiserver | Stop-Service -Force
+	Stop-Service -ServiceName wuauserv,bits,msiserver
 	Remove-Item -Path C:\Windows\SoftwareDistribution -Recurse -Force -ErrorAction Ignore
 	Remove-Item -Path C:\Windows\Panther -Recurse -Force -ErrorAction Ignore
 	Logit "Cleared SoftwareDistribution"

@@ -147,7 +147,7 @@ Function CheckToken
 					}
 				}
 			} | ConvertTo-Json -Depth 10
-			$global:WVDToken=Invoke-RestMethod -Uri $NewTokenURI -Method Patch -Headers $Headers -Body $body
+			$global:WVDToken=(Invoke-RestMethod -Uri $NewTokenURI -Method Patch -Headers $Headers -Body $body).properties.registrationInfo.token
 			}
 		Else {logwrite ('WVDToken exists for Hostpool: ' + $HostPool)
 		$global:WVDToken=($WVDToken.Token)}

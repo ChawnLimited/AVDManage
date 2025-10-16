@@ -189,8 +189,8 @@ Function JoinDomain
 				UserName = $ADAdmin
 				Password = (ConvertTo-SecureString -String $ADAdminPW -AsPlainText -Force)[0]})
 
-				Add-Computer -DomainName $ADDomain -OUPath $ou -Credential $ADDomainCred -Options JoinWithNewName,AccountCreate -Force -PassThru -Verbose | Out-File -FilePath $Logfile -Append
-				LogWrite ("Ignore the Computername above. Add-Computer always reports the original name, not the new name.")
+				Add-Computer -DomainName $ADDomain -OUPath $ou -Credential $ADDomainCred -Options JoinWithNewName,AccountCreate -Force
+				LogWrite ($AZVMName + "has joined the " + $ADDomain)
 			}
 		}
 		else {LogWrite ($AZVMName + " deployment complete. Schedule a restart and exit.")

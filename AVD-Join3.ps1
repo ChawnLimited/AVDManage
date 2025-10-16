@@ -131,7 +131,7 @@ Function CheckToken
 		if ($now -gt ($wvdtoken = Invoke-RestMethod -Uri $TokenURI -Method POST -Headers $headers).ExpirationTime)
 			{logwrite ('Generate new WVD Token to join WVD Hostpool: ' + $HostPool)
 			$NewTokenURI = "https://management.azure.com/subscriptions/$subId/resourceGroups/$RG/providers/Microsoft.DesktopVirtualization/hostPools/$hostPool/?api-version=2024-04-03"
-			$tokenPayload = @{
+			$body = @{
 				properties = @{
 					registrationinfo = @{
 					tokenType = "RegistrationToken"
@@ -141,7 +141,7 @@ Function CheckToken
 					}
 				}
 			} | ConvertTo-Json -Depth 10
-			$global:WVDToken=Invoke-RestMethod -Uri $getTokenUrl -Method Patch -Headers $Headers -Body $tokenPayload
+			$global:WVDToken=Invoke-RestMethod -Uri $NewTokenURI -Method Patch -Headers $Headers -Body $body
 			}
 		Else {logwrite ('WVDToken exists for Hostpool: ' + $HostPool)
 		$global:WVDToken=($WVDToken.Token)}

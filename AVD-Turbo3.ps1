@@ -184,14 +184,14 @@ Function JoinDomain
 {
 		try {
 		If ($ADDomain) {
-			LogWrite ("Join Domain. Create Credentials")
+			LogWrite ("Join Domain. Create Credentials.")
 			if($NotDomainJoined) {
 				$ADDomainCred = New-Object pscredential -ArgumentList ([pscustomobject]@{
 				UserName = $ADAdmin
 				Password = (ConvertTo-SecureString -String $ADAdminPW -AsPlainText -Force)[0]})
-				LogWrite ("Join Domain " + $ADDomain)
+				LogWrite ("Join Domain: " + $ADDomain)
 				Add-Computer -DomainName $ADDomain -OUPath $ou -Credential $ADDomainCred -Options JoinWithNewName,AccountCreate -Force
-				LogWrite ($AZVMName + "has joined the " + $ADDomain + " domain")
+				LogWrite ($AZVMName + " has joined the " + $ADDomain + " domain")
 			}
 		}
 		else {LogWrite ($AZVMName + " deployment complete. Schedule a restart and exit.")
@@ -328,4 +328,4 @@ logwrite ('Disconnected from Azure')
 # Finished
 $global:LASTEXITCODE = 0
 LogWrite ($AZVMName + " deployment complete. Schedule a restart and exit.")
-Start-Process -FilePath "shutdown.exe" -ArgumentList "/soft /r /t 1 /d p:0:0 /c 'AVDTurbo'"
+Start-Process -FilePath "shutdown.exe" -ArgumentList "/r /t 5 /d p:0:0 /c 'AVDTurbo'"

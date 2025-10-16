@@ -1,22 +1,18 @@
-﻿# Chawn Limited 2025
-# AVD-Turbo3.ps1
+# Chawn Limited 2025
+# AVD-Join3.ps1
 # Version 3.0
-# Rename the VM (created from a specialized image), optionally Join VM to Active Directory, and optionally install AVD Agents - For Specialized Images
+# Joins a session host to an Azure AVD Hostpool using the AVD-Join Custom Script Extension at startup or rebuild - For Generalized Images
 # No Powershell Modules required
 
 #### Parameters
 
   param(
-	[String]$ADDomain= "",			# Set the domain name in FQDN format
-	[String]$OU= "",			# Set the Organisational Unit for the VM
-	[String]$ADAdmin= "",			# Set the domain join user account
-	[String]$ADAdminPW= "",			# Set the domain join user account password
-	[String]$HostPool="",			# Set the WVD HostPool name
-	[String]$RG="",				# Set the WVD HostPool Resource Group name
-	[String]$ClientID = "",			# Set the AVDJoin Client ID
-	[String]$SubjectID = "",		# Set the AVDJoin Client Secret
-	[String]$TenantID = "",			# Set the Azure Tenant ID
-	[String]$SubID = "",				# Set the Azure Subscription ID
+	[String]$HostPool="",
+	[String]$RG="",
+	[String]$ClientID = "",
+	[String]$ClientSecret = "",
+	[String]$TenantID = "",
+	[String]$SubID = "",
 	[String]$Audience = "",
 	[String]$issuer = "",
 	[String]$ExchURI = "",
@@ -25,10 +21,9 @@
 	[String]$creds = ""
 	)
 
-#### End of Parameters
-
 $ProgressPreference ="SilentlyContinue"
-$Logfile = "AVD-Turbo3.log"
+$Logfile = "AVD-Join3.log"
+
 
 Function LogWrite
 {
@@ -46,8 +41,8 @@ Function CheckDomain
 		if ((gwmi win32_computersystem).partofdomain -eq $false) {logwrite('401: Device is not AD Domain joined. Exit.')
 		exit 401}
 		else {logwrite('Device is AD Domain joined.')}
-		If (-not $HostPool) {LogWrite ($AZVMName + " deployment complete. Schedule a restart and exit.")
-			Start-Process -FilePath "shutdown.exe" -ArgumentList "/r /t 5 /d p:0:0 /c 'AVDTurbo'"
+		If (-not $HostPool) {LogWrite ($VMName + " deployment complete. Schedule a restart and exit.")
+			Start-Process -FilePath "shutdown.exe" -ArgumentList "/r /t 5 /d p:0:0 /c 'AVDJoin'"
 			exit 0}
 	}
 	catch {LogWrite ("402: " + $_.Exception.Message);exit 402}	
@@ -62,17 +57,16 @@ Function DownloadAgents
 	}
 	catch {logwrite('500: RDAgents are already installed' +  $_.Exception.Message); exit 500}
 
-
 # Start the RDAGent downloads
 	try {
 		if ($HostPool) {				
-			if (-not(get-item c:\source\RDAgent.msi)) {
+			if (-not(get-item c:\source\RDAgent.msi -ErrorAction SilentlyContinue)) {
 				LogWrite ("Download RDAgent")
 				New-Item -Path C:\Source -ItemType Directory -Force
 				$URI="https://query.prod.cms.rt.microsoft.com/cms/api/am/binary/RWrmXv";Invoke-WebRequest -Uri $URI -OutFile C:\Source\RDagent.msi -UseBasicParsing;
 				LogWrite ("Downloaded RDAgent.msi")
 			}	
-			if (-not(get-item c:\source\RDBoot.msi)) {
+			if (-not(get-item c:\source\RDBoot.msi -ErrorAction SilentlyContinue)) {
 				LogWrite ("Download RDBoot")
 				$URI="https://query.prod.cms.rt.microsoft.com/cms/api/am/binary/RWrxrH";Invoke-WebRequest -Uri $URI -OutFile C:\Source\RDBoot.msi -UseBasicParsing;
 				LogWrite ("Downloaded RDBoot.msi")		
@@ -156,61 +150,8 @@ Function CheckToken
 }
 
 
-Function RenameComputer
-{
-	try {
-		LogWrite "Rename Computer"
-		do {
-		start-sleep -seconds 1
-		} until ($xml=(Get-ChildItem -Path C:\WindowsAzure\config -Filter *.xml | sort-object -Property LastAccessTime | select -Last 1))
-		
-		$xpath="/RDConfig/Instances/Instance"
-		$vmname=(Select-Xml -Path $xml.fullname -XPath $xpath | Select-Object -ExpandProperty Node).id
-		$vmname=$vmname.Substring(1)
-		$Global:AZVMNAME=$VMNAME
-		
-		if ($vmname -eq $env:computerName) {LogWrite ("Computer is already named " + $VMName + ".")}
-		else {if ($NotDomainJoined) {
-		LogWrite ("Renaming Computer to " + $VMName)
-		Rename-Computer -NewName $VMName -Force | Out-File -FilePath $Logfile -Append
-             }
-		}
-	}
-	Catch {LogWrite ("300: " + $_.Exception.Message);exit 300}
-}
-
-
-Function JoinDomain
-{
-		try {
-		If ($ADDomain) {
-			LogWrite ("Join Domain. Create Credentials")
-			if($NotDomainJoined) {
-				$ADDomainCred = New-Object pscredential -ArgumentList ([pscustomobject]@{
-				UserName = $ADAdmin
-				Password = (ConvertTo-SecureString -String $ADAdminPW -AsPlainText -Force)[0]})
-				LogWrite ("Join Domain " + $ADDomain)
-				Add-Computer -DomainName $ADDomain -OUPath $ou -Credential $ADDomainCred -Options JoinWithNewName,AccountCreate -Force
-				LogWrite ($AZVMName + "has joined the " + $ADDomain + " domain")
-			}
-		}
-		else {LogWrite ($AZVMName + " deployment complete. Schedule a restart and exit.")
-		Start-Process -FilePath "shutdown.exe" -ArgumentList "/r /t 5 /d p:0:0 /c 'AVDTurbo'"
-		exit 0}
-	}
-	catch {LogWrite ("301: " + $_.Exception.Message);exit 301}
-}
-
-# Check if domain joined
-$NotDomainJoined=((gwmi win32_computersystem).partofdomain -eq $false)
-
-# Rename Computer
-RenameComputer
-
-
-# join domain
-JoinDomain
-
+#Get the ComputerName
+$VMName=[System.Net.Dns]::GetHostByName($env:computerName).HostName
 
 # Check for a Turbo deployment
 %{
@@ -221,6 +162,7 @@ JoinDomain
 	}
 	catch {LogWrite ("400: " + $_.Exception.Message);exit 400}
 }
+
 
 # check the device is domain joined
 CheckDomain
@@ -236,9 +178,9 @@ CheckDomain
 
 
 # get the DNS hostname of the VM
-	$hostname=$AZVMName + "." + $ADDomain
-	logwrite('Hostname:' + $hostname)
-	logwrite('Hostpool:' + $hostpool)
+$hostname=[System.Net.Dns]::GetHostByName($env:computerName).HostName
+logwrite('Hostname:' + $hostname)
+logwrite('Hostpool:' + $hostpool)
 
 
 # Logon to Azure
@@ -274,13 +216,13 @@ logwrite ('Disconnected from Azure')
 	}
     catch {logwrite('900: Error with Turbo Deployment. ' + $_.Exception.Message); exit 902}
 }
-#or
+# or
 # Start a normal deployment with the RDAgent and RDBootloader
 %{
     try {
 		if ($Turbo -eq "False") {
 			if ($WVDToken) {
-  		    
+
     		### Install RDAgent
 	    	logwrite('Install Remote Desktop Services Infrastructure Agent')
 		    if (get-item -path C:\Source\RDagent.msi) {Start-Process msiexec.exe -Wait -ArgumentList "/I C:\Source\RDAgent.msi REGISTRATIONTOKEN=$WVDToken /qb /L*V RDAgent.log"}
@@ -327,5 +269,5 @@ logwrite ('Disconnected from Azure')
 
 # Finished
 $global:LASTEXITCODE = 0
-LogWrite ($AZVMName + " deployment complete. Schedule a restart and exit.")
-Start-Process -FilePath "shutdown.exe" -ArgumentList "/soft /r /t 1 /d p:0:0 /c 'AVDTurbo'"
+LogWrite ($VMName + " deployment complete. Schedule a restart and exit.")
+Start-Process -FilePath "shutdown.exe" -ArgumentList "/soft /r /t 1 /d p:0:0 /c 'AVDJoin'"

@@ -1,6 +1,6 @@
 # Chawn Limited 2024
 # AVD-Update.ps1
-# Version 1.2
+# Version 3.0
 # Update Root Certificates, remove expired root certificates, Microsoft Edge for Business, Google Chrome Enterprise,Visual C Redistributables, Office 365, Windows Defender, OneDrive, Teams v2 and Meeting Add-In, FSLogix and Windows Updates using PSWindowsUpate
 # Logfile is created in C:\Temp\AVD-Update\Update-VM-<date>.log
 # Update services and tasks are disabled after update
@@ -298,13 +298,6 @@ try	{
 	}
 catch	{
 	Logit "Failed to install PSWindowsUpdate"}
-
-# Update Az.Accounts and Az.DesktopVirtualization
-try	 {
-if (-not(Get-Module AZ.Accounts -ListAvailable -ErrorAction SilentlyContinue)) {Install-Module -name AZ.Accounts -scope AllUsers -ErrorAction SilentlyContinue}
-if (-not(Get-Module Az.DesktopVirtualization -ListAvailable -ErrorAction SilentlyContinue)) {Install-Module -name Az.DesktopVirtualization -scope AllUsers -ErrorAction SilentlyContinue}
-	}
-catch {}
 
 # Windows Update
 # access to windowsupdate.microsoft.com + others

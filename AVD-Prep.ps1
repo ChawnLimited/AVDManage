@@ -1,11 +1,10 @@
 # Chawn Limited 2025
 # AVD-Prep.ps1
-# Version 2.0
-# Check Pre-requisites for AVD Deployment - Nuget, PSGallery, Az Modules
+# Version 3.0
 # Download / Update Microsoft Remote Desktop Infrastructure and Boot Agents
 # Install Agents silently with no Registration Token
 # Neutralise the Agents before running sysprep
-# This allows AVDTurbo and AVD Join to perform faster deployments
+# This allows AVDTurbo and AVDJoin to perform faster deployments
 
 $ProgressPreference ="SilentlyContinue"
 $Logfile = "AVD-Prep.log"
@@ -17,57 +16,6 @@ Function LogWrite
    Add-content $Logfile -value ($d1.tostring() + " : " + $logstring)
 }
 
-Function UpdateNuget
-{
-# update Nuget
-    try	{
-        if (Get-PackageProvider -Name Nuget -ListAvailable) {Logwrite('Nuget is available')}
-            else {logwrite('Nuget is not available. Will try and install.')
-
-	    	[Net.ServicePointManager]::SecurityProtocol =
-    	    	[Net.ServicePointManager]::SecurityProtocol -bor
-    		    [Net.SecurityProtocolType]::Tls12
-		    
-            Install-PackageProvider -Name NuGet -ForceBootstrap -Scope AllUsers -Force
-		    if (Get-PackageProvider -Name Nuget -ListAvailable) {Logwrite('Nuget is available')}
-	    	else {logwrite('Nuget is not available. Exit. ' + $_.Exception.Message); exit 3}
-            }
-    	}
-    catch {LogWrite "NuGet Update Failed"; exit 3}
-
-# trust PSGalllery
-# access to www.powershellgallery.com
-    try	{
-	    if (-not(Get-PSRepository -Name "PSGallery"))
-	    	{Register-PSRepository -Default -InstallationPolicy Trusted
-	    	LogWrite "Added PSGallery as trusted repo"}
-	    Else {Set-PSRepository -Name "PSGallery" -InstallationPolicy Trusted}
-	    }
-    catch {LogWrite ("Failed to add PSGallery as trusted repo. " + $_.Exception.Message); exit 100}
-}
-
-
-Function UpdateModule
-{
-   Param ([string]$module)
-	try {
-		install-module $module -scope AllUsers
-    	Logwrite ('Installed ' + $module)
-    	}
-    catch {Logwrite ('Failed to update ' + $module + " " + $_.Exception.Message);exit 3}
-}
-
-# Check AZ Modules are present
-%{
-		try {
-		if (Get-Module -name Az.Accounts -ListAvailable) {Logwrite('Az.Accounts is available.')}
-		else {logwrite('Az.Accounts is not available. Will try and install.'); UpdateNuget; UpdateModule Az.Accounts;}
-
-		if (Get-Module -name Az.DesktopVirtualization -ListAvailable) {Logwrite('Az.DesktopVirtualization is available.')}
-		else {logwrite('Az.DesktopVirtualization is not available. Will try and install.'); UpdateModule Az.DesktopVirtualization;}
-		    }
-        	catch {logwrite('Error Installing Az Modules' +  $_.Exception.Message); exit 3}
-}
 
 # Start the RDAGent downloads
 		try {
@@ -110,10 +58,3 @@ LogWrite ("Install & Configure RDAgents.")
 $log=Get-Content .\AVD-Prep.log -Delimiter :
 write-host $log
 Write-Host "You can now either shudown the VM (Specialize) or run Sysprep (Generalize)"
-
-
-
-
-
-
-

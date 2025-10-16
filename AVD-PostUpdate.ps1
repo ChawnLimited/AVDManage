@@ -1,6 +1,6 @@
 # Chawn Limited 2024
 # AVD-PostUpdate.ps1
-# Version 1.1
+# Version 3.0
 # After updates have been applied using AVD-Update.ps1, run this script to compress WinSXS and Optimise .Net and tidy folders
 # After running this script, shutdown and snapshot the VM. Then start the VM and run sysprep before creating an updated Image for deployment
 

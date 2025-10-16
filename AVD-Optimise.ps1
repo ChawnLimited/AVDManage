@@ -1,6 +1,6 @@
 # Chawn Limited 2025
 # AVD-Optimise.ps1
-# Version 2.0
+# Version 3.0
 # Implements know optimisations for AVD Session Hosts
 # https://learn.microsoft.com/en-us/previous-versions/windows-server/it-pro/windows-server-2019/remote/remote-desktop-services/rds-vdi-recommendations
 # Update services and Maintenance tasks are disabled
@@ -282,8 +282,8 @@ REG ADD "HKEY_LOCAL_MACHINE\Software\Policies\Microsoft\Windows Mail" /v Disable
 REG ADD "HKEY_LOCAL_MACHINE\Software\Policies\Microsoft\Windows NT\CurrentVersion\Software Protection Platform" /v NoGenTicket /t REG_DWORD /d 1 /f
 REG ADD "HKEY_LOCAL_MACHINE\Software\Policies\Microsoft\Windows NT\SystemRestore" /v DisableSR /t REG_DWORD /d 1 /f
 REG ADD "HKEY_LOCAL_MACHINE\Software\Policies\Microsoft\WindowsStore" /v DisableOSUpgrade /t REG_DWORD /d 1 /f
+REG ADD "HKEY_LOCAL_MACHINE\SOFTWARE\Policies\Microsoft\WindowsStore" /v AutoDownload /t REG_DWORD /d 2 /f
 
-REG ADD "HKEY_LOCAL_MACHINE\System\CurrentControlSet\Policies" /v NtfsDisable8dot3NameCreation /t REG_DWORD /d 3 /f
 REG ADD "HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Authentication\LogonUI\BootAnimation" /v DisableStartupSound /t REG_DWORD /d 1 /f
 REG ADD "HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\EditionOverrides" /v UserSetting_DisableStartupSound /t REG_DWORD /d 1 /f
 REG ADD "HKEY_LOCAL_MACHINE\Software\Policies\Microsoft\Windows\System" /v EnableLogonScriptDelay /t REG_DWORD /d 0 /f
@@ -380,10 +380,6 @@ $tasks=Get-ScheduledTask -TaskPath \Microsoft\Windows\Servicing\ -ErrorAction Si
 $tasks=Get-ScheduledTask -TaskPath "\Microsoft\Windows\.Net Framework\" -ErrorAction SilentlyContinue
 	foreach ($task in $tasks) {Unregister-ScheduledTask -TaskName $task.TaskName -Confirm:$false  -ErrorAction SilentlyContinue}
 
-# Bitlocker
-$tasks=Get-ScheduledTask -TaskPath "\Microsoft\Windows\BitLocker\" -ErrorAction SilentlyContinue
-	foreach ($task in $tasks) {Unregister-ScheduledTask -TaskName $task.TaskName -Confirm:$false  -ErrorAction SilentlyContinue}
-
 # Bluetooth
 $tasks=Get-ScheduledTask -TaskPath "\Microsoft\Windows\Bluetooth\" -ErrorAction SilentlyContinue
 	foreach ($task in $tasks) {Unregister-ScheduledTask -TaskName $task.TaskName -Confirm:$false  -ErrorAction SilentlyContinue}
@@ -428,9 +424,6 @@ $tasks=Get-ScheduledTask -TaskPath "\Microsoft\Windows\WLANSvc\" -ErrorAction Si
 	$tasks=Get-ScheduledTask -TaskPath \Microsoft\Windows\RecoveryEnvironment\ -ErrorAction SilentlyContinue	
 	foreach ($task in $tasks) {Unregister-ScheduledTask -TaskName $task.TaskName -Confirm:$false  -ErrorAction SilentlyContinue}
 
-
-
-
 # TPM
 #$tasks=Get-ScheduledTask -TaskPath "\Microsoft\Windows\TPM\" -ErrorAction SilentlyContinue
 #		foreach ($task in $tasks) {Unregister-ScheduledTask -TaskName $task.TaskName -Confirm:$false  -ErrorAction SilentlyContinue}
@@ -441,7 +434,9 @@ Function noBDE {
  	manage-bde -off D:
 	reg delete "HKEY_CLASSES_ROOT\Drive\shell\decrypt-bde" /f
 	reg delete "HKEY_CLASSES_ROOT\Drive\shell\encrypt-bde-elev" /f
-   New-ItemProperty -Path "HKLM:\SYSTEM\CurrentControlSet\Control\BitLocker" -Name "PreventDeviceEncryption" -Value 1 -Force -ErrorAction SilentlyContinue
+    New-ItemProperty -Path "HKLM:\SYSTEM\CurrentControlSet\Control\BitLocker" -Name "PreventDeviceEncryption" -Value 1 -Force -ErrorAction SilentlyContinue
+    $tasks=Get-ScheduledTask -TaskPath "\Microsoft\Windows\BitLocker\" -ErrorAction SilentlyContinue
+    foreach ($task in $tasks) {Unregister-ScheduledTask -TaskName $task.TaskName -Confirm:$false  -ErrorAction SilentlyContinue}
 }
 # UnComment to enable
 # noBDE
@@ -459,12 +454,17 @@ $devs=Get-PnpDevice -class Diskdrive,Display,Monitor,Mouse,Net,Ports,Processor,P
  	&"pnputil" /remove-device $d.InstanceId
 				}
 
-# Disable Network Bindings - Disables IPv6, LLDP Protocols
-#try{
-#$nics=Get-NetAdapter -Name *Ethernet*
-#foreach ($nic in $nics) { Disable-NetAdapterBinding -Name $nic.name -ComponentID ms_lltdio,ms_tcpip6,ms_lldp,ms_rspndr -ErrorAction SilentlyContinue}
-#}
-#Catch{}
+
+# Disable Network Bindings - Disables IPv6, LLDP Protocols from all NICs
+Function NoBindings{
+	try{
+	$nics=Get-NetAdapter -Name *Ethernet*
+	foreach ($nic in $nics) { Disable-NetAdapterBinding -Name $nic.name -ComponentID ms_lltdio,ms_tcpip6,ms_lldp,ms_rspndr -ErrorAction SilentlyContinue}
+	}
+	Catch{}
+}
+# UnComment to enable
+# NoBindings
 
 # Stop Event Traces
 StopTrace Cellcore
@@ -597,4 +597,3 @@ REG ADD "HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\V
 
 Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope LocalMachine -force
 Write-Host "AVD-Optimise Finished"
-

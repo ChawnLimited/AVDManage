@@ -1,6 +1,6 @@
 # Chawn Limited 2025
 # AVD-Seal.ps1
-# Version 1.3
+# Version 3.0
 # Disables Update Services and Update Tasks
 # Edge, Chrome, OneDrive, Office, WSUS
 # Disables IPv6

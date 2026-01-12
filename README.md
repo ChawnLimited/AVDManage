@@ -2,7 +2,7 @@
 
 
 
-AVDManage is a Virtual Desktop image management solution for pooled Azure Virtual Desktop Session Hosts.
+AVDManage is a Virtual Desktop image management solution for pooled Azure Virtual Desktop Session Hosts which leverages Azure Virtual Machine Scale Sets.
 
 
 
@@ -20,7 +20,7 @@ Runs on Generalized Images (sysprepped) / Device is pre-joined to Active Directo
 
 * Validates the device is AD Joined
 * Downloads Microsoft Remote Desktop Broker and Boot Agents
-* Retrieves / Generates an AVD Host Pool Token using secretless authentication (Session Hosts have a User-Assigned Managed Identity)
+* Retrieves / Generates an AVD Host Pool Token using secretless authentication (Session Hosts inherit a User-Assigned Managed Identity)
 * Installs Microsoft Agents and joins the AVD host pool
 
 
@@ -32,7 +32,7 @@ Runs on Specialized Images (no sysprep)
 * Renames the computer to match the Virtual Machine name
 * Joins Active Directory
 * Downloads Microsoft Remote Desktop Broker and Boot Agents
-* Retrieves / Generates an AVD Host Pool Token using secretless authentication (Session Hosts have a User-Assigned Managed Identity)
+* Retrieves / Generates an AVD Host Pool Token using secretless authentication (Session Hosts inherit a User-Assigned Managed Identity)
 * Installs Microsoft Agents and joins the AVD host pool
 
 
@@ -72,4 +72,22 @@ Finalizes and prepares a Generalized Master / Golden image and executes sysprep 
 ### AVD-Seal-Special.ps1
 
 Finalizes and prepares a Specialized Master / Golden image before image creation.
+
+
+
+### Task Scripts
+
+Template scripts to automate management tasks using AVD-Automate (Automation Account).
+
+* Task-DisableLogons-SSAVD.ps1 - Disables logons on session hosts
+* Task-EnableLogons-SSAVD.ps1  - Enables logons on session hosts
+* Task-LogOffSessions-SSAVD.ps1 - Logs users out of session hosts
+* Task-ReDeploy-SS.ps1 - Redeploys session hosts to a different Azure host
+* Task-ReImage-SS.ps1 - Reimages session hosts with the current image
+* Task-Restart-SS.ps1 - Restarts session hosts
+* Task-Start-SS.ps1 - Starts session hosts
+* Task-Stop-SS.ps1 - Stops session hosts
+* Task-Update-SS.ps1 - Updates session hosts to the latest image/config
+
+
 

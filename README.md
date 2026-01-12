@@ -10,7 +10,7 @@ Azure Virtual Desktop Sessions Hosts may be deployed from Generalized or Special
 
 
 
-When deploying Session Hosts, AVD-Join3.ps1 and AVD-Turbo3.ps1 are downloaded and executed on the Virtual Machine to join Active Directory and the Azure Virtual Desktop Host Pool.
+When deploying Session Hosts, AVD-Join3.ps1 or AVD-Turbo3.ps1 is downloaded and executed on the Virtual Machine to join Active Directory and the Azure Virtual Desktop Host Pool.
 
 
 
@@ -20,7 +20,7 @@ Runs on Generalized Images (sysprepped) / Device is pre-joined to Active Directo
 
 * Validates the device is AD Joined
 * Downloads Microsoft Remote Desktop Broker and Boot Agents
-* Retrieves / Generates an AVD Host Pool Token using secretless authentication
+* Retrieves / Generates an AVD Host Pool Token using secretless authentication (Session Hosts have a User-Assigned Managed Identity)
 * Installs Microsoft Agents and joins the AVD host pool
 
 
@@ -32,7 +32,7 @@ Runs on Specialized Images (no sysprep)
 * Renames the computer to match the Virtual Machine name
 * Joins Active Directory
 * Downloads Microsoft Remote Desktop Broker and Boot Agents
-* Retrieves / Generates an AVD Host Pool Token using secretless authentication
+* Retrieves / Generates an AVD Host Pool Token using secretless authentication (Session Hosts have a User-Assigned Managed Identity)
 * Installs Microsoft Agents and joins the AVD host pool
 
 
@@ -72,8 +72,4 @@ Finalizes and prepares a Generalized Master / Golden image and executes sysprep 
 ### AVD-Seal-Special.ps1
 
 Finalizes and prepares a Specialized Master / Golden image before image creation.
-
-
-
-
 

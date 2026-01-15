@@ -157,8 +157,9 @@ Function CheckToken
 }
 
 #Uniform Scale Set with Generalized image will have the correct computerName
-#Uniform Scale Set with Specialized image will require renaming
-#Flexible Scale Set with a Generalized or Specialized image will require renaming
+#Uniform Scale Set with Specialized image will require renaming.
+#Flexible Scale Set with Generalized image will have the correct computerName
+#Flexible Scale Set Specialized image will require renaming
 Function RenameComputer
 {
 	try {
@@ -209,9 +210,10 @@ Function JoinDomain
 $NotDomainJoined=((gwmi win32_computersystem).partofdomain -eq $false)
 
 # Rename Computer (Specialized Images only)
-if ($Rename="Y") {Logwrite ("Rename VM");RenameComputer}
-else {Logwrite ("VMName: " $ENV:ComputerName)}
-
+%{
+	if ($Rename -eq "Y") {Logwrite ("Rename VM");RenameComputer}
+	else {Logwrite ("VMName: " + $ENV:ComputerName)}
+}
 
 # join domain
 JoinDomain

@@ -212,7 +212,7 @@ $NotDomainJoined=((gwmi win32_computersystem).partofdomain -eq $false)
 # Rename Computer (Specialized Images only)
 %{
 	if ($Rename -eq "Y") {Logwrite ("Rename VM");RenameComputer;}
-	else {Logwrite ("VMName: " + $ENV:ComputerName);$Global:AZVMNAME=$ENV.ComputerName;}
+	else {Logwrite ("VMName: " + $ENV:ComputerName);$Global:AZVMNAME=$ENV:ComputerName;}
 }
 
 # join domain

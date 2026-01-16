@@ -218,7 +218,7 @@ $NotDomainJoined=((gwmi win32_computersystem).partofdomain -eq $false)
 # join domain
 %{
 	if($NotDomainJoined) {JoinDomain}
-	else{Logwrite ($AZVMName is already domain joined.)
+	else{Logwrite ($AZVMName + " is already domain joined.")
 }
 
 

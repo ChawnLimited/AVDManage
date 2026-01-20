@@ -1,6 +1,6 @@
-# Chawn Limited 2025
+# Chawn Limited 2026
 # AVD-Seal-Special.ps1
-# Version 3.0
+# Version 4.0
 # Disables Update Services and Update Tasks
 # Edge, Chrome, OneDrive, Office, WSUS
 # Disables IPv6
@@ -140,7 +140,7 @@ $store=Get-Item "Cert:\LocalMachine\Runtime_Transport_Store_*" | select name
 $store='Cert:\LocalMachine\'+ $store.Name
 $certs=Get-ChildItem $store;foreach ($c in $certs) {Remove-Item $c.PSPath -Force}
 Remove-Item -Path "HKLM:\SOFTWARE\Microsoft\GuestAgent" -Recurse -Force
-
+Remove-Item -Path "HKLM:SOFTWARE\Microsoft\Windows Azure\HandlerState" -Recurse -Force
 
 Write-Host "Configure Event Logs"
 # configure and clear event logs

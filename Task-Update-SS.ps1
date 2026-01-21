@@ -20,6 +20,11 @@ $AzureContext = (Connect-AzAccount -Identity).context
 # Set and store context
 $AzureContext = Set-AzContext -SubscriptionName $AzureContext.Subscription -DefaultProfile $AzureContext
 
+# Generate a new WVD Token to prevent contention between VMs
+try {New-AzWvdRegistrationInfo -ResourceGroupName $HPRG -HostPoolName $HP -ExpirationTime $((get-date).ToUniversalTime().AddHours(8).ToString('yyyy-MM-ddTHH:mm:ss.fffffffZ'))}
+catch{}
+
+	
 
 # update all VM instances at the same time
 Update-AzVmssInstance -ResourceGroupName $SSRG -VMScaleSetName $SS -InstanceId *

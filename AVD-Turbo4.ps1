@@ -132,7 +132,7 @@ Function CheckHostPool
 
 Function CheckToken
 {
-	$now=(get-date).addhours(2)
+	$now=(get-date).addhours(1)
     try {
 		$TokenURI = "https://management.azure.com/subscriptions/$subid/resourceGroups/$rg/providers/Microsoft.DesktopVirtualization/hostPools/$hostPool/retrieveRegistrationToken?api-version=2024-04-03"
 		if ($now -gt ($wvdtoken = Invoke-RestMethod -Uri $TokenURI -Method POST -Headers $headers).ExpirationTime)
@@ -142,7 +142,7 @@ Function CheckToken
 				properties = @{
 					registrationinfo = @{
 					tokenType = "RegistrationToken"
-					expirationTime = (Get-Date).AddHours(4).ToString("o")  
+					expirationTime = (Get-Date).AddHours(8).ToString("o")  
 					registrationTokenOperation = "Update"
 					resetToken="True"
 					}
@@ -344,8 +344,8 @@ Start-Process -FilePath "shutdown.exe" -ArgumentList "/r /t 5 /d p:0:0 /c 'AVDTu
 # SIG # Begin signature block
 # MIInlgYJKoZIhvcNAQcCoIInhzCCJ4MCAQExDzANBglghkgBZQMEAgEFADB5Bgor
 # BgEEAYI3AgEEoGswaTA0BgorBgEEAYI3AgEeMCYCAwEAAAQQH8w7YFlLCE63JNLG
-# KX7zUQIBAAIBAAIBAAIBAAIBADAxMA0GCWCGSAFlAwQCAQUABCDOoXOacVmdu6lm
-# Kpncyi4Dw2X4LrBUm/75/8+9IQcTg6CCIkEwggMwMIICtqADAgECAhA3dENPnrQO
+# KX7zUQIBAAIBAAIBAAIBAAIBADAxMA0GCWCGSAFlAwQCAQUABCD72kbW/gq9tJnB
+# xqleGreqR+bdK9Ryfy4j0OKQ+jJBOaCCIkEwggMwMIICtqADAgECAhA3dENPnrQO
 # Ih+SNsofLycXMAoGCCqGSM49BAMDMFYxCzAJBgNVBAYTAkdCMRgwFgYDVQQKEw9T
 # ZWN0aWdvIExpbWl0ZWQxLTArBgNVBAMTJFNlY3RpZ28gUHVibGljIENvZGUgU2ln
 # bmluZyBSb290IEU0NjAeFw0yMTAzMjIwMDAwMDBaFw0zNjAzMjEyMzU5NTlaMFcx
@@ -533,25 +533,25 @@ Start-Process -FilePath "shutdown.exe" -ArgumentList "/r /t 5 /d p:0:0 /c 'AVDTu
 # U2lnbmluZyBDQSBFViBFMzYCEDxolvyQov0GPgzdcbswAjcwDQYJYIZIAWUDBAIB
 # BQCggYQwGAYKKwYBBAGCNwIBDDEKMAigAoAAoQKAADAZBgkqhkiG9w0BCQMxDAYK
 # KwYBBAGCNwIBBDAcBgorBgEEAYI3AgELMQ4wDAYKKwYBBAGCNwIBFTAvBgkqhkiG
-# 9w0BCQQxIgQgZLf57WgCXraZDpKKjS4bsnB3ZaFWsZLIWSvcXY9JGMcwCwYHKoZI
-# zj0CAQUABGgwZgIxAOEZy3KzEe6C45grLYFHvRSmdU6qN0dGXnzv37C00RyNyw1V
-# 7uD+QURraeeubvyooAIxAP1FkLRxs0yjXkLIuXi28puJ0FeNGq7xb67ArL3yXTAm
-# vSLs/lPJo7oi87D2CupOOqGCAyYwggMiBgkqhkiG9w0BCQYxggMTMIIDDwIBATB9
+# 9w0BCQQxIgQg7qBAhFaMIt7H6tsJoZNqeHpB6/hAH4wy3LMB3Tx6J5owCwYHKoZI
+# zj0CAQUABGgwZgIxAPHHHIuo+8XyCYkkbvOKA3fvfQas8B++7NvUUAaBChUxpUXl
+# 9HfNrvSYdJDn9LFiHQIxANLAKgqBR9dwNLHl2YP+zYiCs2/rKnBFOeuI3zSJQdtV
+# mjtDSMSRHxS/r2J79WBXTKGCAyYwggMiBgkqhkiG9w0BCQYxggMTMIIDDwIBATB9
 # MGkxCzAJBgNVBAYTAlVTMRcwFQYDVQQKEw5EaWdpQ2VydCwgSW5jLjFBMD8GA1UE
 # AxM4RGlnaUNlcnQgVHJ1c3RlZCBHNCBUaW1lU3RhbXBpbmcgUlNBNDA5NiBTSEEy
 # NTYgMjAyNSBDQTECEAqA7xhLjfEFgtHEdqeVdGgwDQYJYIZIAWUDBAIBBQCgaTAY
-# BgkqhkiG9w0BCQMxCwYJKoZIhvcNAQcBMBwGCSqGSIb3DQEJBTEPFw0yNjAxMjAy
-# MzMzMTBaMC8GCSqGSIb3DQEJBDEiBCAiB1JmkNcQzI2gG66mndR3hyKkoME15A5R
-# g5hhUEBz6TANBgkqhkiG9w0BAQEFAASCAgCK5mdb2FGCGxxVIIAGLWyDg1D23NZO
-# F7ZvvOw2grl9MLvjRh+DccRGOMKKFj+8YH+1tuVQNrqAmDjXKf+uCd/n7eE6Asyk
-# 2VJDCv1gt5zuEQTzrluJPeVPmak6H+n3j1sK75EU0WnAGezSYJjQ5ripG3gzwPGp
-# 8qq3Xmx+nJvdFw55K5vDXN0vA/m1NA2A2g39xZZMQ3yrUHNy+dEU1ABe50tl5GvW
-# o09yxdrvdabQ6P7GX/3/XsR36Bv3TxPPJnOku+7g3CE1pZ4ZKc5BkO9UDtAFEh6E
-# hjtorguaOa8P0t+i38PxGmiFqkv+yrSZrGL2LMei5/+DNUGUdue2NKmgKeyK2Baj
-# PeX/unF/lbSp4recPGv3Z9CTK3RNiYzUXPPZ9a7njCwCqoAEvvJztfqzUPkslr3m
-# d4oWWajuEAhUVmvv33EG+bCpHS8A5JVEGc/xX845kha/StmWuosK9WsrwJEZet6f
-# Z1WkQtKp46c91QouuyQUGYQSYv0k3VSgclK4Ba9JV2BflxIKQ2dIeMyrHx4R+JRv
-# qPT8gp6SyOzk5LsODZmfqS9m2mQs3Z5Mzls2X1DkqLxHZ78vrfxTOVUkTB/3xs+F
-# Re9iBL27+uBcmYaiH7CoLeeK7eR3R7uH6U5Y354U0Zx7W/7t0vZdjoSCJuYnbNUI
-# fQMh00W9xvFuFA==
+# BgkqhkiG9w0BCQMxCwYJKoZIhvcNAQcBMBwGCSqGSIb3DQEJBTEPFw0yNjAxMjEx
+# NzE3MjJaMC8GCSqGSIb3DQEJBDEiBCCcl1cCuxWk3az1JJlx6pwW7z/uWmCdHHCi
+# NhMHkod1aTANBgkqhkiG9w0BAQEFAASCAgBNpv308mXzIMeFqemhYcDPxtJzC6dc
+# wRjMVzRZCPNw6uyT9gw39wz8xhCivKLGHCGZv/QgWG56WE8897u7D0fQP/8GtxMu
+# k14UAmSD9RRcCJEo97LNHcE8nTQWqNNnPIQflZz/g7BQJTabwSQKsUQ9z08urdzS
+# 7cJsmrRhAg2nuQKKECS8cQf0RSAlQN0+OdckLS+uTDtXwVPtoZSPDu26v1j4hcMj
+# CRGVRikXymfThCmNyylOVHbSgKwIbk3Vsesz0uIwXYH+aaPgHFtpQZFT1l6NDRyZ
+# gojLlshKsSX5vS1l04YkaNYaxqfqXoiFq0dqS5E1VdCbXeDP9QTawmHHC/vcx+76
+# WrD6HZQukjG2GnOnk+cqcEQs5+R4wLHQqzKTOwLVGrPVVcXNGlViF9WW13yIkkq9
+# x6/dGiIXsv5P3VK3AIF9QaL4iayeNss2hleTpSmNsx57QnUcWB3rKOc0Q/YfFiWT
+# dhG5QEuTvnfvW4JLsUcK2Yj63QWg7oJOezYPTLlDu/BSVjvoT3EeLgv1CpVY8kLy
+# AHNK7siHr/vUJoEfhYDbyP1Q1Tj6grhD4bxKQGahUPCqIL7Y5pjcpv4IU8NeJBDJ
+# iPNe9C/km394R13DK23egj86QaeO7JYK/WqlmX/lqzzs7LH4SKrKBTshWtvNhOGZ
+# X2R0XsxOiLn0uw==
 # SIG # End signature block

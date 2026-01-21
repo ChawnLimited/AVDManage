@@ -133,6 +133,7 @@ $store='Cert:\LocalMachine\'+ $store.Name
 $certs=Get-ChildItem $store;foreach ($c in $certs) {Remove-Item $c.PSPath -Force}
 Remove-Item -Path "HKLM:\SOFTWARE\Microsoft\GuestAgent" -Recurse -Force
 Remove-Item -Path "HKLM:SOFTWARE\Microsoft\Windows Azure\HandlerState" -Recurse -Force
+Remove-Item -Path "HKLM:SOFTWARE\Microsoft\Windows Azure\ScriptHandler" -Recurse -Force
 
 Write-Host "Configure Event Logs"
 # configure and clear event logs

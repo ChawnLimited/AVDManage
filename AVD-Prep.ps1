@@ -59,6 +59,7 @@ LogWrite ("Install & Configure RDAgents.")
 		Get-Service -Name RDAgentBootLoader | Set-Service -StartupType Disabled
 		Get-Service -Name RDAgentBootLoader | Stop-Service
 		Remove-Item -Path "HKLM:\SOFTWARE\Microsoft\RDInfraAgent" -Recurse -Force
+		start-sleep -Seconds 5
 		new-Item -Path "HKLM:\SOFTWARE\Microsoft\RDInfraAgent" -force
 		Set-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\RDInfraAgent" -Name "RegistrationToken" -Value "AVDTurbo" -force
 		Set-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\RDInfraAgent" -Name "HostPoolType" -Value "Default" -force

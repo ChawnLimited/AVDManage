@@ -10,26 +10,19 @@ Azure Virtual Desktop Sessions Hosts may be deployed from Generalized or Special
 
 
 
-When deploying Session Hosts, AVD-Join3.ps1 or AVD-Turbo3.ps1 is downloaded and executed on the Virtual Machine to join Active Directory and the Azure Virtual Desktop Host Pool.
+When deploying Session Hosts, AVD-Turbo4.ps1 is downloaded and executed on the Virtual Machine to join Active Directory and the Azure Virtual Desktop Host Pool.
 
 
 
-### AVD-Join3.ps1
-
-Runs on Generalized Images (sysprepped) / Device is pre-joined to Active Directory using JSonADDomainExtension
-
-* Validates the device is AD Joined
-* Downloads Microsoft Remote Desktop Broker and Boot Agents
-* Retrieves / Generates an AVD Host Pool Token using secretless authentication (Session Hosts inherit a User-Assigned Managed Identity)
-* Installs Microsoft Agents and joins the AVD host pool
+The following scripts are supported with AVDManage 2.3.0.0 +
 
 
 
-### AVD-Turbo3.ps1
+### AVD-Turbo4.ps1
 
-Runs on Specialized Images (no sysprep)
+Runs on Specialized Images (no sysprep) and Generalized Images (sysprepped)
 
-* Renames the computer to match the Virtual Machine name
+* Renames the computer to match the Virtual Machine name (Specialized Image)
 * Joins Active Directory
 * Downloads Microsoft Remote Desktop Broker and Boot Agents
 * Retrieves / Generates an AVD Host Pool Token using secretless authentication (Session Hosts inherit a User-Assigned Managed Identity)
@@ -88,6 +81,3 @@ Template scripts to automate management tasks using AVD-Automate (Automation Acc
 * Task-Start-SS.ps1 - Starts session hosts
 * Task-Stop-SS.ps1 - Stops session hosts
 * Task-Update-SS.ps1 - Updates session hosts to the latest image/config
-
-
-

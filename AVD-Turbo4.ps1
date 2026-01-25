@@ -114,7 +114,7 @@ Function AzureLogon
 			else {logwrite('801: Not connected to AzureX. Exit.')
 			exit 801}
 			}
-		catch {logwrite('800: Error connecting to Azure: ' +  $_.Exception.Message)
+		catch {logwrite('802: Error connecting to Azure: ' +  $_.Exception.Message)
 		exit 802}
 }
 
@@ -283,7 +283,7 @@ logwrite ('Disconnected from Azure')
 			}
 		}
 	}
-    catch {logwrite('900: Error with Turbo Deployment. ' + $_.Exception.Message); exit 902}
+    catch {logwrite('902: Error with Turbo Deployment. ' + $_.Exception.Message); exit 902}
 }
 #or
 # Start a normal deployment with the RDAgent and RDBootloader
@@ -295,19 +295,19 @@ logwrite ('Disconnected from Azure')
     		### Install RDAgent
 	    	logwrite('Install Remote Desktop Services Infrastructure Agent')
 		    if (get-item -path C:\Source\RDagent.msi) {Start-Process msiexec.exe -Wait -ArgumentList "/I C:\Source\RDAgent.msi REGISTRATIONTOKEN=$WVDToken /qb /L*V RDAgent.log"}
-			else {Logwrite("901: RDagent.msi is not available. Exit");exit 903}
+			else {Logwrite("903: RDagent.msi is not available. Exit");exit 903}
 		
     		### Install RDBoot
 	    	logwrite ('Install Remote Desktop Agent Boot Loader')
 		    if (get-item -path C:\Source\RDBoot.msi) {Start-Process msiexec.exe -Wait -ArgumentList "/I C:\Source\RDBoot.msi /qb  /L*V RDBoot.log"}
-			else {Logwrite("902: RDBoot.msi is not available. Exit");exit 904}
+			else {Logwrite("904: RDBoot.msi is not available. Exit");exit 904}
 		    LogWrite "Install RDS Agents completed."
 			$WVDToken="Null"
 			}
 			Else {logwrite ('Could not retrieve a WVD Host Token for HostPool:' + $HostPool + '. Skip join WVD Hostpool')}
 		}
 	}
-    catch {logwrite('903: Error installing Remote Desktop Agents. ' + $_.Exception.Message); exit 905}
+    catch {logwrite('905: Error installing Remote Desktop Agents. ' + $_.Exception.Message); exit 905}
 }
 
 
@@ -342,10 +342,10 @@ LogWrite ($AZVMName + " deployment complete. Schedule a restart and exit.")
 Start-Process -FilePath "shutdown.exe" -ArgumentList "/r /t 5 /d p:0:0 /c 'AVDTurbo'"
 
 # SIG # Begin signature block
-# MIInlAYJKoZIhvcNAQcCoIInhTCCJ4ECAQExDzANBglghkgBZQMEAgEFADB5Bgor
+# MIInlgYJKoZIhvcNAQcCoIInhzCCJ4MCAQExDzANBglghkgBZQMEAgEFADB5Bgor
 # BgEEAYI3AgEEoGswaTA0BgorBgEEAYI3AgEeMCYCAwEAAAQQH8w7YFlLCE63JNLG
-# KX7zUQIBAAIBAAIBAAIBAAIBADAxMA0GCWCGSAFlAwQCAQUABCBtD1uEltK5xZww
-# fkVyfgPmZea4zo5tzyF+FDIuvIy6bKCCIkEwggMwMIICtqADAgECAhA3dENPnrQO
+# KX7zUQIBAAIBAAIBAAIBAAIBADAxMA0GCWCGSAFlAwQCAQUABCCubeAtpTivRjdu
+# k7FmPJuS0KLyCpMWoijK+rAdHMOUnKCCIkEwggMwMIICtqADAgECAhA3dENPnrQO
 # Ih+SNsofLycXMAoGCCqGSM49BAMDMFYxCzAJBgNVBAYTAkdCMRgwFgYDVQQKEw9T
 # ZWN0aWdvIExpbWl0ZWQxLTArBgNVBAMTJFNlY3RpZ28gUHVibGljIENvZGUgU2ln
 # bmluZyBSb290IEU0NjAeFw0yMTAzMjIwMDAwMDBaFw0zNjAzMjEyMzU5NTlaMFcx
@@ -528,30 +528,30 @@ Start-Process -FilePath "shutdown.exe" -ArgumentList "/r /t 5 /d p:0:0 /c 'AVDTu
 # IwXMZUXBhtCyIaehr0XkBoDIGMUG1dUtwq1qmcwbdUfcSYCn+OwncVUXf53VJUNO
 # aMWMts0VlRYxe5nK+At+DI96HAlXHAL5SlfYxJ7La54i71McVWRP66bW+yERNpbJ
 # CjyCYG2j+bdpxo/1Cy4uPcU3AWVPGrbn5PhDBf3Froguzzhk++ami+r3Qrx5bIbY
-# 3TVzgiFI7Gq3zWcxggSpMIIEpQIBATBrMFcxCzAJBgNVBAYTAkdCMRgwFgYDVQQK
+# 3TVzgiFI7Gq3zWcxggSrMIIEpwIBATBrMFcxCzAJBgNVBAYTAkdCMRgwFgYDVQQK
 # Ew9TZWN0aWdvIExpbWl0ZWQxLjAsBgNVBAMTJVNlY3RpZ28gUHVibGljIENvZGUg
 # U2lnbmluZyBDQSBFViBFMzYCEDxolvyQov0GPgzdcbswAjcwDQYJYIZIAWUDBAIB
 # BQCggYQwGAYKKwYBBAGCNwIBDDEKMAigAoAAoQKAADAZBgkqhkiG9w0BCQMxDAYK
 # KwYBBAGCNwIBBDAcBgorBgEEAYI3AgELMQ4wDAYKKwYBBAGCNwIBFTAvBgkqhkiG
-# 9w0BCQQxIgQg4GGjL/Ab39WWRkcNKT79uvhVfCilz/53i2BdZg9Arw8wCwYHKoZI
-# zj0CAQUABGYwZAIwSbUxOUlTyJ3s7WApjkinm2KIsc7nIl6x+6Wo87myALYyPuR6
-# qwbnl2TRNRgr57bUAjA94nvZaVCMfGRSoPSl8TEhGutzluekJ96iaea5nKKLp4zO
-# 1Jm6aF0zEMCDrDURFJ6hggMmMIIDIgYJKoZIhvcNAQkGMYIDEzCCAw8CAQEwfTBp
-# MQswCQYDVQQGEwJVUzEXMBUGA1UEChMORGlnaUNlcnQsIEluYy4xQTA/BgNVBAMT
-# OERpZ2lDZXJ0IFRydXN0ZWQgRzQgVGltZVN0YW1waW5nIFJTQTQwOTYgU0hBMjU2
-# IDIwMjUgQ0ExAhAKgO8YS43xBYLRxHanlXRoMA0GCWCGSAFlAwQCAQUAoGkwGAYJ
-# KoZIhvcNAQkDMQsGCSqGSIb3DQEHATAcBgkqhkiG9w0BCQUxDxcNMjYwMTIxMjM0
-# NTMyWjAvBgkqhkiG9w0BCQQxIgQg/7usu99bTDIBi6Kc86lvwXZ378akZ36VEc/j
-# 5zp6NFMwDQYJKoZIhvcNAQEBBQAEggIAfHV+Xg4IAmlLFmjHaLqAVImRw1jKg7eG
-# ZLbkvqVvagiho+thD+uEEgysk+5n36e3xPQ7udhh89S6lLSIiCcNLJvPHUA+XIaE
-# MXEX9x9ebolcXHOfcAeG0Esn2FqLEn14qyB4aArZpfMC4R3Tn3xx0VrOFrkyVvCB
-# n8oITPjr2D5Q/CFHjLxm4v3+73p4d3BtPDso7dQ9nc29/a5XjsR+jN3p2yYQ1Ax5
-# gyPe4lggy92dc8wysWjbLOK2uO3HgmSIxA2zwllHkl4XZFOJrBORgdNUll9TxR2l
-# Uz0N2AL9Pcw51PqsaAUX5fQ1/Kp5cO7ZRDOAaacCIiVlMlmA5fSSAsabRklcKGxA
-# ZWr7YoQXkbYCu7zrBAQgAbRNA9VvpqypA92/M3rgMfNO99nM0WedX4gngEpsWhiW
-# w1qxb9gWUyzKBhaM2SbTnxrSFpPysstg2w5By8R8qBv6YzyBVSA6uIeU6j+u9+TL
-# lLfGHswHkUOUJHqgiu2K2NxzEHhSpIN1xg1HcxiQ5WS2RKuuIOnVXXL1160ZULT6
-# xTiX+yjGQirdGAFsTg7Gbtu/xJL61s+rU4/Ysv/k9uZZfzLObAfLcwJb0D0MnEjO
-# Kd+wJGD1Q2/5plaYOnLRwbOTyjgsCQjHcU2Qf+ojBhAfEaJGe+4vzxWEtfkDShuX
-# 365zUisDEzc=
+# 9w0BCQQxIgQg3tbkiXd04JJvEWXx1B2KxqJM7mrVWetHfHxyiOS5/q4wCwYHKoZI
+# zj0CAQUABGgwZgIxAKPA5ff80jGbnDtLAATiEh4yMIO85A3g1XajhM+ghw1zImlU
+# xVVuG6G9GqtRnh2QjwIxAI8EfmqH7gMsrBs+9uTt3rGWjqK8JIH4LjmOfWl3rn7j
+# D/Kzbr6O+nTZPPC38aenM6GCAyYwggMiBgkqhkiG9w0BCQYxggMTMIIDDwIBATB9
+# MGkxCzAJBgNVBAYTAlVTMRcwFQYDVQQKEw5EaWdpQ2VydCwgSW5jLjFBMD8GA1UE
+# AxM4RGlnaUNlcnQgVHJ1c3RlZCBHNCBUaW1lU3RhbXBpbmcgUlNBNDA5NiBTSEEy
+# NTYgMjAyNSBDQTECEAqA7xhLjfEFgtHEdqeVdGgwDQYJYIZIAWUDBAIBBQCgaTAY
+# BgkqhkiG9w0BCQMxCwYJKoZIhvcNAQcBMBwGCSqGSIb3DQEJBTEPFw0yNjAxMjUx
+# NDA5MjNaMC8GCSqGSIb3DQEJBDEiBCChLGNpo3E6/8BMjRJ3aT6VTcC80h+kPlH7
+# oUucZFLZ9TANBgkqhkiG9w0BAQEFAASCAgCh7Ydn75yo7ZfpxSlNP2uH0EHE+9g0
+# S3a9aV9eO9gEkUeuuEnGjOnkWCf+ZMtyoNcRHTgAch72jJhDhsXI6PwlSuFQwrJR
+# tW/a0JHAhQ7qr/Uhypxwb8Y+/P6AtOGnFtCLqL9wAruAiAX+MPakz0DXvj+KGkQD
+# COaFSDri8KY6ppeTQQNwR5y/4JfIJHBaCplUc60y7Ppq6E5Ng1LyBtUALyH8MC2w
+# xaNbJkcRLKrWi8XTcaEMZ8HVdwC4cmdjzCWgWXoYF/2C4iy/zxm30CaCuQkauckJ
+# A9Y0FPMYuXxM2y4FZL1+8hU7o918SxFMyHXbHoK0eTWgGBWK5B5SVKY5CY+ok/WM
+# 1mYAq214+9iLs6VMyuHnFC7A8cr9ewFg2lstj1aycT/rtZDErk8c10YAFlJkx2fn
+# q7QQ/FWlYEfV3kdn4l+QHLJB4NWLcBeDoIm5tZQh+KME0IhixxN9W3DhpMKVSTP7
+# bPjtfvTiHj10puplJcQCtML5QtvEs/34VSyObJQHpLmuMfpBFRPFbEfVVfKtrd2X
+# hEL6elfCEv5MuF34nyienktbYhO2VEJafDdQRu6ehtJRIiMupJLXUBsA2BL9nqqI
+# tmc9QMk/41+XLEIzuR94OPACe7l61UBfCT27qgKUuzsRNLnoaLtW5VQQRr35LewQ
+# MmbfWt/GI2hDZg==
 # SIG # End signature block

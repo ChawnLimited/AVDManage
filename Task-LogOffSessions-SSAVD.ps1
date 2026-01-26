@@ -20,13 +20,31 @@ $AzureContext = (Connect-AzAccount -Identity).context
 # Set and store context
 $AzureContext = Set-AzContext -SubscriptionName $AzureContext.Subscription -DefaultProfile $AzureContext
 
+# Get the Scale Set
+$VMSS=get-azvmss -ResourceGroupName $SSRG -VMScaleSetName $SS
+# Get the Orchestration Mode
+$OrchMode=$vmss.OrchestrationMode
+# Specialized or Generalized
+%{
+	If ($VMSS.VirtualMachineProfile.OsProfile.ComputerNamePrefix) {$Global:VMSSIMage="Generalized"}
+	else {$Global:VMSSIMage="Specialized"}
+}
+
+# Get the VMSS VM Instances
+%{
+	if ($Orchmode -eq 'Uniform'){$SSVMs=get-azvmssvm -ResourceGroupName $SSRG -VMScaleSetName $SS}
+	else {$SSVMs=get-azvm -ResourceGroupName $ssrg | where-object {$_.VirtualMachineScaleSet.id -eq $vmss.id}}
+}
 
 # Logoff AVD Sessions for all VM instances in the Scale Set
-$SSVMs=get-azvmssvm -ResourceGroupName $SSRG -VMScaleSetName $SS
-
 %{
-foreach ($VM in $SSVMs) 
-	{$VMName='*'+$VM.OsProfile.Computername+'*';
-	Get-AzWvdUserSession -HostPoolName $hp -ResourceGroupName $hprg | Where-Object {$_.Name -like $vmname} | Remove-AzWvdUserSession -Force}
+foreach ($VM in $SSVMs)
+	{
+	if ($VMSSIMage -eq "Generalized") {$VMName=$VM.OsProfile.Computername + "."}
+	else {$VMNAME=$VM.Name.Replace('_','') + "."}
+	write-host "Logoff sessions for " $VMNAME
+	Get-AzWvdUserSession -HostPoolName $HP -ResourceGroupName $HPRG | where-object {$_.Name.contains($VMName)} | Remove-AzWvdUserSession -Force
+	}
 }
+
 

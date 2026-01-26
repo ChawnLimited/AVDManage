@@ -20,13 +20,30 @@ $AzureContext = (Connect-AzAccount -Identity).context
 # Set and store context
 $AzureContext = Set-AzContext -SubscriptionName $AzureContext.Subscription -DefaultProfile $AzureContext
 
-
-# Disable AVD Logons for all VM instances in the Scale Set
-$SSVMs=get-azvmssvm -ResourceGroupName $SSRG -VMScaleSetName $SS
-
+# Get the Scale Set
+$VMSS=get-azvmss -ResourceGroupName $SSRG -VMScaleSetName $SS
+# Get the Orchestration Mode
+$OrchMode=$vmss.OrchestrationMode
+# Specialized or Generalized
 %{
-foreach ($VM in $SSVMs) 
-	{$VMName='*'+$VM.OsProfile.Computername+'*';
-	Get-AzWvdSessionHost -HostPoolName $HP -ResourceGroupName $HPRG | where-object {$_.Name -like $VMName} | Update-AzWvdSessionHost -AllowNewSession:$True -Force}
+	If ($VMSS.VirtualMachineProfile.OsProfile.ComputerNamePrefix) {$Global:VMSSIMage="Generalized"}
+	else {$Global:VMSSIMage="Specialized"}
+}
+
+# Get the VMSS VM Instances
+%{
+	if ($Orchmode -eq 'Uniform'){$SSVMs=get-azvmssvm -ResourceGroupName $SSRG -VMScaleSetName $SS}
+	else {$SSVMs=get-azvm -ResourceGroupName $ssrg | where-object {$_.VirtualMachineScaleSet.id -eq $vmss.id}}
+}
+
+# Enable AVD Logons for all VM instances in the Scale Set
+%{
+foreach ($VM in $SSVMs)
+	{
+	if ($VMSSIMage -eq "Generalized") {$VMName=$VM.OsProfile.Computername + "."}
+	else {$VMNAME=$VM.Name.Replace('_','') + "."}
+	write-host "Enable Logons for " $VMNAME
+	Get-AzWvdSessionHost -HostPoolName $HP -ResourceGroupName $HPRG | where-object {$_.Name.contains($VMName)} | Update-AzWvdSessionHost -AllowNewSession:$True -Force
+	}
 }
 

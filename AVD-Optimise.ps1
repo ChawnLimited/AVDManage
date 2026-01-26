@@ -1,6 +1,6 @@
-# Chawn Limited 2025
+# Chawn Limited 2026
 # AVD-Optimise.ps1
-# Version 3.0
+# Version 4.0
 # Implements know optimisations for AVD Session Hosts
 # https://learn.microsoft.com/en-us/previous-versions/windows-server/it-pro/windows-server-2019/remote/remote-desktop-services/rds-vdi-recommendations
 # Update services and Maintenance tasks are disabled
@@ -513,17 +513,21 @@ mpexclude "C:\Program Files\Microsoft RDInfra\RDMonitoringAgent_*\Agent\MonAgent
 mpexclude "C:\Program Files\Microsoft RDInfra\RDMonitoringAgent_*\Agent\MonAgentManager.exe"
 
 
-# Set page File to Memory Size on D:\
+# Set page File to Memory Size
 function SetPageFile{
-	if (Get-Volume -DriveLetter D) {
-		$MemMB = (Get-CimInstance Win32_PhysicalMemory | Measure-Object -Property Capacity -Sum).Sum / 1MB
-		$pf = Get-WmiObject -Query "Select * From Win32_PageFileSetting";
-		$pf.name=$pf.name
-		$pf.caption=$pf.caption
-		$pf.InitialSize = $MemMB;
-		$pf.MaximumSize = $MemMB;
-		$pf.Put();
-	}
+	$MemMB = (Get-CimInstance Win32_PhysicalMemory | Measure-Object -Property Capacity -Sum).Sum / 1MB
+
+	if (Get-Volume -DriveLetter D) {$pfPath = "D:\pagefile.sys"}
+	else {$pfPath = "C:\pagefile.sys"}
+
+	$Sys = Get-WmiObject -Class Win32_ComputerSystem -EnableAllPrivileges
+	$Sys.AutomaticManagedPagefile = $false
+	$Sys.Put() | Out-Null
+
+	$pf = Get-CimInstance -ClassName Win32_PageFileSetting
+	Get-WmiObject -Class Win32_PageFileSetting | ForEach-Object {$_.Delete() | Out-Null}
+	$pf = New-CimInstance -ClassName Win32_PageFileSetting -Property @{ Name= $pfpath }
+	$pf | Set-CimInstance -Property @{ InitialSize = $memMB; MaximumSize = $memMB }
 }
 # UnComment to enable
 # SetPageFile

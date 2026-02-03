@@ -274,7 +274,7 @@ $NotDomainJoined=((gwmi win32_computersystem).partofdomain -eq $false)
 
 # get the DNS hostname of the VM
 %{
-	if ($DNSSuffix=(Get-DnsClientGlobalSetting).SuffixSearchList[0]) {$Global:hostname=$AZVMName + "." + $DNSSuffix}
+	if ($ADDomain) {$Global:hostname=$AZVMName + "." + $ADDomain}
 	else {$Global:hostname=$AZVMName}
 	logwrite('Hostname:' + $hostname)
 	logwrite('Hostpool:' + $hostpool)

@@ -31,7 +31,7 @@
 #### End of Parameters
 
 $ProgressPreference ="SilentlyContinue"
-$Logfile = "AVD-Turbo4.log"
+$Logfile = "AVD-Turbo5.log"
 
 Function LogWrite
 {
@@ -210,10 +210,10 @@ Function JoinEntraID
 		Set-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\CDJ" -Name "AzureVmTenantIdEndpoint" -Value "http://169.254.169.254/metadata/identity/info" -force	
 		Set-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\CDJ" -Name "AzureVmMsiTokenEndpoint" -Value "http://169.254.169.254/metadata/identity/oauth2/token" -force
 		$proc=Start-Process dsregcmd -ArgumentList "/AzureSecureVMJoin /debug" -Passthru -Wait
-		if ($Proc.ExitCode -ne 0) {LogWrite ("405: Exitting - Failed to join Entra ID: " + $Proc.ExitCode);exit 405}
+		if ($Proc.ExitCode -ne 0) {LogWrite ("405: Exit - Failed to join Entra ID: " + $Proc.ExitCode);exit 405}
 		else {LogWrite ("Successfully joined Entra ID: " + $Proc.ExitCode)}
 	}
-	catch {LogWrite ("406: " + $_.Exception.Message);exit 406}
+	catch {LogWrite ("406: Exit - Failed to join Entra ID: " + $_.Exception.Message);exit 406}
 }
 
 
@@ -242,7 +242,7 @@ $NotDomainJoined=((gwmi win32_computersystem).partofdomain -eq $false)
 
 # Check for an AVD deployment
 %{
-	if ($hostpool) {LogWrite ("Join AVD HostPool" + $HostPool)}
+	if ($hostpool) {LogWrite ("Join AVD HostPool: " + $HostPool)}
 	else {LogWrite ($AZVMName + " deployment complete. Schedule a restart and exit.")
 	Start-Process -FilePath "shutdown.exe" -ArgumentList "/r /t 5 /d p:0:0 /c 'AVDTurbo'"
 	exit 0}

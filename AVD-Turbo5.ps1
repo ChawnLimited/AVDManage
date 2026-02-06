@@ -205,6 +205,7 @@ Function JoinEntraID
 	try {
 		LogWrite ("Join Entra ID using VM System credentials")
 		if ($EntraDNSSuffix -ne "None") {Set-DnsClientGlobalSetting -SuffixSearchList @($EntraDNSSuffix)}
+		Set-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\System" -Name "EnableFirstLogonAnimation" -Type DWORD -Value "0" -force
 		New-Item -Path "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion" -Name "CDJ" -Force -ErrorAction SilentlyContinue
 		Set-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\CDJ" -Name "AzureVmComputeMetadataEndpoint" -Value "http://169.254.169.254/metadata/instance/compute" -force
 		Set-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\CDJ" -Name "AzureVmTenantIdEndpoint" -Value "http://169.254.169.254/metadata/identity/info" -force	
@@ -217,9 +218,10 @@ Function JoinEntraID
 }
 
 
-
-# Check if Vm is AD domain joined
+# Check if VM is AD domain joined
 $NotDomainJoined=((gwmi win32_computersystem).partofdomain -eq $false)
+# Check if VM is Entra Joined
+
 
 # Rename Computer (Specialized Images only)
 %{
@@ -276,8 +278,8 @@ $NotDomainJoined=((gwmi win32_computersystem).partofdomain -eq $false)
 %{
 	if ($ADDomain) {$Global:hostname=$AZVMName + "." + $ADDomain}
 	else {$Global:hostname=$AZVMName}
-	logwrite('Hostname:' + $hostname)
-	logwrite('Hostpool:' + $hostpool)
+	logwrite('Hostname: ' + $hostname)
+	logwrite('Hostpool: ' + $hostpool)
 }
 
 # Logon to Azure

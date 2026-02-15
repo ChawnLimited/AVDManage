@@ -247,8 +247,8 @@ CheckEntraID
 %{
 	if ($ADDomain){
 		$i=0		
-		do {start-sleep -Seconds 1;$i++;} until ($Conn=(Test-NetConnection -ComputerName $ADDomain -CommonTCPPort SMB).TcpTestSucceeded -eq "True" -or $i -eq 30)
-		if ($Conn -ne "True") {LogWrite ("Cannot connect to " + $ADDomain + ". Abort joining Active directory. Exit");exit 302}
+		do {start-sleep -Seconds 1;$i++;} until ($Conn=(Test-NetConnection -ComputerName 127.0.0.1 -CommonTCPPort SMB).TcpTestSucceeded -eq "True" -or $i -eq 30)
+		if ($Conn -ne 'True') {LogWrite ("Cannot connect to " + $ADDomain + ". Abort joining Active directory. Exit"); exit 302}
 		if($NotDomainJoined) {JoinDomain;CheckDomain;}
 		else{Logwrite ($AZVMName + " is already domain joined.")}
 	}
@@ -259,7 +259,7 @@ CheckEntraID
 	if ($EntraJoin -eq "Y")
 	{	
 		do {start-sleep -Seconds 1;$i++;} until ($Conn=(Test-NetConnection -ComputerName 169.254.169.254 -CommonTCPPort HTTP).TcpTestSucceeded -eq "True" -or $i -eq 30)
-		if ($Conn -ne "True") {LogWrite ("Cannot connect to Entra ID. Abort joining Entra ID. Exit");exit 406}
+		if ($Conn -ne 'True') {LogWrite ("Cannot connect to Entra ID. Abort joining Entra ID. Exit"); exit 406}
 		if ($IsEntraJoined -eq "NO") {JoinEntraID}
 	}
 }

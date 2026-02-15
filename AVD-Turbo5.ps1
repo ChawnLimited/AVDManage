@@ -1,7 +1,7 @@
 ﻿# Chawn Limited 2026
 # AVD-Turbo5.ps1
 # Version 5.0
-# Rename the VM (if created from a Specialized Image.), optionally Join VM to Active Directory or Entra ID, and optionally install AVD Agents - For Specialized and Generalized Images, RIP AVDJoin
+# Rename the VM (if created from a Specialized Image), optionally Join VM to Active Directory or Entra ID, and optionally install AVD Agents and join AVD HOst Pool - For Specialized and Generalized Images, RIP AVDJoin
 # No Powershell Modules required
 
 #### Parameters
@@ -39,7 +39,6 @@ Function LogWrite
 	$d1=get-Date
    Add-content $Logfile -value ($d1.tostring() + " : " + $logstring)
 }
-
 LogWrite "Starting Up"
 
 
@@ -155,10 +154,8 @@ Function CheckToken
     catch {Logwrite("901: " + $_.Exception.Message); exit 901}
 }
 
-#Uniform Scale Set with Generalized image will have the correct computerName
-#Uniform Scale Set with Specialized image will require rename
-#Flexible Scale Set with Generalized image will have the correct computerName
-#Flexible Scale Set Specialized image will require rename
+
+# Specialized images will require rename
 Function RenameComputer
 {
 	try {
@@ -200,6 +197,22 @@ Function JoinDomain
 	catch {LogWrite ("301: " + $_.Exception.Message);exit 301}
 }
 
+
+Function CheckEntraID
+{
+	try {
+		$dsregStatus = dsregcmd /status 2>$null
+		if (-not $dsregStatus) {
+			logwrite ("EntraJoined: NO")
+		}
+		# Parse AzureAdJoined and DomainJoined values
+		$Global:IsEntraJoined = ($dsregStatus | Select-String "AzureAdJoined\s*:\s*(YES|NO)").Matches.Groups[1].Value
+		logwrite ("EntraJoined: " $IsEntraJoined)
+	} 
+catch {}
+}
+
+
 Function JoinEntraID
 {
 	try {
@@ -219,7 +232,9 @@ Function JoinEntraID
 
 # Check if VM is AD domain joined
 $NotDomainJoined=((gwmi win32_computersystem).partofdomain -eq $false)
+
 # Check if VM is Entra Joined
+CheckEntraID
 
 
 # Rename Computer (Specialized Images only)
@@ -238,7 +253,7 @@ $NotDomainJoined=((gwmi win32_computersystem).partofdomain -eq $false)
 
 # Join Entra ID
 %{
-	if ($EntraJoin -eq "Y") {JoinEntraID}
+	if ($IsEntraJoined -eq "NO"){if ($EntraJoin -eq "Y") {JoinEntraID}}
 }
 
 # Check for an AVD deployment
@@ -248,9 +263,6 @@ $NotDomainJoined=((gwmi win32_computersystem).partofdomain -eq $false)
 	Start-Process -FilePath "shutdown.exe" -ArgumentList "/r /t 5 /d p:0:0 /c 'AVDTurbo'"
 	exit 0}
 }
-
-
-
 
 
 # Check for a Turbo deployment
@@ -371,10 +383,10 @@ LogWrite ($AZVMName + " deployment complete. Schedule a restart and exit.")
 Start-Process -FilePath "shutdown.exe" -ArgumentList "/r /t 5 /d p:0:0 /c 'AVDTurbo'"
 
 # SIG # Begin signature block
-# MIInlgYJKoZIhvcNAQcCoIInhzCCJ4MCAQExDzANBglghkgBZQMEAgEFADB5Bgor
+# MIInlQYJKoZIhvcNAQcCoIInhjCCJ4ICAQExDzANBglghkgBZQMEAgEFADB5Bgor
 # BgEEAYI3AgEEoGswaTA0BgorBgEEAYI3AgEeMCYCAwEAAAQQH8w7YFlLCE63JNLG
-# KX7zUQIBAAIBAAIBAAIBAAIBADAxMA0GCWCGSAFlAwQCAQUABCBgMlcNzNoPow/F
-# FR0f2M5BT+kue7jyrD4OFHOBsfMMDaCCIkEwggMwMIICtqADAgECAhA3dENPnrQO
+# KX7zUQIBAAIBAAIBAAIBAAIBADAxMA0GCWCGSAFlAwQCAQUABCATbG/0xb48qyIZ
+# 6aCB/P9bohhvFaNLoN2JJZigfGwzWqCCIkEwggMwMIICtqADAgECAhA3dENPnrQO
 # Ih+SNsofLycXMAoGCCqGSM49BAMDMFYxCzAJBgNVBAYTAkdCMRgwFgYDVQQKEw9T
 # ZWN0aWdvIExpbWl0ZWQxLTArBgNVBAMTJFNlY3RpZ28gUHVibGljIENvZGUgU2ln
 # bmluZyBSb290IEU0NjAeFw0yMTAzMjIwMDAwMDBaFw0zNjAzMjEyMzU5NTlaMFcx
@@ -557,30 +569,30 @@ Start-Process -FilePath "shutdown.exe" -ArgumentList "/r /t 5 /d p:0:0 /c 'AVDTu
 # IwXMZUXBhtCyIaehr0XkBoDIGMUG1dUtwq1qmcwbdUfcSYCn+OwncVUXf53VJUNO
 # aMWMts0VlRYxe5nK+At+DI96HAlXHAL5SlfYxJ7La54i71McVWRP66bW+yERNpbJ
 # CjyCYG2j+bdpxo/1Cy4uPcU3AWVPGrbn5PhDBf3Froguzzhk++ami+r3Qrx5bIbY
-# 3TVzgiFI7Gq3zWcxggSrMIIEpwIBATBrMFcxCzAJBgNVBAYTAkdCMRgwFgYDVQQK
+# 3TVzgiFI7Gq3zWcxggSqMIIEpgIBATBrMFcxCzAJBgNVBAYTAkdCMRgwFgYDVQQK
 # Ew9TZWN0aWdvIExpbWl0ZWQxLjAsBgNVBAMTJVNlY3RpZ28gUHVibGljIENvZGUg
 # U2lnbmluZyBDQSBFViBFMzYCEDxolvyQov0GPgzdcbswAjcwDQYJYIZIAWUDBAIB
 # BQCggYQwGAYKKwYBBAGCNwIBDDEKMAigAoAAoQKAADAZBgkqhkiG9w0BCQMxDAYK
 # KwYBBAGCNwIBBDAcBgorBgEEAYI3AgELMQ4wDAYKKwYBBAGCNwIBFTAvBgkqhkiG
-# 9w0BCQQxIgQgtOrkWtCi6q1PsXtQPUFHSewcZYqDD9B3vQ4AhUvMgcQwCwYHKoZI
-# zj0CAQUABGgwZgIxAIWdwy8m9rB3DquRIjWDW+gugnYiiRAuZK6oPCQrPyEBeypE
-# zaRs6zzg6HpssSQmtQIxANe1GqFvV1zf2rMmEclltZLZhi6yO96dfzN/DiTYWXER
-# mw1vV7oQuRxbsgnXvCFxc6GCAyYwggMiBgkqhkiG9w0BCQYxggMTMIIDDwIBATB9
-# MGkxCzAJBgNVBAYTAlVTMRcwFQYDVQQKEw5EaWdpQ2VydCwgSW5jLjFBMD8GA1UE
-# AxM4RGlnaUNlcnQgVHJ1c3RlZCBHNCBUaW1lU3RhbXBpbmcgUlNBNDA5NiBTSEEy
-# NTYgMjAyNSBDQTECEAqA7xhLjfEFgtHEdqeVdGgwDQYJYIZIAWUDBAIBBQCgaTAY
-# BgkqhkiG9w0BCQMxCwYJKoZIhvcNAQcBMBwGCSqGSIb3DQEJBTEPFw0yNjAyMTEw
-# MjM0MjFaMC8GCSqGSIb3DQEJBDEiBCBriEYDChryvExJAWhyULqxOZ9N0QoQcT8I
-# V5bcd/6k8DANBgkqhkiG9w0BAQEFAASCAgAojcZHb3DxpJXcMjEaN/xtXO0llS0B
-# gROa6Xh5d+Tv8j4RACvkToNdge8FRGeeuGvdh67MZ4b4YHXfVRF6oVRUAxoY4vyX
-# tXKcDBURjRauqp37TZyhCItvsbpV1y2/Fm9lB6ZpynS24vfZCelcw7OiDdE3w8f5
-# J/dHeJHIJLE6Uc154vX1gt5kJT2jJiojZrdnPCX+fd4TZmpPdqDuexN/4TWLCMYp
-# A2+O1UtjWrAQNQjrr7lO01dsXDIelZvctZSGnj8j0u8MdZwB/Oqpk9c5fJRhaZvh
-# 5gPpEgkoerkFafdCsdUfGER/pOxfyeemQT+OmIFkRqB+sr0K1Kp7YXcuRVpahd6i
-# FX6RJVlYmgpAqmZaB6fWoyZhhLLVduabPnxuGk44YiNcbGaitE62jAEU2EyTicVI
-# vNS9uEiLCr/PigyWUxVMo142PKH/R0RS5HRfyPcFfpVmJbI8Cn+RZ1Norerf37pJ
-# bCWh491D0jSak+mBawT05QUyECSLGjthhxGbpAdPzv+xYY+T7gB6yvGGrH3yyGfb
-# aEo4ddAneEgEe30bSpVd0Wq+vSdJaqPGcM+SgxORpFalDjJLFVzVnnqrm+EegHma
-# vj7PooaBX7xZcpz1BQFEwM4qDfIefqrtQvh8VW4EtY+HYgz/mTAbGZL8Ld0oFCoU
-# JN+DVCEo8RjvbQ==
+# 9w0BCQQxIgQg48QI51pLWzzoxpCHL1F+mOlRwUUHAOl9zomWZvaV/J0wCwYHKoZI
+# zj0CAQUABGcwZQIxAL1SU/tOOlPvfig+I/FJk3GRuuafPpPZMQJMWofSoPNC/uWb
+# k5wqPtQ5ADp8KBOzLgIwZyQ9sLwyxo/ZV6yvESXkw94ZMMSEiZit3UdcDvcqezuU
+# yZamjMrMxe0SlZV6yVuSoYIDJjCCAyIGCSqGSIb3DQEJBjGCAxMwggMPAgEBMH0w
+# aTELMAkGA1UEBhMCVVMxFzAVBgNVBAoTDkRpZ2lDZXJ0LCBJbmMuMUEwPwYDVQQD
+# EzhEaWdpQ2VydCBUcnVzdGVkIEc0IFRpbWVTdGFtcGluZyBSU0E0MDk2IFNIQTI1
+# NiAyMDI1IENBMQIQCoDvGEuN8QWC0cR2p5V0aDANBglghkgBZQMEAgEFAKBpMBgG
+# CSqGSIb3DQEJAzELBgkqhkiG9w0BBwEwHAYJKoZIhvcNAQkFMQ8XDTI2MDIxNTE4
+# MDgyNlowLwYJKoZIhvcNAQkEMSIEILOEsbm2rXmVRtbOP8wbaf4B3rwF+BgXDtO9
+# bBdZW5O1MA0GCSqGSIb3DQEBAQUABIICAGwEZJItxuFa4/RoS9MEpuD01UcC79EP
+# mYeU/4epYvbUhMVjtKLRMYAKiHkpX+lSySRUtsLyyhDm/mEFsl1h/J/Qm7CXXl14
+# R5eaX6aWLd8peMRQk+wLWIKp3ptOLDUXyxb3BlOTg3rdwjV8XFTZ3Zrxd0rhqQtU
+# S+FnA+gFsUPPGLNhr+4USq608KEy/GcW2MwYrqh0uZtJjeaaIseQtbVDxrCChLls
+# v0rtzmFE4PqFelOe9jw57wutdaNIXUvCUBOD21Y1BK3Z6bJeMBwDkHwMScFbxSXz
+# d2DXeLiRFpmJ1X0hqSIpr7FMQY6pzO8oOLiHAM4YDYoYT1QFiATbGyU6DheTwPmk
+# fZ8R61C7GOGuBPxjaZSKSt10YjAZXjxq0FmRFdSaaszzwYm8Znra+HeHObYTcoVx
+# /8frZDpcKEhdB5cmeGEw5UMLvG1BCR8a3GByqBrpVZcsZ5Nw6BNQheUoe4HTRwfY
+# ROTuC4DBV14gkzku712RLr3lAF3W4fAAT3bK+jKJv/3tZCwVco4mHY4tUCfbtVkY
+# CloeLT1V8MbE4bqpnADXz2/t2d4fUE5ZI36OR8j0awpMnrofWBQL8Wj0eEfak8Z9
+# cwPOsta8U5RBRPUXi8rrVLuM/1eBKFUgzRbTDaaqtX7lK7KzkegiU9h6J3036osF
+# 7NhbSQheWFC4
 # SIG # End signature block

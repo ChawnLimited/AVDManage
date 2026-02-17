@@ -271,8 +271,8 @@ CheckEntraID
 %{
 	if ($ADDomain){
 		$i=0		
-		do {start-sleep -Seconds 1;$i++;} until ($Conn=(Test-NetConnection -ComputerName 127.0.0.1 -CommonTCPPort SMB).TcpTestSucceeded -eq "True" -or $i -eq 30)
-		if ($Conn -ne 'True') {LogWrite ("Cannot connect to " + $ADDomain + ". Abort joining Active directory. Exit"); exit 302} else{LogWrite ($ADDomain + " is available.")}
+		do {start-sleep -Seconds 1;$i++;} until ($Conn=(Test-NetConnection -ComputerName " + $ADDomain + " -CommonTCPPort SMB).TcpTestSucceeded -eq "True" -or $i -eq 30)
+		if ($i -eq 30) {LogWrite ("Cannot connect to " + $ADDomain + ". Abort joining Active directory. Exit"); exit 302} else{LogWrite ($ADDomain + " is available.")}
 		if($NotDomainJoined) {JoinDomain;CheckDomain;}
 		else{Logwrite ($AZVMName + " is already domain joined.")}
 	}
@@ -282,8 +282,9 @@ CheckEntraID
 %{
 	if ($EntraJoin -eq "Y")
 	{	
+		$i=0
 		do {start-sleep -Seconds 1;$i++;} until ($Conn=(Test-NetConnection -ComputerName 169.254.169.254 -CommonTCPPort HTTP).TcpTestSucceeded -eq "True" -or $i -eq 30)
-		if ($Conn -ne 'True') {LogWrite ("Cannot connect to Entra ID. Abort joining Entra ID. Exit"); exit 406} else{LogWrite ("Azure is available.")}
+		if ($i -eq 30) {LogWrite ("Cannot connect to Entra ID. Abort joining Entra ID. Exit"); exit 406} else{LogWrite ("Azure is available.")}
 		if ($IsEntraJoined -eq "NO") {JoinEntraID}
 	}
 }
@@ -415,10 +416,10 @@ LogWrite ($AZVMName + " deployment complete. Schedule a restart and exit.")
 Start-Process -FilePath "shutdown.exe" -ArgumentList "/r /t 5 /d p:0:0 /c 'AVDTurbo'"
 
 # SIG # Begin signature block
-# MIInXAYJKoZIhvcNAQcCoIInTTCCJ0kCAQExDzANBglghkgBZQMEAgEFADB5Bgor
+# MIInXQYJKoZIhvcNAQcCoIInTjCCJ0oCAQExDzANBglghkgBZQMEAgEFADB5Bgor
 # BgEEAYI3AgEEoGswaTA0BgorBgEEAYI3AgEeMCYCAwEAAAQQH8w7YFlLCE63JNLG
-# KX7zUQIBAAIBAAIBAAIBAAIBADAxMA0GCWCGSAFlAwQCAQUABCBUZdVonArkNxsM
-# 4EyyQOtkmK+C+dRs87kXWaGsBbxbh6CCIgswggMwMIICtqADAgECAhA3dENPnrQO
+# KX7zUQIBAAIBAAIBAAIBAAIBADAxMA0GCWCGSAFlAwQCAQUABCDTaeAjPnwfQcMA
+# nIlJA7cLHahg8KKGlhw2vcShrumcX6CCIgswggMwMIICtqADAgECAhA3dENPnrQO
 # Ih+SNsofLycXMAoGCCqGSM49BAMDMFYxCzAJBgNVBAYTAkdCMRgwFgYDVQQKEw9T
 # ZWN0aWdvIExpbWl0ZWQxLTArBgNVBAMTJFNlY3RpZ28gUHVibGljIENvZGUgU2ln
 # bmluZyBSb290IEU0NjAeFw0yMTAzMjIwMDAwMDBaFw0zNjAzMjEyMzU5NTlaMFcx
@@ -600,29 +601,30 @@ Start-Process -FilePath "shutdown.exe" -ArgumentList "/r /t 5 /d p:0:0 /c 'AVDTu
 # vVjbH/3nlLb0a7SBIkiRzfPfS9T+JesylbHa1LtRV9U/7m0q7Ma2CQ/t392ioOss
 # XW7oKLdOmMBl14suVFBmbzrt5V5cQPnwtd3UOTpS9oCG+ZZheiIvPgkDmA8FzPsn
 # fXW5qHELB43ET7HHFHeRPRYrMBKjkb8/IN7Po0d0hQoF4TeMM+zYAJzoKQnVKOLg
-# 8pZVPT8xggSnMIIEowIBATBrMFcxCzAJBgNVBAYTAkdCMRgwFgYDVQQKEw9TZWN0
+# 8pZVPT8xggSoMIIEpAIBATBrMFcxCzAJBgNVBAYTAkdCMRgwFgYDVQQKEw9TZWN0
 # aWdvIExpbWl0ZWQxLjAsBgNVBAMTJVNlY3RpZ28gUHVibGljIENvZGUgU2lnbmlu
 # ZyBDQSBFViBFMzYCEDxolvyQov0GPgzdcbswAjcwDQYJYIZIAWUDBAIBBQCggYQw
 # GAYKKwYBBAGCNwIBDDEKMAigAoAAoQKAADAZBgkqhkiG9w0BCQMxDAYKKwYBBAGC
 # NwIBBDAcBgorBgEEAYI3AgELMQ4wDAYKKwYBBAGCNwIBFTAvBgkqhkiG9w0BCQQx
-# IgQg2UinWQswXpYLyVoF1TsT+eldG1tMWAi6MKl+gYSWj58wCwYHKoZIzj0CAQUA
-# BGcwZQIxANHjm0nxPLic1aW5nwpKsxH8w/OgaAFcFWbFkLUfNllscNo4YbsM9RIN
-# 9YgBxfzA5wIwDvlvGeevVFyyg17Vn9v3W491mbSjpCbnAv5za4ns6M5Cs9NQbbdC
-# B80EdukoCIjIoYIDIzCCAx8GCSqGSIb3DQEJBjGCAxAwggMMAgEBMGowVTELMAkG
-# A1UEBhMCR0IxGDAWBgNVBAoTD1NlY3RpZ28gTGltaXRlZDEsMCoGA1UEAxMjU2Vj
-# dGlnbyBQdWJsaWMgVGltZSBTdGFtcGluZyBDQSBSMzYCEQCkKTtuHt3XpzQIh616
-# TrckMA0GCWCGSAFlAwQCAgUAoHkwGAYJKoZIhvcNAQkDMQsGCSqGSIb3DQEHATAc
-# BgkqhkiG9w0BCQUxDxcNMjYwMjE3MTcxMTQ2WjA/BgkqhkiG9w0BCQQxMgQwlMdk
-# ZeCGQhUMafljfq/E31/LJHk8jgrGZwaoccFCYKwCG8WAwwHd589wKb6WMGQpMA0G
-# CSqGSIb3DQEBAQUABIICAAiQ6GlhJ8+l3KHPxKtFPTzHCa0Q8ZrMRK+qoicuRjON
-# V6x07IoaHCr7X4/rQia6qt2Tp5WQRj3cdRSnzBXEZf0jkw1p+nptj96yg7zwhxvE
-# BtnsaxwIeOWdyjB1PxxartUu0rq2tVJ7i9b+kORrz2nRRfn832DH4jJHN9jefPqb
-# aPA8VAiR2eTkFGlyU1GXDpngnclRWtbmtA9J4Z6xkgw14OSKReoevAs/JpHWI1YE
-# wYo+MbVvVrsr/O7/vdrWutE4bAINji+8UrEdl6iBbQUNy5izaQ+wkWDyJbYZNd1H
-# S8zBGVGspnYe84ll0usWciGFXO6mPRs/3Uycis70pp95cX1SLbnmYdfcpgxR4BxG
-# rxMWrqV2u1gUrp4OD3k8I9HfsKv61aNOujp7XJRV4VcPcSMAYXFEmaa1SKtGDSTG
-# gXG1c1U2ftWo/WuorWZoBkuSb5KxAO7T4iDYhqE2sLrjUC2cF7xF7ZoeL97xS86j
-# w1eFl5z6WyMZB+fJ5cPEWubM2e9Ld0zH67EoNM4f57hD/NH45lV9RTz+YpULPDlt
-# 4Mdn/1Pv7UUqBI7jKAPioefSyadUkE5Rlebp1b5t8IHf/EYEiTZ/eCWOCkn+LS9t
-# gbzDthLK+CqzjbgjqONYfMV94d8h1zwHGgOWYskE6g2hsoQIq0eOJHFE+FZVYNT0
+# IgQggDwEMGdrCirKsfKqIt9+omF8kBuVLA5XCVj6h0kVV7cwCwYHKoZIzj0CAQUA
+# BGgwZgIxAL8ThnICm594ir+5v1aD1IgnhcAl+TWACO168eh6rsUTc6ltkDtsfn/a
+# 4BUHcWooGwIxAJEw8b1R/7llFQ1FFDQnkWk6Kmhxr1VR6Wo0AtZswydRzsS3l22t
+# YyNuHHJNoSte06GCAyMwggMfBgkqhkiG9w0BCQYxggMQMIIDDAIBATBqMFUxCzAJ
+# BgNVBAYTAkdCMRgwFgYDVQQKEw9TZWN0aWdvIExpbWl0ZWQxLDAqBgNVBAMTI1Nl
+# Y3RpZ28gUHVibGljIFRpbWUgU3RhbXBpbmcgQ0EgUjM2AhEApCk7bh7d16c0CIet
+# ek63JDANBglghkgBZQMEAgIFAKB5MBgGCSqGSIb3DQEJAzELBgkqhkiG9w0BBwEw
+# HAYJKoZIhvcNAQkFMQ8XDTI2MDIxNzE5MDIzM1owPwYJKoZIhvcNAQkEMTIEMPrV
+# uI+Fv2uLl4vQ6OxfT63CEOEAF1igJ48X5q5nOre5I4iz3zmWvU9sa1l8PTWc9jAN
+# BgkqhkiG9w0BAQEFAASCAgCv/GPyZnQGeOsZ6YXlf5x9+Msc74NM8ifrb8Gx1/oK
+# /IezVardqqxr9mDDUpwpY6Bh/g1UW0sLFO9+KdFPc/bc+TfAxUM9UokGT+vO3UnE
+# XZvh3CsSQ18Oi2Bkpy43RItK+RW0DW2VSII1fUim7SKO/1JoEpoxcFc2cKdP1TS2
+# 8eF/t9yYUiQ9ILwcReVYIeopXgmQxqwjxeMbIWXYgnaiThvAY/lxIIigvsHXTo1O
+# f5dCDsozxTGm7lRQAPXCrbcmKEioL/Kr30J4n3tnHEOzrN+NJNuMA3UyPZthAcQW
+# fWh6YThZ2bgG4mIsG1oAm0o6P3NCPVavL1Cof+UJyUqXToTMgjD+1Z96YUjPM60Y
+# 5PnXY+0tBzEDjs502uajAfPR+D/QDvpaA+XTC1B+5tWaep0AV2oe+nF1gR8iMSWw
+# 1K6Ju3zSIyuGsjfDer1ckP1pA2TgUDPY0GnnjlJxvYXvltSXrk1XqZeq6UhdE90Y
+# AnC4W43f0RNgrYo7Azhw3onCkh33APuya+TBELBXJjlRORFoB5l+fw3U+8ZGEytW
+# DFiiRvRLXovru3EM4nrmzTaTMYWxqiKUopzGBBE0HdfaAQZpL9QFheu+xAW0IcQG
+# OpTlpfd/tPo5d9Oa0Ej0Jj9NrpxQbcE70XvDPmO3L6k21yC3UsmccoxC12xe5sYX
+# 4w==
 # SIG # End signature block

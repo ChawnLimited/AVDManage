@@ -229,9 +229,29 @@ Function JoinEntraID
 	catch {LogWrite ("406: Exit - Failed to join Entra ID: " + $_.Exception.Message);exit 406}
 }
 
-#Disable Privacy Settings OOBE
-New-Item -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows" -Name "OOBE" -Force -ErrorAction SilentlyContinue
-Set-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\OOBE" -Name "DisablePrivacyExperience" -type DWORD -Value 1 -Force -ErrorAction SilentlyContinue
+Function DisableOOBE
+{
+	try{
+		LogWrite ("Disable OOBE")
+		# Disable Privacy Settings OOBE to reduce first logon delay
+		New-Item -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows" -Name "OOBE" -Force -ErrorAction SilentlyContinue; Set-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\OOBE" -Name "DisablePrivacyExperience" -type DWORD -Value 1 -Force -ErrorAction SilentlyContinue
+		# Disable Location
+		New-Item -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows" -Name "AppPrivacy" -Force -ErrorAction SilentlyContinue; Set-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\AppPrivacy" -Name "LetAppsAccessLocation" -Type DWORD -Value 0 -Force -ErrorAction SilentlyContinue
+		# Disable Find My Device
+		New-Item -Path "HKLM:\SOFTWARE\Policies\Microsoft" -Name FindMyDevice -Force -ErrorAction SilentlyContinue; Set-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\FindMyDevice" -Name "AllowFindMyDevice" -type DWORD -Value 0 -Force -ErrorAction SilentlyContinue
+		# Disable Inking & Typing
+		New-Item -Path "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies" -Name TextInput -Force -ErrorAction SilentlyContinue; Set-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\TextInput" -Name "AllowLinguisticDataCollection" -type DWORD -Value 0 -Force -ErrorAction SilentlyContinue
+		# Disable Tailored Experiences
+		New-Item -Path "HKLM:\Software\Policies\Microsoft\Windows" -Name CloudContent -Force -ErrorAction SilentlyContinue; Set-ItemProperty -Path "HKLM:\Software\Policies\Microsoft\Windows\CloudContent" -Name "DisableTailoredExperiencesWithDiagnosticData" -type DWORD -Value 1 -Force -ErrorAction SilentlyContinue
+		# Set Telemetry to minimal 
+		New-Item -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows" -Name DataCollection -Force -ErrorAction SilentlyContinue; Set-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\DataCollection" -Name "AllowTelemetry" -type DWORD -Value 0 -Force -ErrorAction SilentlyContinue
+	}
+	catch{}	
+}
+
+# Disable Privacy Settings OOBE to reduce first logon delay
+DisableOOBE
+
 
 # Check if VM is AD domain joined
 $NotDomainJoined=((gwmi win32_computersystem).partofdomain -eq $false)

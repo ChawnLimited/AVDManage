@@ -232,7 +232,7 @@ Function JoinEntraID
 Function DisableOOBE
 {
 	try{
-		LogWrite ("Disable OOBE for Windows 10 / 11")
+		LogWrite ("Disable OOBE for Windows 10 / 11 Server 2025")
 		# Disable Privacy Settings OOBE to reduce first logon delay
 		New-Item -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows" -Name "OOBE" -Force -ErrorAction SilentlyContinue; Set-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\OOBE" -Name "DisablePrivacyExperience" -type DWORD -Value 1 -Force -ErrorAction SilentlyContinue
 		# Disable Location
@@ -249,10 +249,12 @@ Function DisableOOBE
 	catch{}	
 }
 
-# Disable Privacy Settings OOBE to reduce first logon delay for Win10 / Win11
+# Disable Privacy Settings OOBE to reduce first logon delay for Win10 / Win11 / Server 2025
 %{
 	$os = Get-CimInstance Win32_OperatingSystem
 	if($os.ProductType -eq 1 -and [int]$os.BuildNumber -gt 1492) {DisableOOBE}
+	if($os.ProductType -eq 3 -and $os.Caption.Contains("Windows 11")) {DisableOOBE}
+	if($os.ProductType -eq 3 -and $os.Caption.Contains("Server 2025")) {DisableOOBE}
 }
 
 
@@ -427,10 +429,10 @@ LogWrite ($AZVMName + " deployment complete. Schedule a restart and exit.")
 Start-Process -FilePath "shutdown.exe" -ArgumentList "/r /t 5 /d p:0:0 /c 'AVDTurbo'"
 
 # SIG # Begin signature block
-# MIInXQYJKoZIhvcNAQcCoIInTjCCJ0oCAQExDzANBglghkgBZQMEAgEFADB5Bgor
+# MIInWwYJKoZIhvcNAQcCoIInTDCCJ0gCAQExDzANBglghkgBZQMEAgEFADB5Bgor
 # BgEEAYI3AgEEoGswaTA0BgorBgEEAYI3AgEeMCYCAwEAAAQQH8w7YFlLCE63JNLG
-# KX7zUQIBAAIBAAIBAAIBAAIBADAxMA0GCWCGSAFlAwQCAQUABCDebomIVwPLs0jV
-# 17zHv0uDARh5sggqG0QU9i0Y0XuM7aCCIgswggMwMIICtqADAgECAhA3dENPnrQO
+# KX7zUQIBAAIBAAIBAAIBAAIBADAxMA0GCWCGSAFlAwQCAQUABCB5sdCk1YrljvHC
+# XHhaxxNc6PQmBlowxJTrTwKEmYFEgqCCIgswggMwMIICtqADAgECAhA3dENPnrQO
 # Ih+SNsofLycXMAoGCCqGSM49BAMDMFYxCzAJBgNVBAYTAkdCMRgwFgYDVQQKEw9T
 # ZWN0aWdvIExpbWl0ZWQxLTArBgNVBAMTJFNlY3RpZ28gUHVibGljIENvZGUgU2ln
 # bmluZyBSb290IEU0NjAeFw0yMTAzMjIwMDAwMDBaFw0zNjAzMjEyMzU5NTlaMFcx
@@ -612,30 +614,29 @@ Start-Process -FilePath "shutdown.exe" -ArgumentList "/r /t 5 /d p:0:0 /c 'AVDTu
 # vVjbH/3nlLb0a7SBIkiRzfPfS9T+JesylbHa1LtRV9U/7m0q7Ma2CQ/t392ioOss
 # XW7oKLdOmMBl14suVFBmbzrt5V5cQPnwtd3UOTpS9oCG+ZZheiIvPgkDmA8FzPsn
 # fXW5qHELB43ET7HHFHeRPRYrMBKjkb8/IN7Po0d0hQoF4TeMM+zYAJzoKQnVKOLg
-# 8pZVPT8xggSoMIIEpAIBATBrMFcxCzAJBgNVBAYTAkdCMRgwFgYDVQQKEw9TZWN0
+# 8pZVPT8xggSmMIIEogIBATBrMFcxCzAJBgNVBAYTAkdCMRgwFgYDVQQKEw9TZWN0
 # aWdvIExpbWl0ZWQxLjAsBgNVBAMTJVNlY3RpZ28gUHVibGljIENvZGUgU2lnbmlu
 # ZyBDQSBFViBFMzYCEDxolvyQov0GPgzdcbswAjcwDQYJYIZIAWUDBAIBBQCggYQw
 # GAYKKwYBBAGCNwIBDDEKMAigAoAAoQKAADAZBgkqhkiG9w0BCQMxDAYKKwYBBAGC
 # NwIBBDAcBgorBgEEAYI3AgELMQ4wDAYKKwYBBAGCNwIBFTAvBgkqhkiG9w0BCQQx
-# IgQgMh47WrWV1e1qVNEv6ECmO+Lt0T5/3NDXVt/qcSInbxIwCwYHKoZIzj0CAQUA
-# BGgwZgIxAJEhgBf/rv6f3BiuvsrB95M4P/BlFySYZeXmdCFp7xeB06slcL81QlI7
-# INYQm8mPkgIxAKQIKMQ0TH6Kp8fTN0DLu90D7rky0lFLhYRmn9PNZ15kRGMM8oyN
-# Hwsxb6QYjdxOJ6GCAyMwggMfBgkqhkiG9w0BCQYxggMQMIIDDAIBATBqMFUxCzAJ
-# BgNVBAYTAkdCMRgwFgYDVQQKEw9TZWN0aWdvIExpbWl0ZWQxLDAqBgNVBAMTI1Nl
-# Y3RpZ28gUHVibGljIFRpbWUgU3RhbXBpbmcgQ0EgUjM2AhEApCk7bh7d16c0CIet
-# ek63JDANBglghkgBZQMEAgIFAKB5MBgGCSqGSIb3DQEJAzELBgkqhkiG9w0BBwEw
-# HAYJKoZIhvcNAQkFMQ8XDTI2MDIxOTA2NDM1MlowPwYJKoZIhvcNAQkEMTIEMFim
-# kYkaIs83z/CuoaK2tGuHE4hyl8Zv+FPubFrNPrTIAFBDCepKS3d64QM+ccwAtjAN
-# BgkqhkiG9w0BAQEFAASCAgCl5koyFws66Umfw23k9+grFhxWSJ9/AjLbcCkQazAI
-# QbBrCjm0miv1ERjh80hyrlPDMOm7g2CnGPRD7/F4/hSD30D3RruFy31025oXreEJ
-# P9yyxDlQGEhIAwyVbYVbou7PIVoGQf8Mj74RZxnHfv5C4lkbXO5R1eDvqOtGWlr8
-# KaxRhoyrEIDIm0dgi/LkMPL5Llb+IczrUDxuf/4tFXH//N+MHPBnEUBwUMK8Nz/x
-# Xu2WqOClcjHMitYNCztLg3HqQl2/3WyszWvXOAzVse82MlysFUPHs0xdVQrdC0f/
-# V6vYEUcjVEQN3zC/haW7gn/Lg/V7dwKnpkxmRDVOf34PHB+qPYKpqwAN9QVU3lDx
-# 6APKXX1IYPXSweecQO5fdRnRgjgRRLnXOccwNaTE0U13uQIV+A54zfbYPlo8/r1+
-# yFI9MOqk0w+V9QdkcYxtoL1AkIFeJ7iz4GNYX7H3MJL9CnTARVUzT4Z4vU9UznU6
-# Ge1zN0dDwn7OnAuTyCfd+vf5o7KxE++UcZYOcEz0ImdYvxwkyHWvuA9WAJMKik2M
-# lKvYcVcbVt57Uejf8SdT6NjIzRqbpGUClbt8mhzPxy3wPVSX5HpFWi42Caaj/jVO
-# 4BFOd1/0aAI2F8JZCYjdhsTjvYEFD4JUxSencKL8uhsdo2u0FFPykOhT7Kj5QpCL
-# FA==
+# IgQgxTTwlfhhsHC1OSKfG90TE0qgyGc666dkyt1wW9hWSwwwCwYHKoZIzj0CAQUA
+# BGYwZAIwI4l0pAecQofEvdtdyiCC49uZqS4aY4lpSvNPVB9PdREBsqQ7zhtDE80V
+# xKdWJPXxAjBb3KtW6r3eQLl4Dl07nUCvtliduxE827R/gMZRIxGui9hNg0uLpKqb
+# lSy8GEHrvwuhggMjMIIDHwYJKoZIhvcNAQkGMYIDEDCCAwwCAQEwajBVMQswCQYD
+# VQQGEwJHQjEYMBYGA1UEChMPU2VjdGlnbyBMaW1pdGVkMSwwKgYDVQQDEyNTZWN0
+# aWdvIFB1YmxpYyBUaW1lIFN0YW1waW5nIENBIFIzNgIRAKQpO24e3denNAiHrXpO
+# tyQwDQYJYIZIAWUDBAICBQCgeTAYBgkqhkiG9w0BCQMxCwYJKoZIhvcNAQcBMBwG
+# CSqGSIb3DQEJBTEPFw0yNjAyMTkwODQzMjVaMD8GCSqGSIb3DQEJBDEyBDChnKlB
+# /KwKVjjWsNqGnIJiIGM1QB1cuuXTCVjmHvWldUEIU/YLnKay7ka5L0QUDaMwDQYJ
+# KoZIhvcNAQEBBQAEggIALDPiIXicLLhVSatlQqjHMHCn+6Zi4exTPwnNOxGkja8r
+# 0cewf/4+3SI+OVxuFsxJxAANmyPgOCNmXxFIprIKriSgqr2iuzMAlUGC+eVlCeNO
+# eb5BS0fixFTov7r1nxEyyl7OSCqP0Z6W4kiV5t9fribD9Q1pQyp72Fmn9WvGX4QS
+# dfc/Wp5RJ7LmB1w5dLIlPJ5QiquIlAQukEnI/bRwIC+mD1RWzYXuzy8C2a1z06YB
+# e5uY4wM07TAvy16OwnxLYNATG29GreBrh3ffTWj0NFM4uSpvexfR4ucRC3+6KnJ6
+# SYJ8gj7ANnCJsZmSyXSuiJf6bmp8um4/ZggohgJ4nleDkXhfRVDU66J1wEsr9XK9
+# we5oMOdyVRNj4YFurx1SxOTyT/xgJopq56/Tn7FxxEHpK87Ah18fg9wK6nMid6tU
+# ZxjCoVYOzF2vUVpcwM7YjXaSeawy+btZaj0U7WRpTUcrxfwv3lpxa8m17SzJ6gpj
+# 3g8GUGc9uV41vrvdTrPdgJNX7s2vKuspjf4cpaWe4vgyJwdUlDfNcSIIl/FfiR8c
+# 7LQrTuW0xNeE6YX62CN4k9EDOdY+ZlhvHwcWmYd9LBEruWXJUEAGZR3PkApLmAYs
+# /AkV//c3+8dD6KMdWKgPMLqgUZoCzbGcFqE61Q0NaCyjDdumj3cYJUz4GPrVKk0=
 # SIG # End signature block

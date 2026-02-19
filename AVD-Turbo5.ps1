@@ -191,7 +191,7 @@ Function JoinDomain
 			UserName = $ADAdmin
 			Password = (ConvertTo-SecureString -String $ADAdminPW -AsPlainText -Force)[0]})
 			LogWrite ("Join Domain: " + $ADDomain)
-			Add-Computer -DomainName $ADDomain -OUPath $ou -Credential $ADDomainCred -Options JoinWithNewName,AccountCreate -Force
+			Add-Computer -DomainName $ADDomain -OUPath $ou -Credential $ADDomainCred -Options JoinWithNewName,AccountCreate -Force -Verbose >> $LogFile
 			LogWrite ($AZVMName + " has joined the " + $ADDomain + " domain")
 	}
 	catch {LogWrite ("301: " + $_.Exception.Message);exit 301}

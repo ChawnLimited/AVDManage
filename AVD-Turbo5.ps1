@@ -232,7 +232,7 @@ Function JoinEntraID
 Function DisableOOBE
 {
 	try{
-		LogWrite ("Disable OOBE")
+		LogWrite ("Disable OOBE for Windows 10 / 11")
 		# Disable Privacy Settings OOBE to reduce first logon delay
 		New-Item -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows" -Name "OOBE" -Force -ErrorAction SilentlyContinue; Set-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\OOBE" -Name "DisablePrivacyExperience" -type DWORD -Value 1 -Force -ErrorAction SilentlyContinue
 		# Disable Location
@@ -249,8 +249,11 @@ Function DisableOOBE
 	catch{}	
 }
 
-# Disable Privacy Settings OOBE to reduce first logon delay
-DisableOOBE
+# Disable Privacy Settings OOBE to reduce first logon delay for Win10 / Win11
+%{
+	$os = Get-CimInstance Win32_OperatingSystem
+	if($os.ProductType -eq 1 -and [int]$os.BuildNumber -gt 1492) {DisableOOBE}
+}
 
 
 # Check if VM is AD domain joined
@@ -424,10 +427,10 @@ LogWrite ($AZVMName + " deployment complete. Schedule a restart and exit.")
 Start-Process -FilePath "shutdown.exe" -ArgumentList "/r /t 5 /d p:0:0 /c 'AVDTurbo'"
 
 # SIG # Begin signature block
-# MIInWwYJKoZIhvcNAQcCoIInTDCCJ0gCAQExDzANBglghkgBZQMEAgEFADB5Bgor
+# MIInXQYJKoZIhvcNAQcCoIInTjCCJ0oCAQExDzANBglghkgBZQMEAgEFADB5Bgor
 # BgEEAYI3AgEEoGswaTA0BgorBgEEAYI3AgEeMCYCAwEAAAQQH8w7YFlLCE63JNLG
-# KX7zUQIBAAIBAAIBAAIBAAIBADAxMA0GCWCGSAFlAwQCAQUABCCGW31sX+65sSdU
-# 0Ej8iByLZqDlCGvpzI6XgHVYFjz+0KCCIgswggMwMIICtqADAgECAhA3dENPnrQO
+# KX7zUQIBAAIBAAIBAAIBAAIBADAxMA0GCWCGSAFlAwQCAQUABCDebomIVwPLs0jV
+# 17zHv0uDARh5sggqG0QU9i0Y0XuM7aCCIgswggMwMIICtqADAgECAhA3dENPnrQO
 # Ih+SNsofLycXMAoGCCqGSM49BAMDMFYxCzAJBgNVBAYTAkdCMRgwFgYDVQQKEw9T
 # ZWN0aWdvIExpbWl0ZWQxLTArBgNVBAMTJFNlY3RpZ28gUHVibGljIENvZGUgU2ln
 # bmluZyBSb290IEU0NjAeFw0yMTAzMjIwMDAwMDBaFw0zNjAzMjEyMzU5NTlaMFcx
@@ -609,29 +612,30 @@ Start-Process -FilePath "shutdown.exe" -ArgumentList "/r /t 5 /d p:0:0 /c 'AVDTu
 # vVjbH/3nlLb0a7SBIkiRzfPfS9T+JesylbHa1LtRV9U/7m0q7Ma2CQ/t392ioOss
 # XW7oKLdOmMBl14suVFBmbzrt5V5cQPnwtd3UOTpS9oCG+ZZheiIvPgkDmA8FzPsn
 # fXW5qHELB43ET7HHFHeRPRYrMBKjkb8/IN7Po0d0hQoF4TeMM+zYAJzoKQnVKOLg
-# 8pZVPT8xggSmMIIEogIBATBrMFcxCzAJBgNVBAYTAkdCMRgwFgYDVQQKEw9TZWN0
+# 8pZVPT8xggSoMIIEpAIBATBrMFcxCzAJBgNVBAYTAkdCMRgwFgYDVQQKEw9TZWN0
 # aWdvIExpbWl0ZWQxLjAsBgNVBAMTJVNlY3RpZ28gUHVibGljIENvZGUgU2lnbmlu
 # ZyBDQSBFViBFMzYCEDxolvyQov0GPgzdcbswAjcwDQYJYIZIAWUDBAIBBQCggYQw
 # GAYKKwYBBAGCNwIBDDEKMAigAoAAoQKAADAZBgkqhkiG9w0BCQMxDAYKKwYBBAGC
 # NwIBBDAcBgorBgEEAYI3AgELMQ4wDAYKKwYBBAGCNwIBFTAvBgkqhkiG9w0BCQQx
-# IgQgS/YQIwJdSo4x3gdh51S543sVVr0oT6RmFiKztIEJHiwwCwYHKoZIzj0CAQUA
-# BGYwZAIwOcAZ2FSfo58SuS1McyA0mU3M1ZjhN7QGjI+om13TSEUZ3bad75uXPDGP
-# Ny1l0jtXAjBLl8gDjyLpJlEgDHFrOJwWJAY9FFR1/z77wqWM9p9fQG8VJpObwYKB
-# QQKB0QLG+8ShggMjMIIDHwYJKoZIhvcNAQkGMYIDEDCCAwwCAQEwajBVMQswCQYD
-# VQQGEwJHQjEYMBYGA1UEChMPU2VjdGlnbyBMaW1pdGVkMSwwKgYDVQQDEyNTZWN0
-# aWdvIFB1YmxpYyBUaW1lIFN0YW1waW5nIENBIFIzNgIRAKQpO24e3denNAiHrXpO
-# tyQwDQYJYIZIAWUDBAICBQCgeTAYBgkqhkiG9w0BCQMxCwYJKoZIhvcNAQcBMBwG
-# CSqGSIb3DQEJBTEPFw0yNjAyMTgyMjE0MzNaMD8GCSqGSIb3DQEJBDEyBDBflDUA
-# eBQ7tYCNTMnhzTB51ZVPPEBh2TXLsmGJoxP0B+9Ht2vHCulvchOxXXO9SlwwDQYJ
-# KoZIhvcNAQEBBQAEggIAsQCLA58yFKMczUkUNLT2NzhsIxcSU7ZuaCQoK8P1x4+4
-# fkxNCe35kFeq8pOk3Lfz2WZ/sZVg3YHmRQ9O+kHsFBKMiMpFKTeyKEqySOnfcBjq
-# CK3BD/brzWDSO4yWle6zwmqD/5puHsD+ZOEo4ASd1QcTVFOMo8wY89/VdyFIxgHX
-# F9dhoaZvwjY2jyGI+lDjy6taspbTorrCFg19FnKPzVul/jNy5EiexpUzSvGIGoMF
-# /t2cLa5zRbtNbOaFaMuS7a+BoQ0uiLVPI3h/BecZEXd/jEiJ2URl7Lr/BeoaqbDb
-# +2625bRxSL4abrKb/Yl/HQ0iT7XH9tbJDZ9ReNyYJZXf418YfcgrYoIjLiQlO5of
-# qQlcobA1Ekqf+6tm9a5HfY8w4mJnUpLly98PTC7aTQDLt+aPGpTKKpcef0jG9bqz
-# Ipb9/Z3Fr0Iy+vAqPAu9AisLy/F7ERIN/erTGm/RZEjq+wWSLmCznwWCfKq1WIz2
-# Vi+3dWEMbzwPiAqCWk7+rbrlWHSCW56LRcDHsmcSKPRh/IEkBxriK62unfpTpPD+
-# XnwnO+CwRiT8oAMUIkoXMpd2jC8zuN/ov0jMjnp09Fr0WaOxrXlwmmxJIN4qmWTf
-# bxo+fkf33F6p2TRbkjFf2u3gd9rWAp9CW1uQ6OHwuvAAUtt3EPo9QFq+Z30zS9Y=
+# IgQgMh47WrWV1e1qVNEv6ECmO+Lt0T5/3NDXVt/qcSInbxIwCwYHKoZIzj0CAQUA
+# BGgwZgIxAJEhgBf/rv6f3BiuvsrB95M4P/BlFySYZeXmdCFp7xeB06slcL81QlI7
+# INYQm8mPkgIxAKQIKMQ0TH6Kp8fTN0DLu90D7rky0lFLhYRmn9PNZ15kRGMM8oyN
+# Hwsxb6QYjdxOJ6GCAyMwggMfBgkqhkiG9w0BCQYxggMQMIIDDAIBATBqMFUxCzAJ
+# BgNVBAYTAkdCMRgwFgYDVQQKEw9TZWN0aWdvIExpbWl0ZWQxLDAqBgNVBAMTI1Nl
+# Y3RpZ28gUHVibGljIFRpbWUgU3RhbXBpbmcgQ0EgUjM2AhEApCk7bh7d16c0CIet
+# ek63JDANBglghkgBZQMEAgIFAKB5MBgGCSqGSIb3DQEJAzELBgkqhkiG9w0BBwEw
+# HAYJKoZIhvcNAQkFMQ8XDTI2MDIxOTA2NDM1MlowPwYJKoZIhvcNAQkEMTIEMFim
+# kYkaIs83z/CuoaK2tGuHE4hyl8Zv+FPubFrNPrTIAFBDCepKS3d64QM+ccwAtjAN
+# BgkqhkiG9w0BAQEFAASCAgCl5koyFws66Umfw23k9+grFhxWSJ9/AjLbcCkQazAI
+# QbBrCjm0miv1ERjh80hyrlPDMOm7g2CnGPRD7/F4/hSD30D3RruFy31025oXreEJ
+# P9yyxDlQGEhIAwyVbYVbou7PIVoGQf8Mj74RZxnHfv5C4lkbXO5R1eDvqOtGWlr8
+# KaxRhoyrEIDIm0dgi/LkMPL5Llb+IczrUDxuf/4tFXH//N+MHPBnEUBwUMK8Nz/x
+# Xu2WqOClcjHMitYNCztLg3HqQl2/3WyszWvXOAzVse82MlysFUPHs0xdVQrdC0f/
+# V6vYEUcjVEQN3zC/haW7gn/Lg/V7dwKnpkxmRDVOf34PHB+qPYKpqwAN9QVU3lDx
+# 6APKXX1IYPXSweecQO5fdRnRgjgRRLnXOccwNaTE0U13uQIV+A54zfbYPlo8/r1+
+# yFI9MOqk0w+V9QdkcYxtoL1AkIFeJ7iz4GNYX7H3MJL9CnTARVUzT4Z4vU9UznU6
+# Ge1zN0dDwn7OnAuTyCfd+vf5o7KxE++UcZYOcEz0ImdYvxwkyHWvuA9WAJMKik2M
+# lKvYcVcbVt57Uejf8SdT6NjIzRqbpGUClbt8mhzPxy3wPVSX5HpFWi42Caaj/jVO
+# 4BFOd1/0aAI2F8JZCYjdhsTjvYEFD4JUxSencKL8uhsdo2u0FFPykOhT7Kj5QpCL
+# FA==
 # SIG # End signature block

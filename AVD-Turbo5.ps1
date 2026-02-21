@@ -179,7 +179,7 @@ Function RenameComputer
              }
 		}
 	}
-	Catch {LogWrite ("300: " + $_.Exception.Message);exit 300}
+	Catch {LogWrite ("300: " + $_.Exception.Message); exit 300}
 }
 
 
@@ -194,7 +194,7 @@ Function JoinDomain
 			Add-Computer -DomainName $ADDomain -OUPath $ou -Credential $ADDomainCred -Options JoinWithNewName,AccountCreate -Force -Verbose 4>&1 | Tee-Object -FilePath $LogFile -Append
 			LogWrite ($AZVMName + " has joined the " + $ADDomain + " domain")
 	}
-	catch {LogWrite ("301: " + $_.Exception.Message);exit 301}
+	catch {LogWrite ("301: " + $_.Exception.Message); exit 301}
 }
 
 
@@ -286,11 +286,11 @@ CheckEntraID
 
 # Join Active Directory Domain
 %{
+	if ($ADDomain){
 	$i=0
 	Do {sleep -seconds 1; $i++} until ((Test-NetConnection -ComputerName $addomain -CommonTCPPort SMB -InformationLevel Quiet) -or $i -eq 25)
 	if ($i -eq 25) {LogWrite ("Cannot connect to " + $ADDomain + ". Abort joining Active directory. Exit"); exit 302} else{LogWrite ($ADDomain + " is available after " + $i + " attempts.")}
-	if ($ADDomain){
-		if($NotDomainJoined) {JoinDomain;CheckDomain;}
+			if($NotDomainJoined) {JoinDomain;CheckDomain;}
 		else{Logwrite ($AZVMName + " is already domain joined.")}
 	}
 }

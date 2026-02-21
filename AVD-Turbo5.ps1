@@ -287,9 +287,9 @@ CheckEntraID
 # Join Active Directory Domain
 %{
 	if ($ADDomain){
-	$i=0
-	Do {sleep -seconds 1; $i++} until ((Test-NetConnection -ComputerName $addomain -CommonTCPPort SMB -InformationLevel Quiet) -or $i -eq 25)
-	if ($i -eq 25) {LogWrite ("Cannot connect to " + $ADDomain + ". Abort joining Active directory. Exit"); exit 302} else{LogWrite ($ADDomain + " is available after " + $i + " attempts.")}
+	#$i=0
+	#Do {sleep -seconds 1; $i++} until ((Test-NetConnection -ComputerName $addomain -CommonTCPPort SMB -InformationLevel Quiet) -or $i -eq 25)
+	#if ($i -eq 25) {LogWrite ("Cannot connect to " + $ADDomain + ". Abort joining Active directory. Exit"); exit 302} else{LogWrite ($ADDomain + " is available after " + $i + " attempts.")}
 			if($NotDomainJoined) {JoinDomain;CheckDomain;}
 		else{Logwrite ($AZVMName + " is already domain joined.")}
 	}
@@ -300,9 +300,9 @@ CheckEntraID
 %{
 	if ($EntraJoin -eq "Y")
 	{	
-		$i=0
-		do {start-sleep -Seconds 1;$i++;} until ((Test-NetConnection -ComputerName 169.254.169.254 -CommonTCPPort HTTP -InformationLevel Quiet) -or $i -eq 25)
-		if ($i -eq 25) {LogWrite ("Cannot connect to Entra ID. Abort joining Entra ID. Exit"); exit 406} else{LogWrite ("Azure is available after " + $i + " attempts.")}
+		#$i=0
+		#do {start-sleep -Seconds 1;$i++;} until ((Test-NetConnection -ComputerName 169.254.169.254 -CommonTCPPort HTTP -InformationLevel Quiet) -or $i -eq 25)
+		#if ($i -eq 25) {LogWrite ("Cannot connect to Entra ID. Abort joining Entra ID. Exit"); exit 406} else{LogWrite ("Azure is available after " + $i + " attempts.")}
 		if ($IsEntraJoined -eq "NO") {JoinEntraID}
 		else{Logwrite ($AZVMName + " is already Entra ID joined.")}
 	}

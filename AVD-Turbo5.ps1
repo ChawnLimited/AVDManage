@@ -55,7 +55,7 @@ Function CheckDomain
 			$at.Triggers=$trig
 			$at.Triggers[0].Delay="PT1M"
 			$exp=(get-date).AddMinutes(33)
-			$exp=get-date($exp) -Format yyyy-MM-ddThh:mm:ss
+			$exp=get-date($exp) -Format yyyy-MM-ddTHH:mm:ss
 			$at.Triggers[0].EndBoundary=$exp
 			$repetition = New-CimInstance `
 				-Namespace "Root/Microsoft/Windows/TaskScheduler" `

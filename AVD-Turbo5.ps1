@@ -57,17 +57,9 @@ Function CheckDomain
 			$exp=(get-date).AddMinutes(33)
 			$exp=get-date($exp) -Format yyyy-MM-ddTHH:mm:ss
 			$at.Triggers[0].EndBoundary=$exp
-			$repetition = New-CimInstance `
-				-Namespace "Root/Microsoft/Windows/TaskScheduler" `
-				-ClassName "MSFT_TaskRepetitionPattern" `
-			-Property @{
-			Interval = "PT2M"   # Every 15 minutes (ISO 8601 duration format)
-			Duration = "PT32M"    # Repeat for 2 hours
-			StopAtDurationEnd = $true
-		}`
-		-ClientOnly
-		$at.Triggers[0].Repetition=$repetition
-		Register-ScheduledTask -TaskName "AVDManage-RegisterEntra" -InputObject $at -Force
+			$at.Settings.RestartCount=32
+			$at.Settings.RestartInterval="PT1M"
+			Register-ScheduledTask -TaskName "AVDManage-RegisterEntra" -InputObject $at -Force
 		}
 	}
 	catch {LogWrite ("402: " + $_.Exception.Message);exit 402}	

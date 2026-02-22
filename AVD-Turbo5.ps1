@@ -47,7 +47,28 @@ Function CheckDomain
 	try {
 		if ((gwmi win32_computersystem).partofdomain -eq $false) {logwrite('401: Device is not AD Domain joined. Exit.')
 		exit 401}
-		else {logwrite('Device is AD Domain joined.')}
+		else {logwrite('Device is AD Domain joined. Create Entra Registration Task')
+			$at=Get-ScheduledTask -TaskName Automatic-Device-Join
+			$at.Triggers=$null
+			$trig=New-ScheduledTaskTrigger -AtStartup
+			$at.settings.enabled=$true
+			$at.Triggers=$trig
+			$at.Triggers[0].Delay="PT1M"
+			$exp=(get-date).AddMinutes(33)
+			$exp=get-date($exp) -Format yyyy-MM-ddThh:mm:ss
+			$at.Triggers[0].EndBoundary=$exp
+			$repetition = New-CimInstance `
+				-Namespace "Root/Microsoft/Windows/TaskScheduler" `
+				-ClassName "MSFT_TaskRepetitionPattern" `
+			-Property @{
+			Interval = "PT2M"   # Every 15 minutes (ISO 8601 duration format)
+			Duration = "PT32M"    # Repeat for 2 hours
+			StopAtDurationEnd = $true
+		}`
+		-ClientOnly
+		$at.Triggers[0].Repetition=$repetition
+		Register-ScheduledTask -TaskName "AVDManage-RegisterEntra" -InputObject $at -Force
+		}
 	}
 	catch {LogWrite ("402: " + $_.Exception.Message);exit 402}	
 }

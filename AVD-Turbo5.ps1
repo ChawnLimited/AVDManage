@@ -185,16 +185,18 @@ Function RenameComputer
 
 Function JoinDomain
 {
-	try {
-			LogWrite ("Join Domain. Create Credentials.")
-			$ADDomainCred = New-Object pscredential -ArgumentList ([pscustomobject]@{
-			UserName = $ADAdmin
-			Password = (ConvertTo-SecureString -String $ADAdminPW -AsPlainText -Force)[0]})
-			LogWrite ("Join Domain: " + $ADDomain)
-			Add-Computer -DomainName $ADDomain -OUPath $ou -Credential $ADDomainCred -Options JoinWithNewName,AccountCreate -Force -Verbose 4>&1 | Tee-Object -FilePath $LogFile -Append
-			LogWrite ($AZVMName + " has joined the " + $ADDomain + " domain")
-	}
-	catch {LogWrite ("301: " + $_.Exception.Message); exit 301}
+    try{
+        LogWrite ("Join Domain. Create Credentials.")
+		$ADDomainCred = New-Object pscredential -ArgumentList ([pscustomobject]@{
+		UserName = $ADAdmin
+		Password = (ConvertTo-SecureString -String $ADAdminPW -AsPlainText -Force)[0]})
+		LogWrite ("Join Domain: " + $ADDomain)
+		$JOIN=Add-Computer -DomainName $ADDomain -OUPath $ou -Credential $ADDomainCred -Options JoinWithNewName,AccountCreate -Force -Passthru -Verbose 4>&1 | Tee-Object -FilePath $LogFile -Append
+		if ($JOIN.HasSucceeded) {LogWrite ($AZVMName + " has joined the " + $ADDomain + " domain")}
+        # If domain join fails, try again and catch the error	
+		else {LogWrite("Failed to join " + $ADDOMAIN + ". Try again");$i=0; Do {start-sleep -Milliseconds 10; $i++} until ((Test-NetConnection -ComputerName $addomain -CommonTCPPort SMB -InformationLevel Quiet) -or $i -eq 10); if ($i -eq 10) {LogWrite ("Cannot connect to " + $ADDomain + ". Abort joining Active directory. Exit"); exit 302} else {LogWrite ($ADDomain + " is available after " + $i + " attempts.")}; Add-Computer -DomainName $ADDomain -OUPath $ou -Credential $ADDomainCred -Options JoinWithNewName,AccountCreate -Force -Verbose}
+    }		
+	catch {LogWrite ("301: Domain join failed:  " + $_.Exception.Message); exit 301}
 }
 
 
@@ -287,9 +289,6 @@ CheckEntraID
 # Join Active Directory Domain
 %{
 	if ($ADDomain){
-	$i=0
-	Do {start-sleep -Milliseconds 250; $i++} until ((Test-NetConnection -ComputerName $addomain -CommonTCPPort SMB -InformationLevel Quiet) -or $i -eq 25)
-	if ($i -eq 25) {LogWrite ("Cannot connect to " + $ADDomain + ". Abort joining Active directory. Exit"); exit 302} else{LogWrite ($ADDomain + " is available after " + $i + " attempts.")}
 			if($NotDomainJoined) {JoinDomain;CheckDomain;}
 		else{Logwrite ($AZVMName + " is already domain joined.")}
 	}

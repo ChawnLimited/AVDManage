@@ -191,14 +191,14 @@ Function JoinDomain
 		UserName = $ADAdmin
 		Password = (ConvertTo-SecureString -String $ADAdminPW -AsPlainText -Force)[0]})
 		LogWrite ("Join Domain: " + $ADDomain)
-		$JOIN=Add-Computer -DomainName $ADDomain -OUPath $ou -Credential $ADDomainCred -Options JoinWithNewName,AccountCreate -Force -Passthru -Verbose 4>&1 | Tee-Object -FilePath $LogFile -Append
+		$JOIN=Add-Computer -ComputerName . -DomainName $ADDomain -OUPath $ou -Credential $ADDomainCred -Options JoinWithNewName,AccountCreate -Force -Passthru -Verbose 4>&1 | Tee-Object -FilePath $LogFile -Append
 		if ($JOIN.HasSucceeded) {LogWrite ($AZVMName + " has joined the " + $ADDomain + " domain")} else {LogWrite ($AZVMName + " failed to join the " + $ADDomain + " domain")}
     }		
 	catch {LogWrite ("301: Domain join failed:  " + $_.Exception.Message)}
 	# If domain join fails, try again and catch the error - catching 'No such host is known'
 	try {
-		if (-not $JOIN.HasSucceeded) {$i=0; Do {start-sleep -Milliseconds 10; $i++} until ((Test-NetConnection -ComputerName $addomain -CommonTCPPort SMB -InformationLevel Quiet) -or $i -eq 10); if ($i -eq 10) {LogWrite ("Cannot connect to " + $ADDomain + ". Abort joining Active directory. Exit"); exit 302} else {LogWrite ($ADDomain + " is available after " + $i + " attempts.")}; $JOIN=Add-Computer -DomainName $ADDomain -OUPath $ou -Credential $ADDomainCred -Options JoinWithNewName,AccountCreate -Force -Passthru -Verbose 4>&1 | Tee-Object -FilePath $LogFile -Append}
-			if ($JOIN.HasSucceeded) {LogWrite ($AZVMName + " has joined the " + $ADDomain + " domain")} else {LogWrite ($AZVMName + " failed to join the " + $ADDomain + " domain")}}
+		if (-not $JOIN.HasSucceeded) {LogWrite ("Join Domain again.");$i=0; Do {start-sleep -Milliseconds 10; $i++} until ((Test-NetConnection -ComputerName $addomain -CommonTCPPort SMB -InformationLevel Quiet) -or $i -eq 10); if ($i -eq 10) {LogWrite ("Cannot connect to " + $ADDomain + ". Abort joining Active directory. Exit"); exit 302} else {LogWrite ($ADDomain + " is available after " + $i + " attempts.")}; $JOIN=Add-Computer -ComputerName . -DomainName $ADDomain -OUPath $ou -Credential $ADDomainCred -Options JoinWithNewName,AccountCreate -Force -Passthru -Verbose 4>&1 | Tee-Object -FilePath $LogFile -Append}
+			if ($JOIN.HasSucceeded) {LogWrite ($AZVMName + " has joined the " + $ADDomain + " domain")} else {LogWrite ($AZVMName + " failed to join the " + $ADDomain + " domain"); exit 303}}
 	catch {LogWrite ("301: Domain join failed:  " + $_.Exception.Message); exit 301}
 }
 
@@ -228,8 +228,19 @@ Function JoinEntraID
 		Set-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\CDJ" -Name "AzureVmTenantIdEndpoint" -Value "http://169.254.169.254/metadata/identity/info" -force	
 		Set-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\CDJ" -Name "AzureVmMsiTokenEndpoint" -Value "http://169.254.169.254/metadata/identity/oauth2/token" -force
 		$proc=Start-Process dsregcmd -ArgumentList "/AzureSecureVMJoin /debug >> .\AVD-Turbo5.log" -Passthru -Wait
-		if ($Proc.ExitCode -ne 0) {LogWrite ("405: Exit - Failed to join Entra ID: " + $Proc.ExitCode);exit 405}
-		else {LogWrite ("Successfully joined Entra ID: " + $Proc.ExitCode)}
+		if ($Proc.ExitCode -ne 0) {LogWrite ("405: Exit - Failed to join Entra ID: " + $Proc.ExitCode)} else {LogWrite ("Successfully joined Entra ID: " + $Proc.ExitCode)}
+	}
+	catch {LogWrite ("406: Exit - Failed to join Entra ID: " + $_.Exception.Message)}
+	# If Entra join fails, try again
+	try {
+		if ($Proc.ExitCode -ne 0) {
+			LogWrite ("Join Entra ID using VM System credentials again")
+			$i=0
+			do {start-sleep -Milliseconds 10;$i++;} until ((Test-NetConnection -ComputerName 169.254.169.254 -CommonTCPPort HTTP -InformationLevel Quiet) -or $i -eq 10)
+			if ($i -eq 10) {LogWrite ("Cannot connect to Entra ID. Abort joining Entra ID. Exit"); exit 406} else{LogWrite ("Azure is available after " + $i + " attempts.")}
+			$proc=Start-Process dsregcmd -ArgumentList "/AzureSecureVMJoin /debug >> .\AVD-Turbo5.log" -Passthru -Wait
+			if ($Proc.ExitCode -ne 0) {LogWrite ("405: Exit - Failed to join Entra ID: " + $Proc.ExitCode);exit 405} else {LogWrite ("Successfully joined Entra ID: " + $Proc.ExitCode)}
+		}
 	}
 	catch {LogWrite ("406: Exit - Failed to join Entra ID: " + $_.Exception.Message);exit 406}
 }
@@ -302,9 +313,6 @@ CheckEntraID
 %{
 	if ($EntraJoin -eq "Y")
 	{	
-		$i=0
-		do {start-sleep -Milliseconds 250;$i++;} until ((Test-NetConnection -ComputerName 169.254.169.254 -CommonTCPPort HTTP -InformationLevel Quiet) -or $i -eq 25)
-		if ($i -eq 25) {LogWrite ("Cannot connect to Entra ID. Abort joining Entra ID. Exit"); exit 406} else{LogWrite ("Azure is available after " + $i + " attempts.")}
 		if ($IsEntraJoined -eq "NO") {JoinEntraID}
 		else{Logwrite ($AZVMName + " is already Entra ID joined.")}
 	}

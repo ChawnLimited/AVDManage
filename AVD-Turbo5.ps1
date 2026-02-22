@@ -57,9 +57,17 @@ Function CheckDomain
 			$exp=(get-date).AddMinutes(33)
 			$exp=get-date($exp) -Format yyyy-MM-ddTHH:mm:ss
 			$at.Triggers[0].EndBoundary=$exp
-			$at.Settings.RestartCount=32
-			$at.Settings.RestartInterval="PT1M"
-			Register-ScheduledTask -TaskName "AVDManage-RegisterEntra" -InputObject $at -Force
+			$repetition = New-CimInstance `
+			-Namespace "Root/Microsoft/Windows/TaskScheduler" `
+			-ClassName "MSFT_TaskRepetitionPattern" `
+			-Property @{
+			Interval = "PT1M"   
+			Duration = "PT32M"    # Repeat for 32 mins to catch a scheduled sync
+			StopAtDurationEnd = $true
+		}`
+		-ClientOnly
+		$at.Triggers[0].Repetition=$repetition
+		Register-ScheduledTask -TaskName "AVDManage-RegisterEntra" -InputObject $at -Force
 		}
 	}
 	catch {LogWrite ("402: " + $_.Exception.Message);exit 402}	
@@ -78,17 +86,12 @@ Function DownloadAgents
 # Start the RDAGent downloads
 	try {
 		if ($HostPool) {				
-			if (-not(get-item c:\source\RDAgent.msi)) {
 				LogWrite ("Download RDAgent")
-				New-Item -Path C:\Source -ItemType Directory -Force
 				$URI="https://query.prod.cms.rt.microsoft.com/cms/api/am/binary/RWrmXv";Invoke-WebRequest -Uri $URI -OutFile C:\Source\RDagent.msi -UseBasicParsing;
 				LogWrite ("Downloaded RDAgent.msi")
-			}	
-			if (-not(get-item c:\source\RDBoot.msi)) {
 				LogWrite ("Download RDBoot")
 				$URI="https://query.prod.cms.rt.microsoft.com/cms/api/am/binary/RWrxrH";Invoke-WebRequest -Uri $URI -OutFile C:\Source\RDBoot.msi -UseBasicParsing;
 				LogWrite ("Downloaded RDBoot.msi")		
-			}
 		}
 	}
 	catch {LogWrite ("600: Failed to download RDAgents. " + $_.Exception.Message);exit 600}

@@ -195,12 +195,11 @@ Function JoinDomain
 		if ($JOIN.HasSucceeded) {LogWrite ($AZVMName + " has joined the " + $ADDomain + " domain")} else {LogWrite ($AZVMName + " failed to join the " + $ADDomain + " domain")}
     }		
 	catch {LogWrite ("301: Domain join failed:  " + $_.Exception.Message)}
-	# If domain join fails, try again and catch the error
+	# If domain join fails, try again and catch the error - catching 'No such host is known'
 	try {
 		if (-not $JOIN.HasSucceeded) {$i=0; Do {start-sleep -Milliseconds 10; $i++} until ((Test-NetConnection -ComputerName $addomain -CommonTCPPort SMB -InformationLevel Quiet) -or $i -eq 10); if ($i -eq 10) {LogWrite ("Cannot connect to " + $ADDomain + ". Abort joining Active directory. Exit"); exit 302} else {LogWrite ($ADDomain + " is available after " + $i + " attempts.")}; $JOIN=Add-Computer -DomainName $ADDomain -OUPath $ou -Credential $ADDomainCred -Options JoinWithNewName,AccountCreate -Force -Passthru -Verbose 4>&1 | Tee-Object -FilePath $LogFile -Append}
-		if ($JOIN.HasSucceeded) {LogWrite ($AZVMName + " has joined the " + $ADDomain + " domain")} else {LogWrite ($AZVMName + " failed to join the " + $ADDomain + " domain")}
+			if ($JOIN.HasSucceeded) {LogWrite ($AZVMName + " has joined the " + $ADDomain + " domain")} else {LogWrite ($AZVMName + " failed to join the " + $ADDomain + " domain")}}
 	catch {LogWrite ("301: Domain join failed:  " + $_.Exception.Message); exit 301}
-	}
 }
 
 

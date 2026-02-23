@@ -58,6 +58,7 @@ Function CheckDomain
 			$exp=get-date($exp) -Format yyyy-MM-ddTHH:mm:ss
 			$at.Triggers[0].EndBoundary=$exp
 			#$actions = New-ScheduledTaskAction -Execute PowerShell.exe -Argument "-NoProfile -Command {Do {start-sleep -seconds 45} until ((Start-Process %SystemRoot%\System32\dsregcmd.exe -ArgumentList '/Join /debug' -Wait -RedirectStandardOutput C:\Windows\Temp\dsregcmd.log).ExitCode -eq 0)}"
+			$actions = New-ScheduledTaskAction -WorkingDirectory %SystemRoot%\System32\ -Execute PowerShell.exe -Argument "-NoProfile -Command {Do {start-sleep -seconds 45} until ((Start-Process dsregcmd.exe -Wait).ExitCode -eq 0)}"
 			$repetition = New-CimInstance `
 			-Namespace "Root/Microsoft/Windows/TaskScheduler" `
 			-ClassName "MSFT_TaskRepetitionPattern" `
@@ -438,7 +439,7 @@ logwrite ('Disconnected from Azure')
 		$i=0
 		do {start-sleep -Seconds 2;$i++;} until((($SXS=(get-package -name "*SXS*Network*" -ErrorAction SilentlyContinue).Status -eq 'Installed')) -and (($Geneva=(get-package -name "*Geneva*" -ErrorAction SilentlyContinue).Status -eq 'Installed')) -or $i -eq 100)
 			if (($SXS -eq 'Installed' ) -and ($Geneva -eq 'Installed'))
-			{LogWrite ("SXS Network Agent and Geneva Agent are installed");Remove-Item -Path "HKLM:\SOFTWARE\Microsoft\RDInfraAgent\HealthCheckReport" -Recurse -Force -ErrorAction SilentlyContinue}
+			{LogWrite ("SXS Network Agent and Geneva Agent are installed");Start-Sleep -seconds 2}
 			Else {LogWrite ("1000: SXS Network Agent installed: " + $SXS + ". Geneva Agent installed: " + $Geneva + ". Check " + $env:ProgramFiles + "\Microsoft RDInfra. The MSI files don't download sometimes.");exit 1000}
 		}
     catch {logwrite('1000: Error installing Remote Desktop Agents. ' + $_.Exception.Message); exit 1000}

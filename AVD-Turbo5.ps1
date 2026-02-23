@@ -63,8 +63,8 @@ Function CheckDomain
 			-Namespace "Root/Microsoft/Windows/TaskScheduler" `
 			-ClassName "MSFT_TaskRepetitionPattern" `
 			-Property @{
-			Interval = "PT1M"   
-			Duration = "PT32M"    # Repeat for 32 mins to catch a scheduled sync
+			#Interval = "PT1M"   
+			#Duration = "PT32M"    # Repeat for 32 mins to catch a scheduled sync
 			StopAtDurationEnd = $true
 		}`
 		-ClientOnly

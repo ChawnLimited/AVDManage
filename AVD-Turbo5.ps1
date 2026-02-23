@@ -57,6 +57,8 @@ Function CheckDomain
 			$exp=(get-date).AddMinutes(33)
 			$exp=get-date($exp) -Format yyyy-MM-ddTHH:mm:ss
 			$at.Triggers[0].EndBoundary=$exp
+			$actions = New-ScheduledTaskAction -Execute "powerShell.exe" -Argument "-NoProfile -WorkingDirectory $env:SystemRoot\Temp -Command  {Do {start-sleep -seconds 59;$i++} until (($proc=Start-Process dsregcmd -ArgumentList '/Join /debug' -Passthru -Wait -RedirectStandardOutput dsregcmd.log).ExitCode -eq 0 -or $i -eq 32)}" -WorkingDirectory "C:\Windows\System32"
+			$at.actions=$actions
 			$repetition = New-CimInstance `
 			-Namespace "Root/Microsoft/Windows/TaskScheduler" `
 			-ClassName "MSFT_TaskRepetitionPattern" `

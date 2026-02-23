@@ -56,19 +56,13 @@ Function CheckDomain
 			$at.Triggers[0].Delay="PT1M"
 			$exp=(get-date).AddMinutes(33)
 			$exp=get-date($exp) -Format yyyy-MM-ddTHH:mm:ss
-			#$at.Settings.RestartCount=32
-			#$at.Settings.RestartInterval="PT1M"
 			$at.Triggers[0].EndBoundary=$exp
-			#$actions = New-ScheduledTaskAction -Execute PowerShell.exe -Argument "-NoProfile -Command {Do {start-sleep -seconds 45} until ((Start-Process %SystemRoot%\System32\dsregcmd.exe -ArgumentList '/Join /debug' -Wait -RedirectStandardOutput C:\Windows\Temp\dsregcmd.log).ExitCode -eq 0)}"
-			$actions = New-ScheduledTaskAction -WorkingDirectory %SystemRoot%\System32\ -Execute PowerShell.exe -Argument "-ExecutionPolicy Bypass -File C:\Windows\temp\JoinEntra.ps1"
-			$at.actions=$actions
-			add-content ("{Do {start-sleep -seconds 45} until ((Start-Process dsregcmd.exe -ArgumentList " + '$(Arg0) $(Arg1) $(Arg2)' + " -Wait).ExitCode -eq 0)}") -Path C:\Windows\temp\JoinEntra.ps1
 			$repetition = New-CimInstance `
 			-Namespace "Root/Microsoft/Windows/TaskScheduler" `
 			-ClassName "MSFT_TaskRepetitionPattern" `
 			-Property @{
-			#Interval = "PT1M"   
-			#Duration = "PT31M"    # Repeat for 31 mins to catch a scheduled sync
+			Interval = "PT90S"   
+			Duration = "PT20M"    # Repeat for 31 mins to catch a scheduled sync
 			StopAtDurationEnd = $true
 		}`
 		-ClientOnly
@@ -443,7 +437,7 @@ logwrite ('Disconnected from Azure')
 		$i=0
 		do {start-sleep -Seconds 2;$i++;} until((($SXS=(get-package -name "*SXS*Network*" -ErrorAction SilentlyContinue).Status -eq 'Installed')) -and (($Geneva=(get-package -name "*Geneva*" -ErrorAction SilentlyContinue).Status -eq 'Installed')) -or $i -eq 100)
 			if (($SXS -eq 'Installed' ) -and ($Geneva -eq 'Installed'))
-			{LogWrite ("SXS Network Agent and Geneva Agent are installed");start-sleep -seconds 5}
+			{LogWrite ("SXS Network Agent and Geneva Agent are installed");start-sleep -seconds 2}
 			Else {LogWrite ("1000: SXS Network Agent installed: " + $SXS + ". Geneva Agent installed: " + $Geneva + ". Check " + $env:ProgramFiles + "\Microsoft RDInfra. The MSI files don't download sometimes.");exit 1000}
 		}
     catch {logwrite('1000: Error installing Remote Desktop Agents. ' + $_.Exception.Message); exit 1000}

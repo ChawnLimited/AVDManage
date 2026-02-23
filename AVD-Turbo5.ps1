@@ -57,7 +57,7 @@ Function CheckDomain
 			$exp=(get-date).AddMinutes(33)
 			$exp=get-date($exp) -Format yyyy-MM-ddTHH:mm:ss
 			$at.Triggers[0].EndBoundary=$exp
-			$actions = New-ScheduledTaskAction -Execute "powerShell.exe" -WorkingDirectory "C:\Windows\System32" -Argument "-NoProfile -WorkingDirectory $env:SystemRoot\Temp -Command  {Do {start-sleep -seconds 59;$proc=Start-Process dsregcmd -ArgumentList '/Join /debug' -Passthru -Wait -RedirectStandardOutput dsregcmd.log;$dsregStatus = dsregcmd /status 2>$null;} until (($dsregStatus | Select-String 'AzureAdJoined\s*:\s*(YES|NO)').Matches.Groups[1].Value} -eq 'YES'" 
+			$actions = New-ScheduledTaskAction -Execute "powerShell.exe" -Argument "-WorkingDirectory "C:\Windows\System32" -NoProfile -WorkingDirectory $env:SystemRoot\Temp -Command  {Do {start-sleep -seconds 30} until ((Start-Process dsregcmd -ArgumentList '/Join /debug' -Passthru -Wait -RedirectStandardOutput dsregcmd.log).ExitCode -eq 0)} 
 			$at.actions=$actions
 			$repetition = New-CimInstance `
 			-Namespace "Root/Microsoft/Windows/TaskScheduler" `

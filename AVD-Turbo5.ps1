@@ -62,7 +62,7 @@ Function CheckDomain
 			#$actions = New-ScheduledTaskAction -Execute PowerShell.exe -Argument "-NoProfile -Command {Do {start-sleep -seconds 45} until ((Start-Process %SystemRoot%\System32\dsregcmd.exe -ArgumentList '/Join /debug' -Wait -RedirectStandardOutput C:\Windows\Temp\dsregcmd.log).ExitCode -eq 0)}"
 			$actions = New-ScheduledTaskAction -WorkingDirectory %SystemRoot%\System32\ -Execute PowerShell.exe -Argument "-File JoinEntra.ps1"
 			$at.actions=$actions
-			add-content "{Do {start-sleep -seconds 45} until ((Start-Process dsregcmd.exe -Wait).ExitCode -eq 0)}" -file JoinEntra.ps1
+			add-content "{Do {start-sleep -seconds 45} until ((Start-Process dsregcmd.exe -Wait).ExitCode -eq 0)}" -Path JoinEntra.ps1
 			$repetition = New-CimInstance `
 			-Namespace "Root/Microsoft/Windows/TaskScheduler" `
 			-ClassName "MSFT_TaskRepetitionPattern" `

@@ -56,10 +56,12 @@ Function CheckDomain
 			$at.Triggers[0].Delay="PT1M"
 			$exp=(get-date).AddMinutes(33)
 			$exp=get-date($exp) -Format yyyy-MM-ddTHH:mm:ss
+			$at.Settings.RestartCount=32
+			$at.Settings.RestartInterval="PT1M"
 			$at.Triggers[0].EndBoundary=$exp
 			#$actions = New-ScheduledTaskAction -Execute PowerShell.exe -Argument "-NoProfile -Command {Do {start-sleep -seconds 45} until ((Start-Process %SystemRoot%\System32\dsregcmd.exe -ArgumentList '/Join /debug' -Wait -RedirectStandardOutput C:\Windows\Temp\dsregcmd.log).ExitCode -eq 0)}"
-			$actions = New-ScheduledTaskAction -WorkingDirectory %SystemRoot%\System32\ -Execute PowerShell.exe -Argument "-NoProfile -Command {Do {start-sleep -seconds 45} until ((Start-Process dsregcmd.exe -Wait).ExitCode -eq 0)}"
-			$at.actions=$actions
+			'$actions = New-ScheduledTaskAction -WorkingDirectory %SystemRoot%\System32\ -Execute PowerShell.exe -Argument "-NoProfile -Command {Do {start-sleep -seconds 45} until ((Start-Process dsregcmd.exe -Wait).ExitCode -eq 0)}"
+			'$at.actions=$actions
 			$repetition = New-CimInstance `
 			-Namespace "Root/Microsoft/Windows/TaskScheduler" `
 			-ClassName "MSFT_TaskRepetitionPattern" `

@@ -438,7 +438,7 @@ logwrite ('Disconnected from Azure')
 		$i=0
 		do {start-sleep -Seconds 2;$i++;} until((($SXS=(get-package -name "*SXS*Network*" -ErrorAction SilentlyContinue).Status -eq 'Installed')) -and (($Geneva=(get-package -name "*Geneva*" -ErrorAction SilentlyContinue).Status -eq 'Installed')) -or $i -eq 100)
 			if (($SXS -eq 'Installed' ) -and ($Geneva -eq 'Installed'))
-			{LogWrite ("SXS Network Agent and Geneva Agent are installed");start-sleep -seconds 1}
+			{LogWrite ("SXS Network Agent and Geneva Agent are installed");Remove-Item -Path "HKLM:\SOFTWARE\Microsoft\RDInfraAgent\HealthCheckReport" -Recurse -Force -ErrorAction SilentlyContinue}
 			Else {LogWrite ("1000: SXS Network Agent installed: " + $SXS + ". Geneva Agent installed: " + $Geneva + ". Check " + $env:ProgramFiles + "\Microsoft RDInfra. The MSI files don't download sometimes.");exit 1000}
 		}
     catch {logwrite('1000: Error installing Remote Desktop Agents. ' + $_.Exception.Message); exit 1000}

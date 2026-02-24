@@ -140,6 +140,14 @@ Function CheckHostPool
 		$deleteURI="https://management.azure.com/subscriptions/$subId/resourceGroups/$RG/providers/Microsoft.DesktopVirtualization/hostPools/$hostPool/sessionHosts/$HostName/?api-version=2024-04-03&force=true"
 		Invoke-RestMethod -Uri $deleteURI -Method Delete -Headers $Headers
 	}
+		catch {Logwrite("900: Error removing Session Host from Host Pool " + $_.Exception.Message); $err="True"}
+	try { # Very occasionally '503 server unavailable' is returned
+		if ($err) {
+		Logwrite "Remove Session Host from host pool if it exists again"
+		$deleteURI="https://management.azure.com/subscriptions/$subId/resourceGroups/$RG/providers/Microsoft.DesktopVirtualization/hostPools/$hostPool/sessionHosts/$HostName/?api-version=2024-04-03&force=true"
+		Invoke-RestMethod -Uri $deleteURI -Method Delete -Headers $Headers
+		}
+	}
 		catch {Logwrite("900: Error removing Session Host from Host Pool " + $_.Exception.Message); exit 900}
 }
 

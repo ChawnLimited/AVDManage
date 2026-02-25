@@ -56,7 +56,7 @@ Function CheckDomain
 				$at.settings.enabled=$true
 				$at.settings.executiontimelimit="PT33M"
 				$at.Triggers=$trig
-				$at.Triggers[0].Delay="PT60S"
+				$at.Triggers[0].Delay="PT120S" 		# Need time for the ADConnect sync to complete
 				$exp=(get-date).AddMinutes(33)
 				$exp=get-date($exp) -Format yyyy-MM-ddTHH:mm:ss
 				$at.Triggers[0].EndBoundary=$exp

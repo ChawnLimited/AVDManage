@@ -73,7 +73,7 @@ Function CheckDomain
 			-ClassName "MSFT_TaskExecAction" `
 			-Property @{
 			Execute = "PowerShell.exe"   
-			Arguments ="-NoProfile -ExecutionPolicy Unrestricted -Command " + "Do{Start-sleep -seconds 45} until ((Start-Process -FilePath dsregcmd.exe -ArgumentList " + $str + " -Wait -Passthru).exitcode -eq 0))"
+			Arguments ="-NoProfile -ExecutionPolicy Unrestricted -Command {Do{Start-sleep -seconds 5} until ((Start-Process -FilePath dsregcmd.exe -ArgumentList '/Join /Debug' -RedirectStandardOutput C:\Windows\Temp\entra.log -Wait -Passthru).exitcode -eq 0)}"
 		}`
 		-ClientOnly
 		$at.actions=$actions

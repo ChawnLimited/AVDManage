@@ -35,7 +35,7 @@ Logwrite("Starting Up")
 		Do{$i++; $Proc=Start-Process -FilePath dsregcmd.exe -ArgumentList '$(Arg0) $(Arg1) $(Arg2) /Debug' -RedirectStandardOutput AVD-EntraJoin.log -Wait -Passthru; LogWrite("Attempt:" + $i + " - DSRegCmd completed with exit code: " + $Proc.exitcode);CheckEntraID;Start-sleep -seconds 90} until ($IsEntraJoined -eq "YES" -or $i -eq 20)
 
 		if ($IsEntraJoined -eq "NO") {LogWrite("AVDEntraReg has NOT joined Entra after " + $i + " attempts.");exit 9999}
-		else {LogWrite("AVDEntraReg has joined Entra after " + $i + " attempts.");exit 0}
+		else {LogWrite("AVDEntraReg has joined Entra after " + $i + " attempts. Job completed.");exit 0}
 	}
 	catch {Logwrite("AVD-EntraReg has exited with error code: "+ $_.Exception.Message)}
 }

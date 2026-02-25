@@ -48,7 +48,6 @@ Function CheckDomain
 		if ((gwmi win32_computersystem).partofdomain -eq $false) {logwrite('401: Device is not AD Domain joined. Exit.')
 		exit 401}
 		else {logwrite('Device is AD Domain joined. Create Entra Registration Task')
-		#$URI="https://raw.githubusercontent.com/ChawnLimited/AVDManage/refs/heads/main/AVD-EntraReg.ps1";Invoke-WebRequest -Uri $URI -OutFile AVD-EntraReg.ps1 -UseBasicParsing
 			if ($File=(Get-Item -Path AVD-EntraReg.ps1).FullName)
 			{
 				$at=Get-ScheduledTask -TaskName Automatic-Device-Join
@@ -57,7 +56,7 @@ Function CheckDomain
 				$at.settings.enabled=$true
 				$at.settings.executiontimelimit="PT33M"
 				$at.Triggers=$trig
-				$at.Triggers[0].Delay="PT15S"
+				$at.Triggers[0].Delay="PT60S"
 				$exp=(get-date).AddMinutes(33)
 				$exp=get-date($exp) -Format yyyy-MM-ddTHH:mm:ss
 				$at.Triggers[0].EndBoundary=$exp

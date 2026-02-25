@@ -48,7 +48,7 @@ Function CheckDomain
 		if ((gwmi win32_computersystem).partofdomain -eq $false) {logwrite('401: Device is not AD Domain joined. Exit.')
 		exit 401}
 		else {logwrite('Device is AD Domain joined. Create Entra Registration Task')
-			$at=Get-ScheduledTask -TaskName Automatic-Device-Join
+					$at=Get-ScheduledTask -TaskName Automatic-Device-Join
 			$at.Triggers=$null
 			$trig=New-ScheduledTaskTrigger -AtStartup
 			$at.settings.enabled=$true
@@ -61,11 +61,22 @@ Function CheckDomain
 			-Namespace "Root/Microsoft/Windows/TaskScheduler" `
 			-ClassName "MSFT_TaskRepetitionPattern" `
 			-Property @{
-			Interval = "PT90S"   
-			Duration = "PT20M"    # Repeat for 31 mins to catch a scheduled sync
+			#Interval = "PT90S"   
+			#Duration = "PT20M"    # Repeat for 31 mins to catch a scheduled sync
 			StopAtDurationEnd = $true
 		}`
 		-ClientOnly
+		
+			$str=[char]34 + '$(Arg0) $(Arg1) $(Arg2)' + [char]34
+			$actions=New-CimInstance `
+			-Namespace "Root/Microsoft/Windows/TaskScheduler" `
+			-ClassName "MSFT_TaskExecAction" `
+			-Property @{
+			Execute = "PowerShell.exe"   
+			Arguments ="-NoProfile -ExecutionPolicy Unrestricted -Command " + "Do{Start-sleep -seconds 45} until ((Start-Process -FilePath dsregcmd.exe -ArgumentList " + $str + " -Wait -Passthru).exitcode -eq 0))"
+		}`
+		-ClientOnly
+		$at.actions=$actions
 		$at.Triggers[0].Repetition=$repetition
 		Register-ScheduledTask -TaskName "AVDManage-RegisterEntra" -InputObject $at -Force
 		}

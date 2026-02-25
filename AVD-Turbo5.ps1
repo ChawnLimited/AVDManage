@@ -57,7 +57,7 @@ Function CheckDomain
 				$at.settings.enabled=$true
 				$at.settings.executiontimelimit="PT33M"
 				$at.Triggers=$trig
-				$at.Triggers[0].Delay="PT90S"
+				$at.Triggers[0].Delay="PT15S"
 				$exp=(get-date).AddMinutes(33)
 				$exp=get-date($exp) -Format yyyy-MM-ddTHH:mm:ss
 				$at.Triggers[0].EndBoundary=$exp
@@ -78,9 +78,7 @@ Function CheckDomain
 					WorkingDirectory=($file).replace("AVD-EntraReg.ps1","")
 					}`
 					-ClientOnly
-				
 
-				
 				$at.actions=$actions
 				$at.Triggers[0].Repetition=$repetition
 				Register-ScheduledTask -TaskName "AVDManage-RegisterEntra" -InputObject $at -Force
@@ -88,7 +86,7 @@ Function CheckDomain
 			else {LogWrite ("Cannot locate AVD-Entra.ps1. Cannot create task to Register with Entra.")}
 		}
 	}
-	catch {LogWrite ("402: " + $_.Exception.Message);exit 402}	
+	catch {LogWrite ("402: CheckDomain has failed:  " + $_.Exception.Message);exit 402}	
 }
 
 

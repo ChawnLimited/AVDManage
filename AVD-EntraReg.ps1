@@ -24,14 +24,18 @@ Function CheckEntraID
 		$Global:IsEntraJoined = ($dsregStatus | Select-String "AzureAdJoined\s*:\s*(YES|NO)").Matches.Groups[1].Value
 		logwrite ("EntraJoined: " + $IsEntraJoined)
 	} 
-catch {}
+catch {Logwrite("Failed to get Entra Join Status")}
 }
 
 Logwrite("Starting Up")
 
-	$i=0
+%{
+	try {
+		$i=0
+		Do{$i++; Start-sleep -seconds 90; $Proc=Start-Process -FilePath dsregcmd.exe -ArgumentList '$(Arg0) $(Arg1) $(Arg2) /Debug' -RedirectStandardOutput AVD-EntraJoin.log -Wait -Passthru; LogWrite("Attempt:" + $i + " - DSRegCmd completed with exit code: " + $Proc.exitcode);CheckEntraID} until ($IsEntraJoined -eq "YES" -or $i -eq 20)
 
-	Do{$i++; Start-sleep -seconds 90; $Proc=Start-Process -FilePath dsregcmd.exe -ArgumentList '$(Arg0) $(Arg1) $(Arg2) /Debug' -RedirectStandardOutput AVD-EntraJoin.log -Wait -Passthru; LogWrite("Attempt:" + $i + " - DSRegCmd completed with exit code: " + $Proc.exitcode);CheckEntraID} until ($IsEntraJoined -eq "YES" -or $i -eq 20)
-
-	if ($IsEntraJoined -eq "No") {LogWrite("AVDEntraReg has NOT joined Entra after " + $i + " attempts.");exit 9999}
-	else {LogWrite("AVDEntraReg has joined Entra after " + $i + " attempts.");exit 0}
+		if ($IsEntraJoined -eq "NO") {LogWrite("AVDEntraReg has NOT joined Entra after " + $i + " attempts.");exit 9999}
+		else {LogWrite("AVDEntraReg has joined Entra after " + $i + " attempts.");exit 0}
+	}
+	catch {Logwrite("AVD-EntraReg has exited with error code: "+ $_.Exception.Message)}
+}

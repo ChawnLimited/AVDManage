@@ -28,6 +28,7 @@ catch {Logwrite("Failed to get Entra Join Status")}
 }
 
 Logwrite("Starting Up")
+CheckEntraID
 
 %{
 	try {

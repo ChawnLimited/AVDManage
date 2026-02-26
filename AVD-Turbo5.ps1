@@ -225,8 +225,8 @@ Function RenameComputer
 Function JoinDomain
 {
     try{
-        LogWrite ("Join Domain. Create Credentials.")
 		LogWrite ("Domain: "+ $ADdomain + " AdAdmin: " + $AdAdmin + " OU: " + $OU + " PWLen: " + $ADAdminPW.length)
+        LogWrite ("Join Domain. Create Credentials.")
 		$ADDomainCred = New-Object pscredential -ArgumentList ([pscustomobject]@{
 		UserName = $ADAdmin
 		Password = (ConvertTo-SecureString -String $ADAdminPW -AsPlainText -Force)[0]})

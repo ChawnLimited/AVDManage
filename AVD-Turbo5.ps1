@@ -47,7 +47,7 @@ Function CheckDomain
 	try {
 		if ((gwmi win32_computersystem).partofdomain -eq $false) {logwrite('401: Device is not AD Domain joined. Exit.')
 		exit 401}
-		else {
+		else { LogWrite("Create AVDManage-RegisterEntra Startup Task.")
 			if ($File=(Get-Item -Path AVD-EntraReg.ps1).FullName)
 			{
 				$at=Get-ScheduledTask -TaskName Automatic-Device-Join

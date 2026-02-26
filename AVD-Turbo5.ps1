@@ -312,7 +312,7 @@ Function DisableOOBE
 
 # Disable Privacy Settings OOBE to reduce first logon delay for Win10 / Win11 / Server 2025
 %{
-	if $rename="N"{	
+	if $rename -eq "N"{	
 	$os = Get-CimInstance Win32_OperatingSystem
 	if($os.ProductType -eq 1 -and [int]$os.BuildNumber -gt 1492) {DisableOOBE}
 	if($os.ProductType -eq 3 -and $os.Caption.Contains("Windows 11")) {DisableOOBE}

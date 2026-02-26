@@ -47,7 +47,7 @@ Function CheckDomain
 	try {
 		if ((gwmi win32_computersystem).partofdomain -eq $false) {logwrite('401: Device is not AD Domain joined. Exit.')
 		exit 401}
-		else {logwrite('Device is AD Domain joined. Create Entra Registration Task')
+		else {
 			if ($File=(Get-Item -Path AVD-EntraReg.ps1).FullName)
 			{
 				$at=Get-ScheduledTask -TaskName Automatic-Device-Join
@@ -232,18 +232,18 @@ Function JoinDomain
 		Password = (ConvertTo-SecureString -String $ADAdminPW -AsPlainText -Force)[0]})
 		LogWrite ("Join Domain: " + $ADDomain)
 		$JOIN=Add-Computer -ComputerName . -DomainName $ADDomain -OUPath $ou -Credential $ADDomainCred -Options JoinWithNewName,AccountCreate -Force -Passthru -Verbose 4>&1 | Tee-Object -FilePath $LogFile -Append
-		if ($JOIN.HasSucceeded) {LogWrite ($AZVMName + " has joined the " + $ADDomain + " domain")} else {LogWrite ($AZVMName + " failed to join the " + $ADDomain + " domain. Exit.")}
+		if ($JOIN.HasSucceeded) {LogWrite ($AZVMName + " has joined the " + $ADDomain + " domain");return} else {LogWrite ($AZVMName + " failed to join the " + $ADDomain + " domain.")}
     }		
 	catch {LogWrite ("301: Domain join failed:  " + $_.Exception.Message + " " + $_.Exception.Source + " " + $_.Exception.Hresult)}
 	# If domain join fails, try again and catch the error - catching 'No such host is known' - Lazy Treacle start VM cannot do a DNS lookup
 	try {
 		if (-not $JOIN.HasSucceeded) {LogWrite ("Join Domain again.");$i=0; Do {start-sleep -Seconds 10; $i++} until ((Test-NetConnection -ComputerName $addomain -CommonTCPPort SMB -InformationLevel Quiet) -eq "True" -or $i -eq 10); if ($i -eq 10) {LogWrite ("Cannot connect to " + $ADDomain + ". Abort joining Active directory. Exit"); exit 302} else {LogWrite ($ADDomain + " is available after " + $i + " attempts.")}; $JOIN=Add-Computer -ComputerName . -DomainName $ADDomain -OUPath $ou -Credential $ADDomainCred -Options JoinWithNewName,AccountCreate -Force -Passthru -Verbose 4>&1 | Tee-Object -FilePath $LogFile -Append}
-			if ($JOIN.HasSucceeded) {LogWrite ($AZVMName + " has joined the " + $ADDomain + " domain")} else {LogWrite ($AZVMName + " failed to join the " + $ADDomain + " domain. Exit."); exit 303}}
+			if ($JOIN.HasSucceeded) {LogWrite ($AZVMName + " has joined the " + $ADDomain + " domain");return} else {LogWrite ($AZVMName + " failed to join the " + $ADDomain + " domain. Try again.")}}
 	catch {LogWrite ("301: Domain join failed after 2 attempts:  " + $_.Exception.Message + " " + $_.Exception.Source + " " + $_.Exception.Hresult)}
 		# If domain join fails, try again and catch the error - catching 'No such host is known' - Last chance - third time lucky?
 	try {
 		if (-not $JOIN.HasSucceeded) {LogWrite ("Join Domain for a third time.");$i=0; Do {start-sleep -Seconds 15; $i++} until ((Test-NetConnection -ComputerName $addomain -CommonTCPPort SMB -InformationLevel Quiet) -eq "True" -or $i -eq 10); if ($i -eq 10) {LogWrite ("Cannot connect to " + $ADDomain + ". Abort joining Active directory. Exit"); exit 302} else {LogWrite ($ADDomain + " is available after " + $i + " attempts.")}; $JOIN=Add-Computer -ComputerName . -DomainName $ADDomain -OUPath $ou -Credential $ADDomainCred -Options JoinWithNewName,AccountCreate -Force -Passthru -Verbose 4>&1 | Tee-Object -FilePath $LogFile -Append}
-			if ($JOIN.HasSucceeded) {LogWrite ($AZVMName + " has joined the " + $ADDomain + " domain at last")} else {LogWrite ($AZVMName + " failed to join the " + $ADDomain + " domain THREE times. Exit."); exit 303}}
+			if ($JOIN.HasSucceeded) {LogWrite ($AZVMName + " has joined the " + $ADDomain + " domain at last");return} else {LogWrite ($AZVMName + " failed to join the " + $ADDomain + " domain THREE times. Exit."); exit 303}}
 	catch {LogWrite ("301: Domain join failed after 2 attempts:  " + $_.Exception.Message + " " + $_.Exception.Source + " " + $_.Exception.Hresult); exit 301}
 }
 
@@ -273,7 +273,7 @@ Function JoinEntraID
 		Set-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\CDJ" -Name "AzureVmTenantIdEndpoint" -Value "http://169.254.169.254/metadata/identity/info" -force	
 		Set-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\CDJ" -Name "AzureVmMsiTokenEndpoint" -Value "http://169.254.169.254/metadata/identity/oauth2/token" -force
 		$proc=Start-Process dsregcmd -ArgumentList "/AzureSecureVMJoin /debug >> .\AVD-Turbo5.log" -Passthru -Wait
-		if ($Proc.ExitCode -ne 0) {LogWrite ("405: Exit - Failed to join Entra ID: " + $Proc.ExitCode)} else {LogWrite ("Successfully joined Entra ID: " + $Proc.ExitCode)}
+		if ($Proc.ExitCode -ne 0) {LogWrite ("405: Exit - Failed to join Entra ID: " + $Proc.ExitCode)} else {LogWrite ("Successfully joined Entra ID: " + $Proc.ExitCode);return}
 	}
 	catch {LogWrite ("406: Exit - Failed to join Entra ID: " + $_.Exception.Message)}
 	# If Entra join fails, try again
@@ -284,7 +284,7 @@ Function JoinEntraID
 			do {start-sleep -Milliseconds 10;$i++;} until ((Test-NetConnection -ComputerName 169.254.169.254 -CommonTCPPort HTTP -InformationLevel Quiet) -eq "True" -or $i -eq 10)
 			if ($i -eq 10) {LogWrite ("Cannot connect to Entra ID. Abort joining Entra ID. Exit"); exit 406} else{LogWrite ("Azure is available after " + $i + " attempts.")}
 			$proc=Start-Process dsregcmd -ArgumentList "/AzureSecureVMJoin /debug >> .\AVD-Turbo5.log" -Passthru -Wait
-			if ($Proc.ExitCode -ne 0) {LogWrite ("405: Exit - Failed to join Entra ID: " + $Proc.ExitCode);exit 405} else {LogWrite ("Successfully joined Entra ID: " + $Proc.ExitCode)}
+			if ($Proc.ExitCode -ne 0) {LogWrite ("405: Exit - Failed to join Entra ID: " + $Proc.ExitCode);exit 405} else {LogWrite ("Successfully joined Entra ID: " + $Proc.ExitCode);return}
 		}
 	}
 	catch {LogWrite ("406: Exit - Failed to join Entra ID: " + $_.Exception.Message);exit 406}
@@ -312,10 +312,12 @@ Function DisableOOBE
 
 # Disable Privacy Settings OOBE to reduce first logon delay for Win10 / Win11 / Server 2025
 %{
+	if $rename="N"{	
 	$os = Get-CimInstance Win32_OperatingSystem
 	if($os.ProductType -eq 1 -and [int]$os.BuildNumber -gt 1492) {DisableOOBE}
 	if($os.ProductType -eq 3 -and $os.Caption.Contains("Windows 11")) {DisableOOBE}
 	if($os.ProductType -eq 3 -and $os.Caption.Contains("Server 2025")) {DisableOOBE}
+	}
 }
 
 

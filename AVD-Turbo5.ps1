@@ -102,10 +102,10 @@ Function DownloadAgents
 	try {
 		if ($HostPool) {				
 				LogWrite ("Download RDAgent")
-				$URI="https://query.prod.cms.rt.microsoft.com/cms/api/am/binary/RWrmXv";Invoke-WebRequest -Uri $URI -OutFile C:\Source\RDagent.msi -UseBasicParsing;
+				$URI="https://query.prod.cms.rt.microsoft.com/cms/api/am/binary/RWrmXv";Invoke-WebRequest -Uri $URI -OutFile RDagent.msi -UseBasicParsing;
 				LogWrite ("Downloaded RDAgent.msi")
 				LogWrite ("Download RDBoot")
-				$URI="https://query.prod.cms.rt.microsoft.com/cms/api/am/binary/RWrxrH";Invoke-WebRequest -Uri $URI -OutFile C:\Source\RDBoot.msi -UseBasicParsing;
+				$URI="https://query.prod.cms.rt.microsoft.com/cms/api/am/binary/RWrxrH";Invoke-WebRequest -Uri $URI -OutFile RDBoot.msi -UseBasicParsing;
 				LogWrite ("Downloaded RDBoot.msi")		
 		}
 	}
@@ -444,12 +444,12 @@ logwrite ('Disconnected from Azure')
   		    
     		### Install RDAgent
 	    	logwrite('Install Remote Desktop Services Infrastructure Agent')
-		    if (get-item -path C:\Source\RDagent.msi) {Start-Process msiexec.exe -Wait -ArgumentList "/I C:\Source\RDAgent.msi REGISTRATIONTOKEN=$WVDToken /qb /L*V RDAgent.log"}
+		    if (get-item -path RDagent.msi) {Start-Process msiexec.exe -Wait -ArgumentList "/I RDAgent.msi REGISTRATIONTOKEN=$WVDToken /qb /L*V RDAgent.log"}
 			else {Logwrite("903: RDagent.msi is not available. Exit");exit 903}
 		
     		### Install RDBoot
 	    	logwrite ('Install Remote Desktop Agent Boot Loader')
-		    if (get-item -path C:\Source\RDBoot.msi) {Start-Process msiexec.exe -Wait -ArgumentList "/I C:\Source\RDBoot.msi /qb  /L*V RDBoot.log"}
+		    if (get-item -path RDBoot.msi) {Start-Process msiexec.exe -Wait -ArgumentList "/I RDBoot.msi /qb  /L*V RDBoot.log"}
 			else {Logwrite("904: RDBoot.msi is not available. Exit");exit 904}
 		    LogWrite "Install RDS Agents completed."
 			$WVDToken="Null"

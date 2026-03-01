@@ -415,11 +415,6 @@ CheckHostPool
 CheckToken
 
 
-# Logout of Azure
-$Headers="Nothing"
-logwrite ('Disconnected from Azure')
-
-
 # Start an AVDTurbo deployment
 %{
 	try {
@@ -476,11 +471,13 @@ logwrite ('Disconnected from Azure')
 			logwrite ('AVD Logons disabled for: ' + $hostname + ' Hostpool:' + $HostPool)
 			}
 	}
-    catch {Logwrite("1001 Failed to Disable AVD logons: " + $_.Exception.Message); exit 1001}
+    catch {Logwrite("1001 Failed to Disable AVD logons: " + $_.Exception.Message)}
 }
 
 
-
+# Logout of Azure
+$Headers="Nothing"
+logwrite ('Disconnected from Azure')
 
 
 # Wait for the SXS Network Agent and Geneva Agent to install

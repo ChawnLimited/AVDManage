@@ -51,7 +51,7 @@ Function CheckDomain
 		else { LogWrite("Create AVDManage-RegisterEntra Startup Task.")
 			if ($File=(Get-Item -Path AVD-EntraReg.ps1).FullName)
 			{
-				$at=Get-ScheduledTask -TaskName Automatic-Device-Join
+				$at=Get-ScheduledTask -TaskName Automatic-Device-Join;
 				$at.Triggers=$null
 				$trig=New-ScheduledTaskTrigger -AtStartup
 				$at.settings.enabled=$true
@@ -67,7 +67,7 @@ Function CheckDomain
 					-Property @{
 					StopAtDurationEnd = $true
 					}`
-					-ClientOnly
+					-ClientOnly;
 				
 				$actions=New-CimInstance `
 					-Namespace "Root/Microsoft/Windows/TaskScheduler" `
@@ -77,11 +77,11 @@ Function CheckDomain
 					Arguments ="-NoProfile -ExecutionPolicy Unrestricted -File $File"
 					WorkingDirectory=($file).replace("AVD-EntraReg.ps1","")
 					}`
-					-ClientOnly
+					-ClientOnly;
 
 				$at.actions=$actions
 				$at.Triggers[0].Repetition=$repetition
-				Register-ScheduledTask -TaskName "AVDManage-RegisterEntra" -InputObject $at -Force
+				Register-ScheduledTask -TaskName "AVDManage-RegisterEntra" -InputObject $at -Force;
 			}
 			else {LogWrite ("Cannot locate AVD-Entra.ps1. Cannot create task to Register with Entra.")}
 		}
@@ -463,7 +463,7 @@ CheckToken;
 		logwrite ('Disable AVD Logons for: ' + $hostname + ' Hostpool: ' + $HostPool)
 		$i=0
 		$GETHostUri="https://management.azure.com/subscriptions/$subId/resourceGroups/$RG/providers/Microsoft.DesktopVirtualization/hostPools/$hostPool/sessionHosts/$HostName/?api-version=2024-04-03&force=true/?api-version=2024-04-03"
-		do {start-sleep -seconds 10;$i++;$ErrorActionPreference="SilentlyContinue";$SessionHost=Invoke-RestMethod -Uri $GETHostURI -Method Get -Headers $Headers -Body $body -ErrorAction SilentlyContinue;} until ($SessionHost.name.count -eq 1 -or $i -eq 6)
+		do {start-sleep -seconds 2;$i++;$ErrorActionPreference="SilentlyContinue";$SessionHost=Invoke-RestMethod -Uri $GETHostURI -Method Get -Headers $Headers -Body $body -ErrorAction SilentlyContinue;} until ($SessionHost.name.count -eq 1 -or $i -eq 30)
 			$HostURI = "https://management.azure.com/subscriptions/$subId/resourceGroups/$RG/providers/Microsoft.DesktopVirtualization/hostPools/$hostPool/sessionHosts/$HostName/?api-version=2024-04-03&force=true"
 				$body = @{
 				properties = @{

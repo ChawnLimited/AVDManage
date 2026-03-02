@@ -52,15 +52,15 @@ Function CheckDomain
 			if ($File=(Get-Item -Path AVD-EntraReg.ps1).FullName)
 			{
 				$at=Get-ScheduledTask -TaskName Automatic-Device-Join;
-				$at.Triggers=$null
-				$trig=New-ScheduledTaskTrigger -AtStartup
-				$at.settings.enabled=$true
-				$at.settings.executiontimelimit="PT33M"
-				$at.Triggers=$trig
-				$at.Triggers[0].Delay="PT120S" 		# Need time for the ADConnect sync to complete
-				$exp=(get-date).AddMinutes(33)
-				$exp=get-date($exp) -Format yyyy-MM-ddTHH:mm:ss
-				$at.Triggers[0].EndBoundary=$exp
+				$at.Triggers=$null;
+				$trig=New-ScheduledTaskTrigger -AtStartup;
+				$at.settings.enabled=$true;
+				$at.settings.executiontimelimit="PT33M";
+				$at.Triggers=$trig;
+				$at.Triggers[0].Delay="PT120S"; 		# Need time for the ADConnect sync to complete
+				$exp=(get-date).AddMinutes(33);
+				$exp=get-date($exp) -Format yyyy-MM-ddTHH:mm:ss;
+				$at.Triggers[0].EndBoundary=$exp;
 				$repetition = New-CimInstance `
 					-Namespace "Root/Microsoft/Windows/TaskScheduler" `
 					-ClassName "MSFT_TaskRepetitionPattern" `
@@ -79,8 +79,8 @@ Function CheckDomain
 					}`
 					-ClientOnly;
 
-				$at.actions=$actions
-				$at.Triggers[0].Repetition=$repetition
+				$at.actions=$actions;
+				$at.Triggers[0].Repetition=$repetition;
 				Register-ScheduledTask -TaskName "AVDManage-RegisterEntra" -InputObject $at -Force;
 			}
 			else {LogWrite ("Cannot locate AVD-Entra.ps1. Cannot create task to Register with Entra.")}
@@ -323,8 +323,8 @@ Function DisableOOBE
 
 
 # Check if VM is AD domain joined
-$NotDomainJoined=((gwmi win32_computersystem).partofdomain -eq $false)
-LogWrite ("ADDomainJoined: " + (-not $NotDomainJoined))
+$NotDomainJoined=((gwmi win32_computersystem).partofdomain -eq $false);
+LogWrite ("ADDomainJoined: " + (-not $NotDomainJoined));
 
 # Check if VM is Entra Joined
 CheckEntraID

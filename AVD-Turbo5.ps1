@@ -460,7 +460,7 @@ CheckToken
 %{
 	try {
 		$i=0
-		do {start-sleep -seconds 1;$i++} until ((get-Service -Name RDAgentBootLoader).status -eq "Running" or $i=10)
+		do {start-sleep -seconds 1;$i++} until ((get-Service -Name RDAgentBootLoader).status -eq "Running" -or $i=10)
 		if ($AVDLogons -eq "False") {
 			logwrite ('Disable AVD Logons for: ' + $hostname + ' Hostpool:' + $HostPool)
 			$HostURI = "https://management.azure.com/subscriptions/$subId/resourceGroups/$RG/providers/Microsoft.DesktopVirtualization/hostPools/$hostPool/sessionHosts/$HostName/?api-version=2024-04-03&force=true"

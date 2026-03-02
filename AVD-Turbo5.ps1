@@ -501,8 +501,8 @@ logwrite ('Disconnected from Azure')
 %{
 	try {
 	    LogWrite ("Check for AVD-Config")
-	    If(Get-Item -Path "C:\Scripts\AVD-Config.ps1" -ErrorAction SilentlyContinue;) {LogWrite ("Load AVD-Config");PowerShell.exe -ExecutionPolicy Bypass -NoProfile -NoLogo -File "C:\Scripts\AVD-Config.ps1";LogWrite ("AVD-Config Complete");}
-		Else {LogWrite ("AVD-Config not present");}
+	    If(Get-Item -Path "C:\Scripts\AVD-Config.ps1" -ErrorAction SilentlyContinue) {LogWrite ("Load AVD-Config");PowerShell.exe -ExecutionPolicy Bypass -NoProfile -NoLogo -File "C:\Scripts\AVD-Config.ps1";LogWrite ("AVD-Config Complete")}
+		Else {LogWrite ("AVD-Config not present")}
 	}
 	catch {LogWrite ("Error running AVD-Config. " + $_.Exception.Message)}
 }

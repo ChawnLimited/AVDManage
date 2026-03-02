@@ -461,7 +461,8 @@ CheckToken
 	try {
 		if ($AVDLogons -eq "False") {
 		$i=0
-		do {start-sleep -seconds 1;$i++} until (((get-Service -Name RDAgentBootLoader -ErrorACtion Continue).status -eq "Running") -or $i-eq 10)
+		$GETHostUri="https://management.azure.com/subscriptions/$subId/resourceGroups/$RG/providers/Microsoft.DesktopVirtualization/hostPools/$hostPool/sessionHosts/$HostName/?api-version=2024-04-03&force=true/?api-version=2024-04-03"
+		do {start-sleep -seconds 5;$i++} until ((Invoke-RestMethod -Uri $GETHostURI -Method Get -Headers $Headers -Body $body).name.count -eq 1 -or $i -eq 20)
 			logwrite ('Disable AVD Logons for: ' + $hostname + ' Hostpool:' + $HostPool)
 			$HostURI = "https://management.azure.com/subscriptions/$subId/resourceGroups/$RG/providers/Microsoft.DesktopVirtualization/hostPools/$hostPool/sessionHosts/$HostName/?api-version=2024-04-03&force=true"
 				$body = @{

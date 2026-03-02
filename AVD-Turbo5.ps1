@@ -226,12 +226,12 @@ Function RenameComputer
 Function JoinDomain
 {
     try{
-		LogWrite ("Domain: "+ $ADdomain + " AdAdmin: " + $AdAdmin + " OU: " + $OU + " PWLen: " + $ADAdminPW.length)
-        LogWrite ("Join Domain. Create Credentials.")
+		LogWrite ("Domain: "+ $ADdomain + " AdAdmin: " + $AdAdmin + " OU: " + $OU + " PWLen: " + $ADAdminPW.length);
+        LogWrite ("Join Domain. Create Credentials.");
 		$ADDomainCred = New-Object pscredential -ArgumentList ([pscustomobject]@{
 		UserName = $ADAdmin
-		Password = (ConvertTo-SecureString -String $ADAdminPW -AsPlainText -Force)[0]})
-		LogWrite ("Join Domain: " + $ADDomain)
+		Password = (ConvertTo-SecureString -String $ADAdminPW -AsPlainText -Force)[0]});
+		LogWrite ("Join Domain: " + $ADDomain);
 		$JOIN=Add-Computer -ComputerName . -DomainName $ADDomain -OUPath $ou -Credential $ADDomainCred -Options JoinWithNewName,AccountCreate -Force -Passthru -Verbose 4>&1 | Tee-Object -FilePath $LogFile -Append
 		if ($JOIN.HasSucceeded) {LogWrite ($AZVMName + " has joined the " + $ADDomain + " domain");return} else {LogWrite ($AZVMName + " failed to join the " + $ADDomain + " domain.")}
     }		
@@ -490,7 +490,7 @@ logwrite ('Disconnected from Azure')
 		$i=0
 		do {start-sleep -Seconds 1;$i++;} until((($SXS=(get-package -name "*SXS*Network*" -ErrorAction SilentlyContinue).Status -eq 'Installed')) -and (($Geneva=(get-package -name "*Geneva*" -ErrorAction SilentlyContinue).Status -eq 'Installed')) -or $i -eq 120)
 			if (($SXS -eq 'Installed' ) -and ($Geneva -eq 'Installed'))
-			{LogWrite ("SXS Network Agent and Geneva Agent are installed");start-sleep -seconds 2}
+			{LogWrite ("SXS Network Agent and Geneva Agent are installed");Get-ScheduledTask -TaskName GenevaTask* -ErrorAction SilentlyContinue | Stop-ScheduledTask -ErrorAction SilentlyContinue;}
 			Else {LogWrite ("1000: SXS Network Agent installed: " + $SXS + ". Geneva Agent installed: " + $Geneva + ". Check " + $env:ProgramFiles + "\Microsoft RDInfra. The MSI files don't download sometimes.");exit 1000}
 		}
     catch {logwrite('1000: Error installing SXS Network Agent and Geneva Agent. ' + $_.Exception.Message); exit 1000}
@@ -501,8 +501,8 @@ logwrite ('Disconnected from Azure')
 %{
 	try {
 	    LogWrite ("Check for AVD-Config")
-	    If(Get-Item -Path "C:\Scripts\AVD-Config.ps1" -ErrorAction SilentlyContinue) {LogWrite ("Load AVD-Config");PowerShell.exe -ExecutionPolicy Bypass -NoProfile -NoLogo -File "C:\Scripts\AVD-Config.ps1";LogWrite ("AVD-Config Complete")}
-		Else {LogWrite ("AVD-Config not present")}
+	    If(Get-Item -Path "C:\Scripts\AVD-Config.ps1" -ErrorAction SilentlyContinue;) {LogWrite ("Load AVD-Config");PowerShell.exe -ExecutionPolicy Bypass -NoProfile -NoLogo -File "C:\Scripts\AVD-Config.ps1";LogWrite ("AVD-Config Complete");}
+		Else {LogWrite ("AVD-Config not present");}
 	}
 	catch {LogWrite ("Error running AVD-Config. " + $_.Exception.Message)}
 }

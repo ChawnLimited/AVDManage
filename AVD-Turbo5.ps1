@@ -462,8 +462,8 @@ CheckToken;
 		if ($AVDLogons -eq "False") {
 		logwrite ('Disable AVD Logons for: ' + $hostname + ' Hostpool: ' + $HostPool)
 		$i=0
-		$GETHostUri="https://management.azure.com/subscriptions/$subId/resourceGroups/$RG/providers/Microsoft.DesktopVirtualization/hostPools/$hostPool/sessionHosts/$HostName/?api-version=2024-04-03&force=true/?api-version=2024-04-03"
-		do {start-sleep -seconds 2;$i++;$ErrorActionPreference="SilentlyContinue";$SessionHost=Invoke-RestMethod -Uri $GETHostURI -Method Get -Headers $Headers -Body $body -ErrorAction SilentlyContinue;} until ($SessionHost.name.count -ne $Null -or $i -eq 30)
+		$GETHostUri="https://management.azure.com/subscriptions/$subId/resourceGroups/$RG/providers/Microsoft.DesktopVirtualization/hostPools/$hostPool/sessionHosts/$HostName/?api-version=2024-04-03"
+		do {start-sleep -seconds 2;$i++;try {$SessionHost=Invoke-RestMethod -Uri $GETHostURI -Method Get -Headers $Headers} catch{}} until ($SessionHost.name.count -eq 1 -or $i -eq 30)
 			$HostURI = "https://management.azure.com/subscriptions/$subId/resourceGroups/$RG/providers/Microsoft.DesktopVirtualization/hostPools/$hostPool/sessionHosts/$HostName/?api-version=2024-04-03&force=true"
 				$body = @{
 				properties = @{

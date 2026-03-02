@@ -232,18 +232,18 @@ Function JoinDomain
 		UserName = $ADAdmin
 		Password = (ConvertTo-SecureString -String $ADAdminPW -AsPlainText -Force)[0]});
 		LogWrite ("Join Domain: " + $ADDomain);
-		$JOIN=Add-Computer -ComputerName . -DomainName $ADDomain -OUPath $ou -Credential $ADDomainCred -Options JoinWithNewName,AccountCreate -Force -Passthru -Verbose 4>&1 | Tee-Object -FilePath $LogFile -Append
+		$JOIN=Add-Computer -ComputerName . -DomainName $ADDomain -OUPath $ou -Credential $ADDomainCred -Options JoinWithNewName,AccountCreate -Force -Passthru -Verbose 4>&1 | Tee-Object -FilePath $LogFile -Append;
 		if ($JOIN.HasSucceeded) {LogWrite ($AZVMName + " has joined the " + $ADDomain + " domain");return} else {LogWrite ($AZVMName + " failed to join the " + $ADDomain + " domain.")}
     }		
 	catch {LogWrite ("301: Domain join failed:  " + $_.Exception.Message + " " + $_.Exception.Source + " " + $_.Exception.Hresult)}
 	# If domain join fails, try again and catch the error - catching 'No such host is known' - Lazy Treacle start VM cannot do a DNS lookup
 	try {
-		if (-not $JOIN.HasSucceeded) {LogWrite ("Join Domain again.");$i=0; Do {start-sleep -Seconds 10; $i++} until ((Test-NetConnection -ComputerName $addomain -CommonTCPPort SMB -InformationLevel Quiet) -eq "True" -or $i -eq 10); if ($i -eq 10) {LogWrite ("Cannot connect to " + $ADDomain + ". Abort joining Active directory. Exit"); exit 302} else {LogWrite ($ADDomain + " is available after " + $i + " attempts.")}; $JOIN=Add-Computer -ComputerName . -DomainName $ADDomain -OUPath $ou -Credential $ADDomainCred -Options JoinWithNewName,AccountCreate -Force -Passthru -Verbose 4>&1 | Tee-Object -FilePath $LogFile -Append}
+		if (-not $JOIN.HasSucceeded) {LogWrite ("Join Domain again.");$i=0; Do {start-sleep -Seconds 10; $i++} until ((Test-NetConnection -ComputerName $addomain -CommonTCPPort SMB -InformationLevel Quiet) -eq "True" -or $i -eq 10); if ($i -eq 10) {LogWrite ("Cannot connect to " + $ADDomain + ". Abort joining Active directory. Exit"); exit 302} else {LogWrite ($ADDomain + " is available after " + $i + " attempts.")}; $JOIN=Add-Computer -ComputerName . -DomainName $ADDomain -OUPath $ou -Credential $ADDomainCred -Options JoinWithNewName,AccountCreate -Force -Passthru -Verbose 4>&1 | Tee-Object -FilePath $LogFile -Append;}
 			if ($JOIN.HasSucceeded) {LogWrite ($AZVMName + " has joined the " + $ADDomain + " domain");return} else {LogWrite ($AZVMName + " failed to join the " + $ADDomain + " domain. Try again.")}}
 	catch {LogWrite ("301: Domain join failed after 2 attempts:  " + $_.Exception.Message + " " + $_.Exception.Source + " " + $_.Exception.Hresult)}
 		# If domain join fails, try again and catch the error - catching 'No such host is known' - Last chance - third time lucky?
 	try {
-		if (-not $JOIN.HasSucceeded) {LogWrite ("Join Domain for a third time.");$i=0; Do {start-sleep -Seconds 15; $i++} until ((Test-NetConnection -ComputerName $addomain -CommonTCPPort SMB -InformationLevel Quiet) -eq "True" -or $i -eq 10); if ($i -eq 10) {LogWrite ("Cannot connect to " + $ADDomain + ". Abort joining Active directory. Exit"); exit 302} else {LogWrite ($ADDomain + " is available after " + $i + " attempts.")}; $JOIN=Add-Computer -ComputerName . -DomainName $ADDomain -OUPath $ou -Credential $ADDomainCred -Options JoinWithNewName,AccountCreate -Force -Passthru -Verbose 4>&1 | Tee-Object -FilePath $LogFile -Append}
+		if (-not $JOIN.HasSucceeded) {LogWrite ("Join Domain for a third time.");$i=0; Do {start-sleep -Seconds 15; $i++} until ((Test-NetConnection -ComputerName $addomain -CommonTCPPort SMB -InformationLevel Quiet) -eq "True" -or $i -eq 10); if ($i -eq 10) {LogWrite ("Cannot connect to " + $ADDomain + ". Abort joining Active directory. Exit"); exit 302} else {LogWrite ($ADDomain + " is available after " + $i + " attempts.")}; $JOIN=Add-Computer -ComputerName . -DomainName $ADDomain -OUPath $ou -Credential $ADDomainCred -Options JoinWithNewName,AccountCreate -Force -Passthru -Verbose 4>&1 | Tee-Object -FilePath $LogFile -Append;}
 			if ($JOIN.HasSucceeded) {LogWrite ($AZVMName + " has joined the " + $ADDomain + " domain at last");return} else {LogWrite ($AZVMName + " failed to join the " + $ADDomain + " domain THREE times. Exit."); exit 303}}
 	catch {LogWrite ("301: Domain join failed after 2 attempts:  " + $_.Exception.Message + " " + $_.Exception.Source + " " + $_.Exception.Hresult); exit 301}
 }
@@ -254,11 +254,11 @@ Function CheckEntraID
 	try {
 		$dsregStatus = dsregcmd /status 2>$null
 		if (-not $dsregStatus) {
-			logwrite ("EntraJoined: NO")
+			logwrite ("EntraJoined: NO");
 		}
 		# Parse AzureAdJoined and DomainJoined values
-		$Global:IsEntraJoined = ($dsregStatus | Select-String "AzureAdJoined\s*:\s*(YES|NO)").Matches.Groups[1].Value
-		logwrite ("EntraJoined: " + $IsEntraJoined)
+		$Global:IsEntraJoined = ($dsregStatus | Select-String "AzureAdJoined\s*:\s*(YES|NO)").Matches.Groups[1].Value;
+		logwrite ("EntraJoined: " + $IsEntraJoined);
 	} 
 catch {}
 }
@@ -273,7 +273,7 @@ Function JoinEntraID
 		Set-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\CDJ" -Name "AzureVmComputeMetadataEndpoint" -Value "http://169.254.169.254/metadata/instance/compute" -force
 		Set-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\CDJ" -Name "AzureVmTenantIdEndpoint" -Value "http://169.254.169.254/metadata/identity/info" -force	
 		Set-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\CDJ" -Name "AzureVmMsiTokenEndpoint" -Value "http://169.254.169.254/metadata/identity/oauth2/token" -force
-		$proc=Start-Process dsregcmd -ArgumentList "/AzureSecureVMJoin /debug" -Passthru -Wait -RedirectStandardOutput AVD-EntraJoin.log
+		$proc=Start-Process dsregcmd -ArgumentList "/AzureSecureVMJoin /debug" -Passthru -Wait -RedirectStandardOutput AVD-EntraJoin.log;
 		if ($Proc.ExitCode -ne 0) {LogWrite ("405: Exit - Failed to join Entra ID: " + $Proc.ExitCode)} else {LogWrite ("Successfully joined Entra ID: " + $Proc.ExitCode);return}
 	}
 	catch {LogWrite ("406: Exit - Failed to join Entra ID: " + $_.Exception.Message)}
@@ -284,7 +284,7 @@ Function JoinEntraID
 			$i=0
 			do {start-sleep -Milliseconds 10;$i++;} until ((Test-NetConnection -ComputerName 169.254.169.254 -CommonTCPPort HTTP -InformationLevel Quiet) -eq "True" -or $i -eq 10)
 			if ($i -eq 10) {LogWrite ("Cannot connect to Entra ID. Abort joining Entra ID. Exit"); exit 406} else{LogWrite ("Azure is available after " + $i + " attempts.")}
-			$proc=Start-Process dsregcmd -ArgumentList "/AzureSecureVMJoin /debug" -Passthru -Wait -RedirectStandardOutput AVD-EntraJoin.log
+			$proc=Start-Process dsregcmd -ArgumentList "/AzureSecureVMJoin /debug" -Passthru -Wait -RedirectStandardOutput AVD-EntraJoin.log;
 			if ($Proc.ExitCode -ne 0) {LogWrite ("405: Exit - Failed to join Entra ID: " + $Proc.ExitCode);exit 405} else {LogWrite ("Successfully joined Entra ID: " + $Proc.ExitCode);return}
 		}
 	}
@@ -296,17 +296,17 @@ Function DisableOOBE
 	try{
 		LogWrite ("Disable OOBE for Windows 10 / 11 Server 2025")
 		# Disable Privacy Settings OOBE to reduce first logon delay
-		New-Item -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows" -Name "OOBE" -Force -ErrorAction SilentlyContinue; Set-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\OOBE" -Name "DisablePrivacyExperience" -type DWORD -Value 1 -Force -ErrorAction SilentlyContinue
+		New-Item -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows" -Name "OOBE" -Force -ErrorAction SilentlyContinue; Set-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\OOBE" -Name "DisablePrivacyExperience" -type DWORD -Value 1 -Force -ErrorAction SilentlyContinue;
 		# Disable Location
-		New-Item -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows" -Name "AppPrivacy" -Force -ErrorAction SilentlyContinue; Set-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\AppPrivacy" -Name "LetAppsAccessLocation" -Type DWORD -Value 0 -Force -ErrorAction SilentlyContinue
+		New-Item -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows" -Name "AppPrivacy" -Force -ErrorAction SilentlyContinue; Set-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\AppPrivacy" -Name "LetAppsAccessLocation" -Type DWORD -Value 0 -Force -ErrorAction SilentlyContinue;
 		# Disable Find My Device
-		New-Item -Path "HKLM:\SOFTWARE\Policies\Microsoft" -Name FindMyDevice -Force -ErrorAction SilentlyContinue; Set-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\FindMyDevice" -Name "AllowFindMyDevice" -type DWORD -Value 0 -Force -ErrorAction SilentlyContinue
+		New-Item -Path "HKLM:\SOFTWARE\Policies\Microsoft" -Name FindMyDevice -Force -ErrorAction SilentlyContinue; Set-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\FindMyDevice" -Name "AllowFindMyDevice" -type DWORD -Value 0 -Force -ErrorAction SilentlyContinue;
 		# Disable Inking & Typing
-		New-Item -Path "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies" -Name TextInput -Force -ErrorAction SilentlyContinue; Set-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\TextInput" -Name "AllowLinguisticDataCollection" -type DWORD -Value 0 -Force -ErrorAction SilentlyContinue
+		New-Item -Path "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies" -Name TextInput -Force -ErrorAction SilentlyContinue; Set-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\TextInput" -Name "AllowLinguisticDataCollection" -type DWORD -Value 0 -Force -ErrorAction SilentlyContinue;
 		# Disable Tailored Experiences
-		New-Item -Path "HKLM:\Software\Policies\Microsoft\Windows" -Name CloudContent -Force -ErrorAction SilentlyContinue; Set-ItemProperty -Path "HKLM:\Software\Policies\Microsoft\Windows\CloudContent" -Name "DisableTailoredExperiencesWithDiagnosticData" -type DWORD -Value 1 -Force -ErrorAction SilentlyContinue
+		New-Item -Path "HKLM:\Software\Policies\Microsoft\Windows" -Name CloudContent -Force -ErrorAction SilentlyContinue; Set-ItemProperty -Path "HKLM:\Software\Policies\Microsoft\Windows\CloudContent" -Name "DisableTailoredExperiencesWithDiagnosticData" -type DWORD -Value 1 -Force -ErrorAction SilentlyContinue;
 		# Set Telemetry to minimal 
-		New-Item -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows" -Name DataCollection -Force -ErrorAction SilentlyContinue; Set-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\DataCollection" -Name "AllowTelemetry" -type DWORD -Value 0 -Force -ErrorAction SilentlyContinue
+		New-Item -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows" -Name DataCollection -Force -ErrorAction SilentlyContinue; Set-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\DataCollection" -Name "AllowTelemetry" -type DWORD -Value 0 -Force -ErrorAction SilentlyContinue;
 	}
 	catch{}	
 }
@@ -361,14 +361,14 @@ CheckEntraID
 %{
 	if ($EntraJoin -eq "Y")
 	{	
-		if ($IsEntraJoined -eq "NO") {JoinEntraID}
+		if ($IsEntraJoined -eq "NO") {JoinEntraID;}
 		else{Logwrite ($AZVMName + " is already Entra ID joined.")}
 	}
 }
 
 # Check for an AVD deployment
 %{
-	if ($hostpool) {LogWrite ("Join AVD HostPool: " + $HostPool)}
+	if ($hostpool) {LogWrite ("Join AVD HostPool: " + $HostPool);}
 	else {LogWrite ($AZVMName + " deployment complete. Schedule a restart and exit.")
 	Start-Process -FilePath "shutdown.exe" -ArgumentList "/r /t 5 /d p:0:0 /c 'AVDTurbo'"
 	exit 0}
@@ -390,7 +390,7 @@ CheckEntraID
 %{
 	if ($Turbo -eq "False")
 		{
-		DownloadAgents
+		DownloadAgents;
 		}
 }
 
@@ -404,15 +404,15 @@ CheckEntraID
 }
 
 # Logon to Azure
-AzureLogon
+AzureLogon;
 
 
 # check if the VM exists in the hostpool, if so remove it
-CheckHostPool
+CheckHostPool;
 
 
 # check if a valid Token exists to join the hostpool, if not generate one
-CheckToken
+CheckToken;
 
 
 # Start an AVDTurbo deployment
@@ -425,7 +425,7 @@ CheckToken
 			Get-Service -Name RDAgentBootLoader | Set-Service -StartupType Automatic
 			Get-Service -Name RDAgentBootLoader | start-service
 			LogWrite ("Turbo Deployment Complete")
-			$WVDToken="Null"
+			$WVDToken="Null";
 			}
 		}
 	}
@@ -463,7 +463,7 @@ CheckToken
 		logwrite ('Disable AVD Logons for: ' + $hostname + ' Hostpool: ' + $HostPool)
 		$i=0
 		$GETHostUri="https://management.azure.com/subscriptions/$subId/resourceGroups/$RG/providers/Microsoft.DesktopVirtualization/hostPools/$hostPool/sessionHosts/$HostName/?api-version=2024-04-03&force=true/?api-version=2024-04-03"
-		do {start-sleep -seconds 10;$i++;$ErrorActionPreference="SilentlyContinue";$SessionHost=Invoke-RestMethod -Uri $GETHostURI -Method Get -Headers $Headers -Body $body -ErrorAction SilentlyContinue} until ($SessionHost.name.count -eq 1 -or $i -eq 6)
+		do {start-sleep -seconds 10;$i++;$ErrorActionPreference="SilentlyContinue";$SessionHost=Invoke-RestMethod -Uri $GETHostURI -Method Get -Headers $Headers -Body $body -ErrorAction SilentlyContinue;} until ($SessionHost.name.count -eq 1 -or $i -eq 6)
 			$HostURI = "https://management.azure.com/subscriptions/$subId/resourceGroups/$RG/providers/Microsoft.DesktopVirtualization/hostPools/$hostPool/sessionHosts/$HostName/?api-version=2024-04-03&force=true"
 				$body = @{
 				properties = @{

@@ -51,7 +51,7 @@ foreach ($VM in $SSVMs)
 	if ($VMSSImage -eq "Generalized") {$VMName=$VM.OsProfile.Computername + $ADDomain}
 	else {$VMName=$VM.Name.Replace('_','') + $ADDomain}
 	write-host "Enable Logons for " $VMName
-	Update-AzWvdSessionHost -HostPoolName $HP -ResourceGroupName $HPRG -Name $VMName -AllowNewSession:$True -Force
+	Update-AzWvdSessionHost -HostPoolName $HP -ResourceGroupName $HPRG -SessionHostName $VMName -AllowNewSession:$True -Force
 	}
 }
 

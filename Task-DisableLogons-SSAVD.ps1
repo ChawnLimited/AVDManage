@@ -51,7 +51,6 @@ foreach ($VM in $SSVMs)
 	if ($VMSSImage -eq "Generalized") {$VMName=$VM.OsProfile.Computername + $ADDomain}
 	else {$VMName=$VM.Name.Replace('_','') + $ADDomain}
 	write-host "Disable Logons for " $VMName
-	Get-AzWvdSessionHost -HostPoolName $HP -ResourceGroupName $HPRG | where-object {$_.Name -eq $VMName} | Update-AzWvdSessionHost -AllowNewSession:$False -Force
+	Update-AzWvdSessionHost -HostPoolName $HP -ResourceGroupName $HPRG -SessionHostName $VMName -AllowNewSession:$False -Force
 	}
 }
-

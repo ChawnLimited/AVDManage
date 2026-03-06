@@ -22,28 +22,36 @@ $AzureContext = Set-AzContext -SubscriptionName $AzureContext.Subscription -Defa
 
 # Get the Scale Set
 $VMSS=get-azvmss -ResourceGroupName $SSRG -VMScaleSetName $SS
+
 # Get the Orchestration Mode
 $OrchMode=$vmss.OrchestrationMode
+
 # Specialized or Generalized
 %{
-	If ($VMSS.VirtualMachineProfile.OsProfile.ComputerNamePrefix) {$Global:VMSSIMage="Generalized"}
-	else {$Global:VMSSIMage="Specialized"}
+	If ($VMSS.VirtualMachineProfile.OsProfile.ComputerNamePrefix) {$Global:VMSSImage="Generalized"}
+	else {$Global:VMSSImage="Specialized"}
+}
+
+# AD or Entra joined
+%{
+	$VS=get-azvmss -ResourceGroupName $SSRG -VMScaleSetName $SS
+	if ($ADDomain=(($VS.VirtualMachineProfile.ExtensionProfile.Extensions | Where-Object {$_.Name -eq 'AVDTurbo'}).settings)["ADDomain"].value) {$ADDomain = "." + $ADDomain}
 }
 
 # Get the VMSS VM Instances
 %{
-	if ($Orchmode -eq 'Uniform'){$SSVMs=get-azvmssvm -ResourceGroupName $SSRG -VMScaleSetName $SS}
-	else {$SSVMs=get-azvm -ResourceGroupName $ssrg | where-object {$_.VirtualMachineScaleSet.id -eq $vmss.id}}
+	if ($OrchMode -eq 'Uniform'){$SSVMs=get-azvmssvm -ResourceGroupName $SSRG -VMScaleSetName $SS}
+	else {$SSVMs=get-azvm -ResourceGroupName $SSRG | where-object {$_.VirtualMachineScaleSet.id -eq $VMSS.id}}
 }
 
 # Disable AVD Logons for all VM instances in the Scale Set
 %{
 foreach ($VM in $SSVMs)
 	{
-	if ($VMSSIMage -eq "Generalized") {$VMName=$VM.OsProfile.Computername + "."}
-	else {$VMNAME=$VM.Name.Replace('_','') + "."}
-	write-host "Disable Logons for " $VMNAME
-	Get-AzWvdSessionHost -HostPoolName $HP -ResourceGroupName $HPRG | where-object {$_.Name.contains($VMName)} | Update-AzWvdSessionHost -AllowNewSession:$False -Force
+	if ($VMSSImage -eq "Generalized") {$VMName=$VM.OsProfile.Computername + $ADDomain}
+	else {$VMName=$VM.Name.Replace('_','') + $ADDomain}
+	write-host "Disable Logons for " $VMName
+	Get-AzWvdSessionHost -HostPoolName $HP -ResourceGroupName $HPRG | where-object {$_.Name -eq $VMName} | Update-AzWvdSessionHost -AllowNewSession:$False -Force
 	}
 }
 

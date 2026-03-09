@@ -34,7 +34,7 @@ Runs on Specialized Images (no sysprep) and Generalized Images (sysprepped)
 
 
 
-### AVD-Entrareg.ps1
+### AVD-EntraReg.ps1
 
 If the Scale Set is configured to join Active Directory, AVD-EntraReg.ps1 is downloaded with AVD-Turbo5.ps1. AVD-Turbo will create a Scheduled Task to Hybrid Join Entra on the next system restart.
 

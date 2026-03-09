@@ -2,7 +2,7 @@
 
 
 
-AVDManage is a Virtual Desktop image management solution for pooled Azure Virtual Desktop Session Hosts which leverages Azure Virtual Machine Scale Sets.
+AVDManage is a Virtual Desktop image management solution for pooled Azure Virtual Desktop Session Hosts which leverages Azure Virtual Machine Scale Sets to deploy and update a common Golden Image to all AVD Session Hosts.
 
 
 
@@ -10,23 +10,33 @@ Azure Virtual Desktop Sessions Hosts may be deployed from Generalized or Special
 
 
 
-When deploying Session Hosts, AVD-Turbo4.ps1 is downloaded and executed on the Virtual Machine to join Active Directory and the Azure Virtual Desktop Host Pool.
+Scale Sets may be deployed in Uniform or Flexible Orchestration Modes.
 
 
 
-The following scripts are supported with AVDManage 2.3.0.0 +
+When deploying Session Hosts, AVD-Turbo5.ps1 is downloaded and executed on the Virtual Machine to join Active Directory or Entra ID, and optionally an Azure Virtual Desktop Host Pool.
 
 
 
-### AVD-Turbo4.ps1
+The following scripts are supported with AVDManage 2.5.0.0 +
+
+
+
+### AVD-Turbo5.ps1
 
 Runs on Specialized Images (no sysprep) and Generalized Images (sysprepped)
 
 * Renames the computer to match the Virtual Machine name (Specialized Image)
-* Joins Active Directory
+* Joins Active Directory (+ Hybrid Entra Join) or Joins Entra ID
 * Downloads Microsoft Remote Desktop Broker and Boot Agents
 * Retrieves / Generates an AVD Host Pool Token using secretless authentication (Session Hosts inherit a User-Assigned Managed Identity)
 * Installs Microsoft Agents and joins the AVD host pool
+
+
+
+### AVD-Entrareg.ps1
+
+If the Scale Set is configured to join Active Directory, AVD-EntraReg.ps1 is downloaded with AVD-Turbo5.ps1. AVD-Turbo will create a Scheduled Task to Hybrid Join Entra on the next system restart. 
 
 
 
@@ -72,9 +82,9 @@ Finalizes and prepares a Specialized Master / Golden image before image creation
 
 Template scripts to automate management tasks using AVD-Automate (Automation Account).
 
-* Task-DisableLogons-SSAVD.ps1 - Disables logons on session hosts
-* Task-EnableLogons-SSAVD.ps1  - Enables logons on session hosts
-* Task-LogOffSessions-SSAVD.ps1 - Logs users out of session hosts
+* Task-DisableLogons-SSAVD.ps1 - Disables logons on session hosts in Scale Set
+* Task-EnableLogons-SSAVD.ps1  - Enables logons on session hosts in Scale Set
+* Task-LogOffSessions-SSAVD.ps1 - Logs users out of session hosts in Scale Set
 * Task-ReDeploy-SS.ps1 - Redeploys session hosts to a different Azure host
 * Task-ReImage-SS.ps1 - Reimages session hosts with the current image
 * Task-Restart-SS.ps1 - Restarts session hosts

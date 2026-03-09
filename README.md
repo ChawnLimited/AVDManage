@@ -14,7 +14,7 @@ Scale Sets may be deployed in Uniform or Flexible Orchestration Modes.
 
 
 
-When deploying Session Hosts, AVD-Turbo5.ps1 is downloaded and executed on the Virtual Machine to join Active Directory or Entra ID, and optionally an Azure Virtual Desktop Host Pool.
+When deploying Session Hosts, AVD-Turbo5.ps1 is downloaded and executed on the Virtual Machine to join Active Directory or Entra ID, and optionally join an Azure Virtual Desktop Host Pool.
 
 
 
@@ -36,7 +36,7 @@ Runs on Specialized Images (no sysprep) and Generalized Images (sysprepped)
 
 ### AVD-Entrareg.ps1
 
-If the Scale Set is configured to join Active Directory, AVD-EntraReg.ps1 is downloaded with AVD-Turbo5.ps1. AVD-Turbo will create a Scheduled Task to Hybrid Join Entra on the next system restart. 
+If the Scale Set is configured to join Active Directory, AVD-EntraReg.ps1 is downloaded with AVD-Turbo5.ps1. AVD-Turbo will create a Scheduled Task to Hybrid Join Entra on the next system restart.
 
 
 

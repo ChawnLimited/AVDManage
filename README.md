@@ -2,7 +2,7 @@
 
 
 
-AVDManage is a Virtual Desktop image management solution for pooled Azure Virtual Desktop Session Hosts which leverages Azure Virtual Machine Scale Sets to deploy and update a common Golden Image to all AVD Session Hosts.
+AVDManage is a Virtual Desktop image management solution for pooled Azure Virtual Desktop Session Hosts that leverages Azure Virtual Machine Scale Sets to deploy and update a common Golden Image to all AVD Session Hosts.
 
 
 
@@ -44,7 +44,7 @@ If the Scale Set is configured to join Active Directory, AVD-EntraReg.ps1 is dow
 
 Downloads and pre-installs the Microsoft Remote Desktop Broker and Boot Agents on a Master / Golden image. Does not join the AVD Host Pool.
 
-This allows AVD-Join and AVD-Turbo to complete 30-40 seconds faster when deploying or updating a Session Host, as the agents do not have to be downloaded and installed.
+This allows AVD-Turbo to complete 30-40 seconds faster when deploying or updating a Session Host, as the agents do not have to be downloaded and installed.
 
 
 
@@ -91,3 +91,4 @@ Template scripts to automate management tasks using AVD-Automate (Automation Acc
 * Task-Start-SS.ps1 - Starts session hosts
 * Task-Stop-SS.ps1 - Stops session hosts
 * Task-Update-SS.ps1 - Updates session hosts to the latest image/config
+

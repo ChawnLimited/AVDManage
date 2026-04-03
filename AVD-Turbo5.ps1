@@ -1,6 +1,7 @@
 ﻿# Chawn Limited 2026
 # AVD-Turbo5.ps1
-# Version 5.0
+# Version 5.1
+# Updated RDS Agent and Bootloader download URLs 
 # Rename the VM (if created from a Specialized Image), optionally Join VM to Active Directory or Entra ID, and optionally install AVD Agents and join AVD HOst Pool - For Specialized and Generalized Images, RIP AVDJoin
 # No Powershell Modules required
 
@@ -103,10 +104,10 @@ Function DownloadAgents
 	try {
 		if ($HostPool) {				
 				LogWrite ("Download RDAgent")
-				$URI="https://query.prod.cms.rt.microsoft.com/cms/api/am/binary/RWrmXv";Invoke-WebRequest -Uri $URI -OutFile RDagent.msi -UseBasicParsing;
+				$URI="https://go.microsoft.com/fwlink/?linkid=2310011";Invoke-WebRequest -Uri $URI -OutFile RDagent.msi -UseBasicParsing;
 				LogWrite ("Downloaded RDAgent.msi")
 				LogWrite ("Download RDBoot")
-				$URI="https://query.prod.cms.rt.microsoft.com/cms/api/am/binary/RWrxrH";Invoke-WebRequest -Uri $URI -OutFile RDBoot.msi -UseBasicParsing;
+				$URI="https://go.microsoft.com/fwlink/?linkid=2311028";Invoke-WebRequest -Uri $URI -OutFile RDBoot.msi -UseBasicParsing;
 				LogWrite ("Downloaded RDBoot.msi")		
 		}
 	}
@@ -516,8 +517,8 @@ Start-Process -FilePath "shutdown.exe" -ArgumentList "/r /t 5 /d p:0:0 /c 'AVDTu
 # SIG # Begin signature block
 # MIInXAYJKoZIhvcNAQcCoIInTTCCJ0kCAQExDzANBglghkgBZQMEAgEFADB5Bgor
 # BgEEAYI3AgEEoGswaTA0BgorBgEEAYI3AgEeMCYCAwEAAAQQH8w7YFlLCE63JNLG
-# KX7zUQIBAAIBAAIBAAIBAAIBADAxMA0GCWCGSAFlAwQCAQUABCDHyEfgyE0W1y8v
-# X80u3XcO0K1w/G8kqjwmFdKEIDZMtaCCIgswggMwMIICtqADAgECAhA3dENPnrQO
+# KX7zUQIBAAIBAAIBAAIBAAIBADAxMA0GCWCGSAFlAwQCAQUABCDziEa+qULOtWdb
+# vh6eKXCed4QRrAjnGBTF3njD8CZRkqCCIgswggMwMIICtqADAgECAhA3dENPnrQO
 # Ih+SNsofLycXMAoGCCqGSM49BAMDMFYxCzAJBgNVBAYTAkdCMRgwFgYDVQQKEw9T
 # ZWN0aWdvIExpbWl0ZWQxLTArBgNVBAMTJFNlY3RpZ28gUHVibGljIENvZGUgU2ln
 # bmluZyBSb290IEU0NjAeFw0yMTAzMjIwMDAwMDBaFw0zNjAzMjEyMzU5NTlaMFcx
@@ -704,24 +705,24 @@ Start-Process -FilePath "shutdown.exe" -ArgumentList "/r /t 5 /d p:0:0 /c 'AVDTu
 # ZyBDQSBFViBFMzYCEDxolvyQov0GPgzdcbswAjcwDQYJYIZIAWUDBAIBBQCggYQw
 # GAYKKwYBBAGCNwIBDDEKMAigAoAAoQKAADAZBgkqhkiG9w0BCQMxDAYKKwYBBAGC
 # NwIBBDAcBgorBgEEAYI3AgELMQ4wDAYKKwYBBAGCNwIBFTAvBgkqhkiG9w0BCQQx
-# IgQgx1xTEV/A9WBKegygNMHPDkuvF8Xd+ecMssi7UegiDpwwCwYHKoZIzj0CAQUA
-# BGcwZQIxANiiO5t5CTalLcXz6SDHGREAy7BaUAMomYmtwlNKw4MHj2TCpxiYoxRl
-# qwfRrNpcSwIwKWyeQBwCvAEvBnXXwKCuOBmX70bc3IMv0JChXBrKod22cxxRQSSS
-# 5SJf6WdHNNUdoYIDIzCCAx8GCSqGSIb3DQEJBjGCAxAwggMMAgEBMGowVTELMAkG
+# IgQgP7cRODaZ/nDQr7EbJCYVrEOviEGTSFJkAoGc9mPiZAUwCwYHKoZIzj0CAQUA
+# BGcwZQIwfG7TK8YbV6VN94PYn/OjBGI/71qVx2ZC+56ZyJrzN0VrYkR2XiLKbSKX
+# 6T3bur2SAjEAhmV9IZqwYBP+1gMsaRWuLzOST8+Yg5whRTxPf8MIB8leO8WnuVNY
+# GzrIsE45dtPuoYIDIzCCAx8GCSqGSIb3DQEJBjGCAxAwggMMAgEBMGowVTELMAkG
 # A1UEBhMCR0IxGDAWBgNVBAoTD1NlY3RpZ28gTGltaXRlZDEsMCoGA1UEAxMjU2Vj
 # dGlnbyBQdWJsaWMgVGltZSBTdGFtcGluZyBDQSBSMzYCEQCkKTtuHt3XpzQIh616
 # TrckMA0GCWCGSAFlAwQCAgUAoHkwGAYJKoZIhvcNAQkDMQsGCSqGSIb3DQEHATAc
-# BgkqhkiG9w0BCQUxDxcNMjYwMzAyMDc0NzAyWjA/BgkqhkiG9w0BCQQxMgQwcGeL
-# +aLpiVmnGjAm/CJKbDg/TMwKmKUuoFDINjG2XZ4xtZORzBCoEFhjX+bnIOJWMA0G
-# CSqGSIb3DQEBAQUABIICAEoMQhF+QJitNXJ8KgxD1Djc8xPAfK69NxFCany1ND6q
-# 1wADPXKvT1kMYHzBo3Uch3TsSrx9UE5pWkyLv2Pv4oTkfvFtbk39AjlH9Mh5WT0u
-# JWFCcHpGKrIhCcKFyJS+2u5vKkcDIXI8D6TYPcfj/cBXCEzz+tC/VEu/baQCM2uS
-# QNSPsRkcn9eGrVMzLptzWTvFCNHlPIw9uelxzNQNOLBtJ+hNW6r7aeH1TlCvmFEm
-# A33zQAw6cXQ5Sa/2hkJFhyatxVyC3hpRDBMlhx/SjLFFrXhbgKNMeIMMOruQyyqR
-# ffkz8jCYLx9pze0AX6tHIW2YIjNSnWXORT6k0AXM642W9zOtZ1HUr/+sszXnivEO
-# rGDMm5TTvPipZKQYLlrzKod0Ex9ANy70a7wtl8sAJSGV4Rolzv9Bt+S3Z3mRiGZE
-# fdAEF2ecNt0EJ8/Rk3/nOF3RZvOHm4/EyTVENmpAPz8Eh7NtW24f3TZjq8bmX02L
-# xz9FkvZ5+jhuph3qm1DUj3TENiTmP+0RJP9ww30id4mKD6cckd4jlpKQgTSMYNZY
-# XZlQQ4TIhdxP0hcOnhAZDqXiQtlhIoxs+6dJZheqkLV6K6fv0S3qPRbiy6gI7d6g
-# +jhke5MEvbKGJe0LKfYhPqu6UlDwOs6yUQvwUNK17420VeW8iLsMPiJ0WYf28KEd
+# BgkqhkiG9w0BCQUxDxcNMjYwNDAzMTQ1NDQ0WjA/BgkqhkiG9w0BCQQxMgQwYrQQ
+# qOozzxAVLP3g/rOVq6QPPPU2d7XReEX6fqtxVv8DFttJ/EN5GY2BxpvWzmNZMA0G
+# CSqGSIb3DQEBAQUABIICAFR5hfLkKjZYBCZROFY2PQPxajPxbmHys1Hy0fASeIm2
+# Cr3v9vo7ZBurAVh2Ajqho1WU/ZhaDApfEWH64BDACirOORnYK1rgiKFuEio+NB5D
+# otrYkLKYFWyZwRsfo8ytUqE2zpZGJFPFijCiroRFNPeClNuQnR6PZdGhd8Ithyzz
+# 9LdrSxQ5L7DveMZf97KHC46cJV4rqLQFKZz5bnWRPLW11aM7tWFG9bvbhU0C6KO9
+# EY93KawnKeSAIL3mtGK0+PKD8VALfkcryJbZwcr6Q53I40vtTaM0erJHFfJmKypo
+# 9IgSdmfPwFtGJsNCMBlX0JnCxTwRv4Nb0VGgK7nq04it01EJCT/EwBZWpV9oNG/4
+# iu5TIfjNEBovvMj+q1eS13BNq65eRRL3P6NC5ujiQugkEHAnEIsZySdoZKI5eNgQ
+# TzdKpmXs8IOsfNxp3koHyj0HXNRJZWHw5jK2nOxtTP26XHw4Um8p1CLlhktZWwfo
+# 0ZOMjd/d/wzrQXW6XCJs3tlhVqtrflPZgxZ7NmNu9IZijENcIt5A+3O12BC0c5+9
+# QS8IydirHg713oIyVN94nTyydimN60yzK1IzoojJq1TuyrjNIiutpkdVPhK8S6lR
+# l2XtgPMfp4tJma80IhQnp0n3letxz+yP6WllsOeWFYu40MVDV9jSWcULR5oKkLEj
 # SIG # End signature block

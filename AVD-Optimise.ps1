@@ -1,6 +1,6 @@
 # Chawn Limited 2026
 # AVD-Optimise.ps1
-# Version 4.0
+# Version 4.1
 # Implements know optimisations for AVD Session Hosts
 # https://learn.microsoft.com/en-us/previous-versions/windows-server/it-pro/windows-server-2019/remote/remote-desktop-services/rds-vdi-recommendations
 # Update services and Maintenance tasks are disabled
@@ -99,7 +99,7 @@ DisService PimIndexMaintenanceSvc;			#Contact Data
 DisService DoSvc;					#Delivery Opimization
 DisService WdiServiceHost;				#Diagnostic Service Host
 DisService TrkWks;					#Distributed Link Tracking Client
-DisService dmwappushservice;				#dmwappushservice
+# DisService dmwappushservice;				#dmwappushservice - required by intune
 DisService MapsBroker;					#Downloaded Maps Manager
 DisService BcastDVRUserService;				#Game DVR and Broadcast User Service
 DisService lfsvc;					#Geolocation Service
@@ -174,7 +174,7 @@ DisTask XblGameSaveTask;				# Xbox Live GameSave standby task
 # Local Policy Settings
 # https://learn.microsoft.com/en-us/previous-versions/windows-server/it-pro/windows-server-2019/remote/remote-desktop-services/rds-vdi-recommendations#group-policy-settings
 write-host "Enabling Local Policy Settings"
-
+# https://learn.microsoft.com/en-us/sharepoint/use-group-policy#prevent-the-sync-app-from-generating-network-traffic-until-users-sign-in
 REG ADD "HKEY_LOCAL_MACHINE\Software\Microsoft\OneDrive" /v PreventNetworkTrafficPreUserSignIn /t REG_DWORD /d 1 /f
 REG ADD "HKEY_LOCAL_MACHINE\Software\Microsoft\Windows\CurrentVersion\Policies\Explorer" /v NoAutoRun /t REG_DWORD /d 1 /f
 REG ADD "HKEY_LOCAL_MACHINE\Software\Microsoft\Windows\CurrentVersion\Policies\Explorer" /v NoDriveTypeAutoRun /t REG_DWORD /d 255 /f
@@ -524,8 +524,7 @@ function SetPageFile{
 	$Sys.AutomaticManagedPagefile = $false
 	$Sys.Put() | Out-Null
 
-	$pf = Get-CimInstance -ClassName Win32_PageFileSetting
-	Get-WmiObject -Class Win32_PageFileSetting | ForEach-Object {$_.Delete() | Out-Null}
+	Get-WmiObject -Class Win32_PageFileSetting -EnableAllPrivileges | ForEach-Object {$_.Delete() | Out-Null}
 	$pf = New-CimInstance -ClassName Win32_PageFileSetting -Property @{ Name= $pfpath }
 	$pf | Set-CimInstance -Property @{ InitialSize = $memMB; MaximumSize = $memMB }
 }

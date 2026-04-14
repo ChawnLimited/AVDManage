@@ -33,6 +33,7 @@ Function CheckMDM
 	try {
 		$Global:JoinMDM=(Get-ScheduledTask -TaskPath '\Microsoft\Windows\EnterpriseMgmt\' -ErrorAction SilentlyContinue)
 	}
+	catch {Logwrite("Failed to find MDM Task")}
 }
 
 Function JoinMDM

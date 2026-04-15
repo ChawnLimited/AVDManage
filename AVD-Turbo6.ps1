@@ -35,7 +35,7 @@
 #### End of Parameters
 
 $ProgressPreference ="SilentlyContinue"
-$Logfile = "AVD-Turbo5.log"
+$Logfile = "AVD-Turbo6.log"
 
 Function LogWrite
 {
@@ -276,7 +276,7 @@ Function JoinEntraID
 		Set-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\CDJ" -Name "AzureVmComputeMetadataEndpoint" -Value "http://169.254.169.254/metadata/instance/compute" -force
 		Set-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\CDJ" -Name "AzureVmTenantIdEndpoint" -Value "http://169.254.169.254/metadata/identity/info" -force	
 		Set-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\CDJ" -Name "AzureVmMsiTokenEndpoint" -Value "http://169.254.169.254/metadata/identity/oauth2/token" -force
-		if ($MDMJoin -eq "Y") {Set-Service -Name dmwappushservice -StartupType Manual -ErrorAction SilentlyContinue;Set-Service -Name dcsvc -StartupType Manual -ErrorAction SilentlyContinue;$proc=Start-Process dsregcmd -ArgumentList "/AzureSecureVMJoin /debug" -Passthru -Wait -RedirectStandardOutput AVD-EntraJoin.log;} else {$proc=Start-Process dsregcmd -ArgumentList "/AzureSecureVMJoin /debug" -Passthru -Wait -RedirectStandardOutput AVD-EntraJoin.log;}
+		if ($MDMJoin -eq "Y") {Set-Service -Name dmwappushservice -StartupType Manual -ErrorAction SilentlyContinue;Set-Service -Name dcsvc -StartupType Manual -ErrorAction SilentlyContinue;$proc=Start-Process dsregcmd -ArgumentList "/AzureSecureVMJoin /debug /MdmId 0000000a-0000-0000-c000-000000000000" -Passthru -Wait -RedirectStandardOutput AVD-EntraMDMJoin.log;} else {$proc=Start-Process dsregcmd -ArgumentList "/AzureSecureVMJoin /debug" -Passthru -Wait -RedirectStandardOutput AVD-EntraJoin.log;}
 		if ($Proc.ExitCode -ne 0) {LogWrite ("405: Exit - Failed to join Entra ID: " + $Proc.ExitCode)} else {LogWrite ("Successfully joined Entra ID: " + $Proc.ExitCode);return}
 	}
 	catch {LogWrite ("406: Exit - Failed to join Entra ID: " + $_.Exception.Message)}
@@ -287,7 +287,7 @@ Function JoinEntraID
 			$i=0
 			do {start-sleep -Milliseconds 10;$i++;} until ((Test-NetConnection -ComputerName 169.254.169.254 -CommonTCPPort HTTP -InformationLevel Quiet) -eq "True" -or $i -eq 10)
 			if ($i -eq 10) {LogWrite ("Cannot connect to Entra ID. Abort joining Entra ID. Exit"); exit 406} else{LogWrite ("Azure is available after " + $i + " attempts.")}
-			if ($MDMJoin -eq "Y") {Set-Service -Name dmwappushservice -StartupType Manual -ErrorAction SilentlyContinue;Set-Service -Name dcsvc -StartupType Manual -ErrorAction SilentlyContinue;$proc=Start-Process dsregcmd -ArgumentList "/AzureSecureVMJoin /debug" -Passthru -Wait -RedirectStandardOutput AVD-EntraJoin.log;} else {$proc=Start-Process dsregcmd -ArgumentList "/AzureSecureVMJoin /debug" -Passthru -Wait -RedirectStandardOutput AVD-EntraJoin.log;}
+			if ($MDMJoin -eq "Y") {Set-Service -Name dmwappushservice -StartupType Manual -ErrorAction SilentlyContinue;Set-Service -Name dcsvc -StartupType Manual -ErrorAction SilentlyContinue;$proc=Start-Process dsregcmd -ArgumentList "/AzureSecureVMJoin /debug /MdmId 0000000a-0000-0000-c000-000000000000" -Passthru -Wait -RedirectStandardOutput AVD-EntraMDMJoin.log;} else {$proc=Start-Process dsregcmd -ArgumentList "/AzureSecureVMJoin /debug" -Passthru -Wait -RedirectStandardOutput AVD-EntraJoin.log;}
 			if ($Proc.ExitCode -ne 0) {LogWrite ("405: Exit - Failed to join Entra ID: " + $Proc.ExitCode);exit 405} else {LogWrite ("Successfully joined Entra ID: " + $Proc.ExitCode);return}
 		}
 	}

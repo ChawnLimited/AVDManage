@@ -78,7 +78,7 @@ Function CheckDomain
 					-Property @{
 					Execute = "PowerShell.exe"   
 					Arguments ="-NoProfile -ExecutionPolicy Unrestricted -File $File"
-					WorkingDirectory=($file).replace("AVD-EntraReg.ps1","")
+					WorkingDirectory=($file).replace("AVD-EntraReg2.ps1","")
 					}`
 					-ClientOnly;
 

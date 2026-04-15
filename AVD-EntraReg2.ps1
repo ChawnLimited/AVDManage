@@ -69,7 +69,7 @@ CheckMDM
 		if ($IsEntraJoined -eq "NO") {LogWrite("AVDEntraReg has NOT joined Entra after " + $i + " attempts.");exit 9999}
 		else {LogWrite("AVDEntraReg has joined Entra after " + $i + " attempts. Job completed.");}
 		
-		if ($JoinMDM) {LogWrite("Joining MDM");JoinMDM;}
+		if ($JoinMDM) {start-sleep -seconds 15;LogWrite("Joining MDM");JoinMDM;}
 	}
 	catch {Logwrite("AVD-EntraReg has exited with error code: "+ $_.Exception.Message)}
 }

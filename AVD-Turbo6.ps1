@@ -270,7 +270,7 @@ catch {}
 Function JoinEntraID
 {
 	try {
-		LogWrite ("Join Entra ID using VM System credentials")
+		if ($MDMJoin -eq "Y") {LogWrite ("Join Entra ID and MDM using VM System credentials")} else {LogWrite ("Join Entra ID using VM System credentials")}
 		if ($EntraDNSSuffix -ne "None") {Set-DnsClientGlobalSetting -SuffixSearchList @($EntraDNSSuffix)}
 		New-Item -Path "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion" -Name "CDJ" -Force -ErrorAction SilentlyContinue
 		Set-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\CDJ" -Name "AzureVmComputeMetadataEndpoint" -Value "http://169.254.169.254/metadata/instance/compute" -force

@@ -9,16 +9,16 @@
 #### Parameters - Enable / Disable updates for each component
 
   param(
-	[String]$ROOTCERTS= "1",			# 1 | 0
-	[String]$EDGE= "1",					# 1 | 0
-	[String]$CHROME= "1",				# 1 | 0
-	[String]$VISC= "1",					# 1 | 0
-	[String]$O365= "1",					# 1 | 0
-	[String]$ONEDRIVE= "1",				# 1 | 0
-	[String]$TEAMS= "1",				# 1 | 0
-	[String]$FSLOGIX="1",				# 1 | 0
-	[String]$WINDOWS="1",				# 1 | 0
-	[String]$DEFENDER="1"				# 1 | 0
+	[Int]$ROOTCERTS= 1,				# 1 | 0
+	[Int]$EDGE= 1,					# 1 | 0
+	[Int]$CHROME= 1,				# 1 | 0
+	[Int]$VISC= 1,					# 1 | 0
+	[Int]$O365= 1,					# 1 | 0
+	[Int]$ONEDRIVE= 1,				# 1 | 0
+	[Int]$TEAMS= 1,					# 1 | 0
+	[Int]$FSLOGIX=1,				# 1 | 0
+	[Int]$WINDOWS=1,				# 1 | 0
+	[Int]$DEFENDER=1				# 1 | 0
 	)
 
 #### End of Parameters

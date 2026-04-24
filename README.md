@@ -14,29 +14,29 @@ Scale Sets may be deployed in Uniform or Flexible Orchestration Modes.
 
 
 
-When deploying Session Hosts, AVD-Turbo5.ps1 is downloaded and executed on the Virtual Machine to join Active Directory or Entra ID, and optionally join an Azure Virtual Desktop Host Pool.
+When deploying Session Hosts, AVD-Turbo6.ps1 is downloaded and executed on the Virtual Machine to join Active Directory or Entra ID, optionally join Intune / MDM, and an Azure Virtual Desktop Host Pool.
 
 
 
-The following scripts are supported with AVDManage 2.5.0.0 +
+The following scripts are supported with AVDManage 2.6.0.0 +
 
 
 
-### AVD-Turbo5.ps1
+### AVD-Turbo6.ps1
 
 Runs on Specialized Images (no sysprep) and Generalized Images (sysprepped)
 
 * Renames the computer to match the Virtual Machine name (Specialized Image)
-* Joins Active Directory (+ Hybrid Entra Join) or Joins Entra ID
+* Joins Active Directory (+ Hybrid Entra Join) or Joins Entra ID (+ MDM / Intune join)
 * Downloads Microsoft Remote Desktop Broker and Boot Agents
 * Retrieves / Generates an AVD Host Pool Token using secretless authentication (Session Hosts inherit a User-Assigned Managed Identity)
 * Installs Microsoft Agents and joins the AVD host pool
 
 
 
-### AVD-EntraReg.ps1
+### AVD-EntraReg2.ps1
 
-If the Scale Set is configured to join Active Directory, AVD-EntraReg.ps1 is downloaded with AVD-Turbo5.ps1. AVD-Turbo will create a Scheduled Task, which calls AVD-EntraReg.ps1, to Hybrid Join Entra on the next system restart.
+If the Scale Set is configured to join Active Directory, AVD-EntraReg.ps2 is downloaded with AVD-Turbo6.ps1. AVD-Turbo will create a Scheduled Task, which calls AVD-EntraReg2.ps1, to Hybrid Join Entra and optionally join MDM / Intune on the next system restart.
 
 
 
